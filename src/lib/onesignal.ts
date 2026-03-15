@@ -13,6 +13,9 @@ export async function initOneSignal() {
     allowLocalhostAsSecureOrigin: true,
     notifyButton: {
       enable: false,
+      prenotify: false,
+      showCredit: false,
+      text: {},
     },
     serviceWorkerParam: { scope: "/" },
   })
