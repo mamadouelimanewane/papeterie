@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import SessionProvider from "@/components/layout/SessionProvider"
 import OneSignalProvider from "@/components/providers/OneSignalProvider"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -15,9 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <body className={`${inter.className} antialiased bg-gray-50`}>
-        <SessionProvider>
-          <OneSignalProvider>{children}</OneSignalProvider>
-        </SessionProvider>
+        <OneSignalProvider>{children}</OneSignalProvider>
       </body>
     </html>
   )

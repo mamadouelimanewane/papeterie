@@ -2,12 +2,10 @@
 
 import { ArrowLeft, Maximize2, Bell, Globe, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { useState } from "react"
 
 export default function Header() {
   const router = useRouter()
-  const { data: session } = useSession()
   const [lang, setLang] = useState("Français")
 
   return (
@@ -46,7 +44,7 @@ export default function Header() {
           <ChevronDown size={12} />
         </button>
         <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow text-white text-xs font-bold cursor-pointer">
-          {session?.user?.name?.charAt(0) || "M"}
+          M
         </div>
       </div>
     </header>
