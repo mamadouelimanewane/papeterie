@@ -2,20 +2,14 @@
 
 import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Loader2, Store, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react"
+import { Loader2, Store, CheckCircle, AlertCircle, Eye, EyeOff, BookOpen } from "lucide-react"
 
 const mockStores: Record<string, { name: string; email: string; id: number }> = {
-  "1": { id: 1, name: "Marché Dior", email: "Marchedior@gmail.com" },
-  "2": { id: 2, name: "Le Marché des Professionnels", email: "ndugumipro@gmail.com" },
-  "3": { id: 3, name: "Service Traiteur", email: "ndugumitraiteur@gmail.com" },
-  "4": { id: 4, name: "France Mangasin test", email: "ndame.kital@lndugumi.com" },
-  "5": { id: 5, name: "MARCHE RUFISQUE1", email: "marcherufisque1@gmail.com" },
-  "6": { id: 6, name: "Marché Rufisque", email: "marcherufisque25@gmail.com" },
-  "7": { id: 7, name: "Marché Keur Massar", email: "marchekeurmassar@gmail.com" },
+  "1": { id: 1, name: "Mon École", email: "contact@monecole.sn" },
 }
 
 function generateToken(storeId: number, email: string): string {
-  return btoa(`store:${storeId}:${email}:ndugumi2024`).replace(/=/g, "")
+  return btoa(`store:${storeId}:${email}:leluma2024`).replace(/=/g, "")
 }
 
 function validateToken(storeId: string, token: string): boolean {
@@ -61,7 +55,6 @@ function LoginContent() {
     await new Promise(r => setTimeout(r, 1500))
     if (password.length >= 4) {
       router.push(`/merchant/dashboard?store=${storeId || "1"}`)
-      // Note: /merchant/(store)/dashboard est le nouveau backoffice complet
     } else {
       setError("Mot de passe incorrect")
       setLoggingIn(false)
@@ -69,20 +62,20 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500 rounded-2xl shadow-lg mb-4">
-            <Store size={32} className="text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg mb-4">
+            <BookOpen size={32} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">NDUGUMi</h1>
-          <p className="text-gray-500 text-sm mt-1">Espace Vendeur</p>
+          <h1 className="text-2xl font-bold text-gray-800">LELUMA</h1>
+          <p className="text-gray-500 text-sm mt-1">Espace Marchand — Mon École</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {status === "loading" && (
             <div className="p-8 text-center">
-              <Loader2 size={40} className="text-cyan-500 animate-spin mx-auto mb-4" />
+              <Loader2 size={40} className="text-indigo-500 animate-spin mx-auto mb-4" />
               <p className="text-gray-600 font-medium">Vérification du lien...</p>
               <p className="text-gray-400 text-sm mt-1">Patientez quelques instants</p>
             </div>
@@ -94,7 +87,7 @@ function LoginContent() {
               <h2 className="text-lg font-semibold text-gray-800 mb-1">Lien valide ✓</h2>
               <p className="text-gray-500 text-sm">Connexion à <span className="font-medium text-gray-700">{store.name}</span></p>
               <div className="mt-4 flex justify-center">
-                <Loader2 size={20} className="text-cyan-500 animate-spin" />
+                <Loader2 size={20} className="text-indigo-500 animate-spin" />
               </div>
             </div>
           )}
@@ -118,7 +111,7 @@ function LoginContent() {
             <form onSubmit={handleLogin} className="p-6 space-y-4">
               <div className="mb-2">
                 <h2 className="text-lg font-semibold text-gray-800">
-                  {store ? `Connexion — ${store.name}` : "Connexion Vendeur"}
+                  {store ? `Connexion — ${store.name}` : "Connexion Marchand"}
                 </h2>
                 <p className="text-gray-500 text-xs mt-0.5">
                   {store ? store.email : "Entrez vos identifiants"}
@@ -131,8 +124,8 @@ function LoginContent() {
                   type="email"
                   defaultValue={store?.email ?? ""}
                   readOnly={!!store}
-                  className={`w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300 ${store ? "bg-gray-50 text-gray-500" : ""}`}
-                  placeholder="email@magasin.com"
+                  className={`w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 ${store ? "bg-gray-50 text-gray-500" : ""}`}
+                  placeholder="email@boutique.com"
                 />
               </div>
 
@@ -143,7 +136,7 @@ function LoginContent() {
                     type={showPwd ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                    className="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     placeholder="••••••••"
                   />
                   <button
@@ -166,7 +159,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={loggingIn}
-                className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-cyan-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loggingIn ? (
                   <><Loader2 size={16} className="animate-spin" />Connexion...</>
@@ -175,14 +168,14 @@ function LoginContent() {
 
               <p className="text-center text-xs text-gray-400 mt-2">
                 Mot de passe oublié ?{" "}
-                <span className="text-cyan-500 cursor-pointer hover:underline">Contacter l&apos;admin</span>
+                <span className="text-indigo-500 cursor-pointer hover:underline">Contacter l&apos;admin</span>
               </p>
             </form>
           )}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2024 NDUGUMi · Plateforme de livraison
+          © 2026 LELUMA · Plateforme multi-boutiques en ligne
         </p>
       </div>
     </div>
@@ -192,8 +185,8 @@ function LoginContent() {
 export default function MerchantLoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center">
-        <Loader2 size={32} className="text-cyan-500 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center">
+        <Loader2 size={32} className="text-indigo-500 animate-spin" />
       </div>
     }>
       <LoginContent />

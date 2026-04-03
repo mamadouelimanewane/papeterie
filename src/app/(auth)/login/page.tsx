@@ -3,11 +3,10 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("mamadou.dia@ndugumi.com")
+  const [email, setEmail] = useState("admin@leluma.com")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -35,7 +34,7 @@ export default function LoginPage() {
     <div
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        background: "linear-gradient(135deg, #5b6e4a 0%, #8b9e6e 50%, #c9b882 100%)",
+        background: "linear-gradient(135deg, #3b4fa0 0%, #6366f1 50%, #818cf8 100%)",
       }}
     >
       {/* Background pattern overlay */}
@@ -51,13 +50,16 @@ export default function LoginPage() {
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center">
+            <div className="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center border border-indigo-100">
               <div className="text-center">
-                <div className="text-green-600 text-2xl">🌿</div>
-                <div className="text-green-700 font-bold text-xs mt-1">NDUGUMi</div>
+                <div className="text-indigo-600 text-2xl">🎒</div>
+                <div className="text-indigo-700 font-bold text-xs mt-1">LELUMA</div>
               </div>
             </div>
           </div>
+
+          <h2 className="text-center text-gray-700 font-semibold mb-1">Espace Administration</h2>
+          <p className="text-center text-gray-400 text-xs mb-5">Plateforme multi-boutiques LELUMA</p>
 
           {/* Error */}
           {error && (
@@ -73,7 +75,7 @@ export default function LoginPage() {
               placeholder="Adresse e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-gray-50"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm bg-gray-50"
               required
             />
             <input
@@ -81,13 +83,13 @@ export default function LoginPage() {
               placeholder="Mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-gray-50"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm bg-gray-50"
               required
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 text-sm"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 text-sm"
             >
               {loading ? "Connexion en cours..." : "Se connecter"}
             </button>
@@ -96,7 +98,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-white/70 text-xs mt-6">
-          © 2026. Tous droits réservés.
+          © 2026 LELUMA · Plateforme multi-boutiques · Tous droits réservés.
         </p>
       </div>
     </div>

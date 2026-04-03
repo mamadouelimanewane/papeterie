@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "NDUGUMi Driver",
-    "slug": "ndugumi-driver",
+    "name": "LELUMA Livreur",
+    "slug": "leluma-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,25 +9,25 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#6B6BD5"
+      "backgroundColor": "#4F46E5"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ndugumi.driverapp",
+      "bundleIdentifier": "com.leluma.driverapp",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "NDUGUMi Driver utilise votre localisation pour les livraisons.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "NDUGUMi Driver utilise votre localisation en arrière-plan pour le suivi en temps réel.",
-        "NSCameraUsageDescription": "NDUGUMi Driver utilise la caméra pour les documents d'identification.",
-        "NSPhotoLibraryUsageDescription": "NDUGUMi Driver accède à vos photos pour les documents."
+        "NSLocationWhenInUseUsageDescription": "LELUMA Livreur utilise votre localisation pour les livraisons.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "LELUMA Livreur utilise votre localisation en arrière-plan pour le suivi en temps réel.",
+        "NSCameraUsageDescription": "LELUMA Livreur utilise la caméra pour les documents d'identification.",
+        "NSPhotoLibraryUsageDescription": "LELUMA Livreur accède à vos photos pour les documents."
       }
     },
     "android": {
-      "package": "com.ndugumi.driverapp",
+      "package": "com.leluma.driverapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#6B6BD5"
+        "backgroundColor": "#4F46E5"
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
@@ -60,7 +60,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "NDUGUMi Driver utilise votre GPS pour les livraisons en temps réel.",
+          "locationAlwaysAndWhenInUsePermission": "LELUMA Livreur utilise votre GPS pour les livraisons en temps réel.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true
         }
@@ -69,7 +69,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#6B6BD5"
+          "color": "#4F46E5"
         }
       ]
     ],
@@ -81,10 +81,10 @@
               "appExtensions": [
                 {
                   "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.ndugumi.driverapp.OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.leluma.driverapp.OneSignalNotificationServiceExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.ndugumi.driverapp.onesignal"
+                      "group.com.leluma.driverapp.onesignal"
                     ]
                   }
                 }

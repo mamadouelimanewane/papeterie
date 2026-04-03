@@ -57,7 +57,7 @@ model Store {
   walletMoney Float     @default(0)
   status      String    @default("Active")
   serviceArea String?
-  segment     String    @default("GROCERY")
+  segment     String    @default("PAPETERIE")
   totalOrders Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -97,7 +97,7 @@ model Order {
 model Category {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String
-  segment        String   @default("Epicerie")
+  segment        String   @default("Papeterie")
   parentCategory String?
   image          String?
   sequence       Int      @default(1)

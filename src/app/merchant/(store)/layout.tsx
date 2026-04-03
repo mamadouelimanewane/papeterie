@@ -4,43 +4,37 @@ import { Suspense, useState } from "react"
 import { useSearchParams, usePathname } from "next/navigation"
 import Link from "next/link"
 import {
-  LayoutDashboard, ShoppingBag, UtensilsCrossed, Wallet,
-  Star, User, Settings, Bell, LogOut, Menu, X, ChefHat,
-  ChevronDown, ChevronRight
+  LayoutDashboard, ShoppingBag, BookOpen, Wallet,
+  Star, User, Settings, Bell, LogOut, Menu, X,
+  ChevronRight, Package
 } from "lucide-react"
 import { Loader2 } from "lucide-react"
 
 const mockStores: Record<string, { name: string; email: string; slug: string }> = {
-  "1": { name: "Marché Dior", email: "Marchedior@gmail.com", slug: "marche-dior" },
-  "2": { name: "Le Marché des Professionnels", email: "ndugumipro@gmail.com", slug: "marche-pro" },
-  "3": { name: "Service Traiteur", email: "ndugumitraiteur@gmail.com", slug: "service-traiteur" },
-  "4": { name: "France Mangasin test", email: "ndame.kital@lndugumi.com", slug: "france-test" },
-  "5": { name: "MARCHE RUFISQUE1", email: "marcherufisque1@gmail.com", slug: "rufisque-1" },
-  "6": { name: "Marché Rufisque", email: "marcherufisque25@gmail.com", slug: "marche-rufisque" },
-  "7": { name: "Marché Keur Massar", email: "marchekeurmassar@gmail.com", slug: "keur-massar" },
+  "1": { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" },
 }
 
 const navItems = [
   { href: "/merchant/dashboard", icon: LayoutDashboard, label: "Tableau de bord" },
-  { href: "/merchant/orders", icon: ShoppingBag, label: "Commandes", badge: 3 },
-  { href: "/merchant/products", icon: UtensilsCrossed, label: "Catalogue produits" },
-  { href: "/merchant/wallet", icon: Wallet, label: "Portefeuille" },
-  { href: "/merchant/reviews", icon: Star, label: "Évaluations" },
-  { href: "/merchant/profile", icon: User, label: "Profil magasin" },
-  { href: "/merchant/settings", icon: Settings, label: "Paramètres" },
+  { href: "/merchant/orders",    icon: ShoppingBag,     label: "Commandes",        badge: 3 },
+  { href: "/merchant/products",  icon: Package,         label: "Catalogue produits" },
+  { href: "/merchant/wallet",    icon: Wallet,          label: "Portefeuille" },
+  { href: "/merchant/reviews",   icon: Star,            label: "Évaluations" },
+  { href: "/merchant/profile",   icon: User,            label: "Profil boutique" },
+  { href: "/merchant/settings",  icon: Settings,        label: "Paramètres" },
 ]
 
 function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname()
-  const store = mockStores[storeId] ?? { name: "Mon Magasin", email: "", slug: "" }
+  const store = mockStores[storeId] ?? { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" }
 
   return (
-    <aside className={`${mobile ? "w-full" : "w-64"} bg-[#2d3a4a] text-white flex flex-col h-full`}>
+    <aside className={`${mobile ? "w-full" : "w-64"} bg-[#1e2d4a] text-white flex flex-col h-full`}>
       {/* Store header */}
       <div className="px-4 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-amber-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-            🏪
+          <div className="w-11 h-11 bg-indigo-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+            🏫
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-sm truncate">{store.name}</div>
@@ -54,7 +48,12 @@ function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile
         </div>
         <div className="mt-3 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-400"></span>
-          <span className="text-xs text-green-400">En ligne</span>
+          <span className="text-xs text-green-400">Boutique en ligne</span>
+        </div>
+        {/* LELUMA badge */}
+        <div className="mt-2 flex items-center gap-1.5">
+          <BookOpen size={12} className="text-indigo-300" />
+          <span className="text-xs text-indigo-300 font-semibold">LELUMA · Papeterie scolaire</span>
         </div>
       </div>
 
@@ -69,7 +68,7 @@ function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 active
-                  ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/30"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30"
                   : "text-gray-300 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -103,7 +102,7 @@ function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
   const storeId = searchParams.get("store") ?? "1"
-  const store = mockStores[storeId] ?? { name: "Mon Magasin", email: "", slug: "" }
+  const store = mockStores[storeId] ?? { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" }
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -134,15 +133,16 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
             <Menu size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <ChefHat size={20} className="text-cyan-500" />
+            <span className="text-lg">🏫</span>
             <span className="font-semibold text-gray-700 text-sm hidden sm:block">{store.name}</span>
+            <span className="text-xs text-indigo-500 hidden md:block">· LELUMA</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <Bell size={18} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
               {store.name.charAt(0)}
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
   return (
     <Suspense fallback={
       <div className="h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 size={32} className="text-cyan-500 animate-spin" />
+        <Loader2 size={32} className="text-indigo-500 animate-spin" />
       </div>
     }>
       <LayoutContent>{children}</LayoutContent>

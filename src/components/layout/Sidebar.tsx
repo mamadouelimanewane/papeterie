@@ -4,10 +4,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
-  LayoutDashboard, Settings, Tag, Clock, Store, FileText, ShoppingCart,
-  Image, Truck, Car, Users, Megaphone, Wallet, CreditCard, BarChart2,
-  BarChart, ChevronDown, ChevronRight, LogOut, UserCog, Globe, Map,
-  Weight, Bookmark, Bell, DollarSign, Receipt, MapPin, Package,
+  LayoutDashboard, Settings, Tag, Store, FileText, ShoppingCart,
+  Image, Users, Megaphone, Wallet, BarChart2,
+  BarChart, ChevronDown, ChevronRight, LogOut, UserCog, Globe,
+  Bookmark, Bell, DollarSign, Receipt, Package, BookOpen,
+  GraduationCap, ShoppingBag, FolderOpen,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -27,65 +28,56 @@ const navigation: { section: string; items: NavItem[] }[] = [
     ],
   },
   {
-    section: "CONFIGURATION DE BASE",
+    section: "CONFIGURATION",
     items: [
       {
         label: "Configuration", icon: <Settings size={16} />,
         children: [
           { label: "Pays", href: "/countries", icon: <Globe size={14} /> },
-          { label: "Documents", href: "/documents", icon: <FileText size={14} /> },
-          { label: "Type de véhicule", href: "/vehicles", icon: <Car size={14} /> },
-          { label: "Zone de service", href: "/service-areas", icon: <Map size={14} /> },
+          { label: "Zone de service", href: "/service-areas", icon: <Globe size={14} /> },
           { label: "Catégories", href: "/categories", icon: <Tag size={14} /> },
-          { label: "Unité de poids", href: "/weight-units", icon: <Weight size={14} /> },
-          { label: "Marqueurs carte", href: "/map-markers", icon: <MapPin size={14} /> },
-        ],
-      },
-      {
-        label: "Tarification", icon: <CreditCard size={16} />,
-        children: [
-          { label: "Règles tarifaires", href: "/price-card/fare-rules" },
-          { label: "Tarif dynamique", href: "/price-card/surge" },
         ],
       },
       { label: "Codes promo", href: "/promo-code", icon: <Tag size={16} /> },
-      { label: "Créneaux horaires", href: "/service-time-slots", icon: <Clock size={16} /> },
+      { label: "Créneaux de livraison", href: "/service-time-slots", icon: <ShoppingBag size={16} /> },
     ],
   },
   {
-    section: "GESTION ÉPICERIE",
+    section: "GESTION BOUTIQUES",
     items: [
-      { label: "Magasins", href: "/stores", icon: <Store size={16} /> },
-      { label: "Factures commandes", href: "/invoices", icon: <Receipt size={16} /> },
+      { label: "Boutiques", href: "/stores", icon: <Store size={16} /> },
+      { label: "Factures", href: "/invoices", icon: <Receipt size={16} /> },
       { label: "Commandes", href: "/orders", icon: <ShoppingCart size={16} /> },
-      { label: "Slider accueil", href: "/slider", icon: <Image size={16} /> },
+      { label: "Produits", href: "/stores", icon: <Package size={16} /> },
+      { label: "Bannières accueil", href: "/slider", icon: <Image size={16} /> },
     ],
   },
   {
-    section: "GESTION LIVREURS",
+    section: "CATALOGUE SCOLAIRE",
     items: [
       {
-        label: "Livreurs", icon: <Truck size={16} />,
+        label: "Livres scolaires", icon: <BookOpen size={16} />,
         children: [
-          { label: "Tous les livreurs", href: "/drivers" },
-          { label: "Par type de véhicule", href: "/drivers/vehicle-based" },
-          { label: "Approbation en attente", href: "/drivers/pending" },
-          { label: "Livreurs rejetés", href: "/drivers/rejected" },
-          { label: "Expiration documents", href: "/drivers/documents" },
+          { label: "Primaire (CI → CM2)", href: "/categories" },
+          { label: "Collège (6ème → 3ème)", href: "/categories" },
+          { label: "Lycée (2nde → Terminale)", href: "/categories" },
         ],
       },
       {
-        label: "Véhicules", icon: <Car size={16} />,
+        label: "Fournitures", icon: <GraduationCap size={16} />,
         children: [
-          { label: "Tous les véhicules", href: "/vehicles/list" },
-          { label: "Types de véhicules", href: "/vehicles" },
+          { label: "Cahiers & Blocs", href: "/categories" },
+          { label: "Stylos & Crayons", href: "/categories" },
+          { label: "Matériel de géométrie", href: "/categories" },
+          { label: "Art & Créativité", href: "/categories" },
+          { label: "Sacs & Cartables", href: "/categories" },
         ],
       },
       {
-        label: "Carte", icon: <Map size={16} />,
+        label: "Supports de révision", icon: <FolderOpen size={16} />,
         children: [
-          { label: "Carte des livreurs", href: "/map/driver" },
-          { label: "Heat Map", href: "/map/heatmap" },
+          { label: "Annales & Examens", href: "/categories" },
+          { label: "Dictionnaires", href: "/categories" },
         ],
       },
     ],
@@ -93,19 +85,18 @@ const navigation: { section: string; items: NavItem[] }[] = [
   {
     section: "GESTION UTILISATEURS",
     items: [
-      { label: "Utilisateurs", href: "/users", icon: <Users size={16} /> },
+      { label: "Clients", href: "/users", icon: <Users size={16} /> },
     ],
   },
   {
-    section: "AUTRES",
+    section: "CONTENU & MARKETING",
     items: [
       {
         label: "Gestion du contenu", icon: <Bookmark size={16} />,
         children: [
           { label: "Pages", href: "/content/pages" },
           { label: "FAQ", href: "/content/faqs" },
-          { label: "Chaînes application", href: "/content/app-strings" },
-          { label: "Chaînes modules", href: "/content/module-strings" },
+          { label: "Textes application", href: "/content/app-strings" },
           { label: "Options de paiement", href: "/content/payment-options" },
         ],
       },
@@ -114,35 +105,31 @@ const navigation: { section: string; items: NavItem[] }[] = [
     ],
   },
   {
-    section: "GESTION TRANSACTIONS",
+    section: "TRANSACTIONS",
     items: [
       {
         label: "Demandes de retrait", icon: <DollarSign size={16} />,
         children: [
-          { label: "Retrait livreurs", href: "/cashout/drivers" },
-          { label: "Retrait magasins", href: "/cashout/stores" },
+          { label: "Retrait boutiques", href: "/cashout/stores" },
         ],
       },
     ],
   },
   {
-    section: "RAPPORTS & GRAPHIQUES",
+    section: "RAPPORTS",
     items: [
       {
         label: "Revenus", icon: <BarChart2 size={16} />,
         children: [
-          { label: "Gains livreurs", href: "/reports/earnings/drivers" },
-          { label: "Gains magasins", href: "/reports/earnings/stores" },
+          { label: "Gains boutiques", href: "/reports/earnings/stores" },
         ],
       },
-      { label: "Temps en ligne livreurs", href: "/reports/driver-online-time", icon: <Clock size={16} /> },
       {
-        label: "Transactions portefeuille", icon: <BarChart size={16} />,
+        label: "Transactions", icon: <BarChart size={16} />,
         children: [
           { label: "Toutes les transactions", href: "/reports/transactions" },
-          { label: "Portefeuille utilisateurs", href: "/reports/transactions/user" },
-          { label: "Portefeuille livreurs", href: "/reports/transactions/driver" },
-          { label: "Portefeuille commerces", href: "/reports/transactions/business" },
+          { label: "Portefeuille clients", href: "/reports/transactions/user" },
+          { label: "Portefeuille boutiques", href: "/reports/transactions/business" },
           { label: "Rapport de solde", href: "/reports/transactions/balance" },
         ],
       },
@@ -163,17 +150,11 @@ const navigation: { section: string; items: NavItem[] }[] = [
         label: "Paramètres & Config.", icon: <Settings size={16} />,
         children: [
           { label: "Configuration générale", href: "/settings/configuration" },
-          { label: "Config. requêtes", href: "/settings/configuration/request" },
-          { label: "Config. livreurs", href: "/settings/configuration/driver" },
-          { label: "Config. géolocalisation", href: "/settings/configuration/map" },
           { label: "Config. email", href: "/settings/configuration/email" },
           { label: "Modèles email", href: "/settings/configuration/email-templates" },
-          { label: "Types de service", href: "/settings/configuration/service-type" },
           { label: "URLs application", href: "/settings/configuration/app-url" },
           { label: "Push notifications", href: "/settings/configuration/push-notification" },
-          { label: "Motifs d'annulation", href: "/settings/configuration/cancel-reasons" },
           { label: "Méthodes de paiement", href: "/settings/configuration/payment-method" },
-          { label: "Plans d'abonnement", href: "/settings/configuration/membership" },
           { label: "Profil", href: "/settings/profile" },
         ],
       },
@@ -199,7 +180,7 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
           className={cn(
             "w-full flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors",
             depth > 0 ? "pl-8" : "",
-            hasActiveChild ? "text-green-600 bg-green-50" : "text-gray-700 hover:bg-gray-50"
+            hasActiveChild ? "text-indigo-600 bg-indigo-50" : "text-gray-700 hover:bg-gray-50"
           )}
         >
           <span className="flex items-center gap-2">
@@ -226,7 +207,7 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
         "flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors",
         depth > 0 ? "pl-8" : "",
         isActive
-          ? "bg-blue-50 text-blue-600 font-medium"
+          ? "bg-indigo-50 text-indigo-600 font-medium"
           : "text-gray-700 hover:bg-gray-50"
       )}
     >

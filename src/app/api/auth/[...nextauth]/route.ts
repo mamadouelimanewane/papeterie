@@ -14,7 +14,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) return null
 
         // Demo credentials — replace with DB lookup in production
-        const adminEmail = process.env.ADMIN_EMAIL || "mamadou.dia@ndugumi.com"
+        const adminEmail = process.env.ADMIN_EMAIL || "admin@leluma.com"
         const adminPassword = process.env.ADMIN_PASSWORD || "Astelwane"
 
         if (

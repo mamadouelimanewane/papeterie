@@ -15,9 +15,9 @@ export default function Header() {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow">
-            <span className="text-green-600 text-sm font-bold">N</span>
+            <span className="text-indigo-600 text-sm font-bold">L</span>
           </div>
-          <span className="text-white font-bold text-lg tracking-wide">NDUGUMi</span>
+          <span className="text-white font-bold text-lg tracking-wide">LELUMA</span>
         </div>
         <div className="flex items-center gap-1 ml-2">
           <button

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "NDUGUMi",
-    "slug": "ndugumi-user",
+    "name": "LELUMA",
+    "slug": "leluma-user",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,25 +9,25 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2E7D32"
+      "backgroundColor": "#4F46E5"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ndugumi.userapp",
+      "bundleIdentifier": "com.leluma.userapp",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "NDUGUMi utilise votre localisation pour trouver les magasins proches.",
-        "NSLocationAlwaysUsageDescription": "NDUGUMi utilise votre localisation pour le suivi des livraisons.",
-        "NSCameraUsageDescription": "NDUGUMi utilise la caméra pour votre photo de profil.",
-        "NSPhotoLibraryUsageDescription": "NDUGUMi accède à vos photos pour votre photo de profil."
+        "NSLocationWhenInUseUsageDescription": "LELUMA utilise votre localisation pour trouver les boutiques proches.",
+        "NSLocationAlwaysUsageDescription": "LELUMA utilise votre localisation pour le suivi des livraisons.",
+        "NSCameraUsageDescription": "LELUMA utilise la caméra pour votre photo de profil.",
+        "NSPhotoLibraryUsageDescription": "LELUMA accède à vos photos pour votre photo de profil."
       }
     },
     "android": {
-      "package": "com.ndugumi.userapp",
+      "package": "com.leluma.userapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2E7D32"
+        "backgroundColor": "#4F46E5"
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
@@ -55,14 +55,14 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "NDUGUMi utilise votre localisation pour les livraisons."
+          "locationAlwaysAndWhenInUsePermission": "LELUMA utilise votre localisation pour les livraisons."
         }
       ],
       [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#2E7D32"
+          "color": "#4F46E5"
         }
       ]
     ],
@@ -74,10 +74,10 @@
               "appExtensions": [
                 {
                   "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.ndugumi.userapp.OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.leluma.userapp.OneSignalNotificationServiceExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.ndugumi.userapp.onesignal"
+                      "group.com.leluma.userapp.onesignal"
                     ]
                   }
                 }
