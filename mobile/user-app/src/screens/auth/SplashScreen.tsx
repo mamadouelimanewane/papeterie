@@ -22,12 +22,12 @@ export default function SplashScreen({ navigation }: any) {
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🌿</Text>
-          <Text style={styles.logoText}>NDUGUMi</Text>
+          <Text style={styles.logoIcon}>📚</Text>
+          <Text style={styles.logoText}>Papeterie</Text>
         </View>
-        <Text style={styles.tagline}>Produits Frais du Sénégal</Text>
+        <Text style={styles.tagline}>Fournitures Scolaires du Sénégal</Text>
       </Animated.View>
-      <Text style={styles.footer}>© 2026 NDUGUMi. Tous droits réservés.</Text>
+      <Text style={styles.footer}>© 2026 Papeterie. Tous droits réservés.</Text>
     </View>
   )
 }

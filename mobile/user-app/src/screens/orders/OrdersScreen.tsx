@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 
 const MOCK_ORDERS = [
-  { id: "ORD-3253", store: "Marché Keur Massar", items: 3, total: 12500, status: "Livré", date: "15 mars 2026, 10:30", statusColor: COLORS.success, emoji: "✅" },
-  { id: "ORD-3252", store: "Marché Rufisque", items: 2, total: 8750, status: "En cours", date: "15 mars 2026, 09:45", statusColor: COLORS.warning, emoji: "🚴" },
-  { id: "ORD-3251", store: "France Mangasin", items: 1, total: 5200, status: "En attente", date: "15 mars 2026, 09:00", statusColor: COLORS.info, emoji: "⏳" },
-  { id: "ORD-3244", store: "Marché Keur Massar", items: 5, total: 22000, status: "Livré", date: "14 mars 2026, 18:15", statusColor: COLORS.success, emoji: "✅" },
-  { id: "ORD-3240", store: "Service Traiteur", items: 2, total: 9800, status: "Annulé", date: "13 mars 2026, 12:00", statusColor: COLORS.danger, emoji: "❌" },
+  { id: "ORD-3253", store: "Mon École - Plateau", items: 3, total: 12500, status: "Livré", date: "15 mars 2026, 10:30", statusColor: COLORS.success, emoji: "✅" },
+  { id: "ORD-3252", store: "Librairie Papeterie", items: 2, total: 8750, status: "En cours", date: "15 mars 2026, 09:45", statusColor: COLORS.warning, emoji: "🚴" },
+  { id: "ORD-3251", store: "Buro-Center", items: 1, total: 5200, status: "En attente", date: "15 mars 2026, 09:00", statusColor: COLORS.info, emoji: "⏳" },
+  { id: "ORD-3244", store: "Mon École - Plateau", items: 5, total: 22000, status: "Livré", date: "14 mars 2026, 18:15", statusColor: COLORS.success, emoji: "✅" },
+  { id: "ORD-3240", store: "Art & Bureau", items: 2, total: 9800, status: "Annulé", date: "13 mars 2026, 12:00", statusColor: COLORS.danger, emoji: "❌" },
 ]
 
 const TABS = ["Tous", "En cours", "Livré", "Annulé"]

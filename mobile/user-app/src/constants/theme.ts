@@ -1,8 +1,8 @@
 export const COLORS = {
-  primary: "#2E7D32",       // Vert NDUGUMi
-  primaryLight: "#4CAF50",
-  primaryDark: "#1B5E20",
-  secondary: "#FF6F00",     // Orange accent
+  primary: "#1A237E",       // Indigo Papeterie
+  primaryLight: "#3949AB",
+  primaryDark: "#0D47A1",
+  secondary: "#FFD600",     // Gold accent
   accent: "#00ACC1",        // Cyan
   background: "#F5F5F5",
   white: "#FFFFFF",

@@ -81,24 +81,6 @@
               "appExtensions": [
                 {
                   "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.leluma.driverapp.OneSignalNotificationServiceExtension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.leluma.driverapp.onesignal"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.leluma.driverapp.OneSignalNotificationServiceExtension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.leluma.driverapp.onesignal"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "OneSignalNotificationServiceExtension",
                   "bundleIdentifier": "com.papeterie.driverapp.OneSignalNotificationServiceExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [

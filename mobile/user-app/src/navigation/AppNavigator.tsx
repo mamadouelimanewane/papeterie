@@ -57,7 +57,7 @@ function MainTabs() {
       <Tab.Screen
         name="Stores"
         component={HomeScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏪" label="Marchés" focused={focused} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏫" label="Rayons" focused={focused} /> }}
       />
       <Tab.Screen
         name="Cart"

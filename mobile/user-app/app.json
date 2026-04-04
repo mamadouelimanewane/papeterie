@@ -74,24 +74,6 @@
               "appExtensions": [
                 {
                   "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.leluma.userapp.OneSignalNotificationServiceExtension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.leluma.userapp.onesignal"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.leluma.userapp.OneSignalNotificationServiceExtension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.leluma.userapp.onesignal"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "OneSignalNotificationServiceExtension",
                   "bundleIdentifier": "com.papeterie.userapp.OneSignalNotificationServiceExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [

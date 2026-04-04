@@ -12,7 +12,7 @@ const MENU_ITEMS = [
   { icon: "🎁", label: "Mes codes promo", screen: "Promo" },
   { icon: "🤝", label: "Parrainer des amis", screen: "Referral" },
   { icon: "❓", label: "Aide & Support", screen: "Support" },
-  { icon: "ℹ️", label: "À propos de NDUGUMi", screen: "About" },
+  { icon: "ℹ️", label: "À propos de Papeterie", screen: "About" },
 ]
 
 export default function ProfileScreen({ navigation }: any) {
@@ -88,7 +88,7 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={styles.logoutText}>🚪 Se déconnecter</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>NDUGUMi v1.0.0</Text>
+      <Text style={styles.version}>Papeterie v1.0.0</Text>
       <View style={{ height: 40 }} />
     </ScrollView>
   )
