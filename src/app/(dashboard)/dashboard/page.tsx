@@ -26,12 +26,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Bannière de bienvenue */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-2xl p-6 text-white">
-        <div className="flex items-center gap-4">
-          <div className="text-4xl">🎒</div>
+      <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl p-6 text-white shadow-lg border border-indigo-700/30">
+        <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+          <div className="text-4xl filter drop-shadow-md">📚</div>
           <div>
-            <h1 className="text-xl font-bold">Bienvenue sur LELUMA</h1>
-            <p className="text-indigo-100 text-sm mt-0.5">Plateforme multi-boutiques — Boutique active : <strong>Mon École</strong> · Papeterie scolaire en ligne au Sénégal</p>
+            <h1 className="text-xl md:text-2xl font-bold">Bienvenue sur Papeterie</h1>
+            <p className="text-indigo-100 text-xs md:text-sm mt-1 max-w-2xl opacity-90">Plateforme multi-boutiques — Boutique active : <strong>Mon École</strong> · Papeterie & fournitures scolaires au Sénégal</p>
           </div>
         </div>
       </div>
@@ -39,9 +39,9 @@ export default function DashboardPage() {
       {/* Statistiques du site */}
       <section>
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-700">Statistiques globales LELUMA</h2>
+          <h2 className="text-base font-bold text-gray-700 uppercase tracking-tight">Statistiques globales Papeterie</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {siteStats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}

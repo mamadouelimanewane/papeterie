@@ -52,7 +52,7 @@ export default function StoresPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <span className="text-gray-400">🏫</span>
-          <h1 className="text-lg font-semibold text-gray-700">Boutiques LELUMA</h1>
+          <h1 className="text-lg font-semibold text-gray-700">Boutiques Papeterie</h1>
         </div>
         <div className="flex gap-2">
           <Link href="/stores/new">
@@ -70,41 +70,54 @@ export default function StoresPage() {
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4 flex items-center gap-3">
         <span className="text-2xl">🎒</span>
         <div>
-          <p className="text-sm font-semibold text-indigo-800">LELUMA — Plateforme multi-boutiques</p>
+          <p className="text-sm font-semibold text-indigo-800">Papeterie — Plateforme multi-boutiques</p>
           <p className="text-xs text-indigo-600">Actuellement 1 boutique active : <strong>Mon École</strong> — Papeterie & fournitures scolaires en ligne au Sénégal.</p>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
-        <div className="flex flex-wrap gap-3 items-end">
-          <input
-            placeholder="Nom"
-            value={search.name}
-            onChange={(e) => setSearch({ ...search, name: e.target.value })}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-48"
-          />
-          <input
-            placeholder="Email"
-            value={search.email}
-            onChange={(e) => setSearch({ ...search, email: e.target.value })}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-48"
-          />
-          <input
-            placeholder="Téléphone"
-            value={search.phone}
-            onChange={(e) => setSearch({ ...search, phone: e.target.value })}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-40"
-          />
-          <button className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
-            <Search size={16} />
-          </button>
-          <button
-            onClick={() => setSearch({ name: "", email: "", phone: "" })}
-            className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            <RefreshCw size={16} />
-          </button>
+        <div className="flex flex-col md:flex-row flex-wrap gap-3 items-end">
+          <div className="w-full md:w-48">
+            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Nom</label>
+            <input
+              placeholder="Ex: Mon École"
+              value={search.name}
+              onChange={(e) => setSearch({ ...search, name: e.target.value })}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Email</label>
+            <input
+              placeholder="Ex: contact@sn.com"
+              value={search.email}
+              onChange={(e) => setSearch({ ...search, email: e.target.value })}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
+            />
+          </div>
+          <div className="w-full md:w-40">
+            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Téléphone</label>
+            <input
+              placeholder="77..."
+              value={search.phone}
+              onChange={(e) => setSearch({ ...search, phone: e.target.value })}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
+            />
+          </div>
+          <div className="flex gap-2 w-full md:w-auto">
+            <button className="flex-1 md:p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors py-2 px-4 flex items-center justify-center gap-2">
+              <Search size={16} />
+              <span className="md:hidden">Rechercher</span>
+            </button>
+            <button
+              onClick={() => setSearch({ name: "", email: "", phone: "" })}
+              className="flex-1 md:p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors py-2 px-4 flex items-center justify-center gap-2"
+            >
+              <RefreshCw size={16} />
+              <span className="md:hidden">Actualiser</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "@/context/SidebarContext"
 
 type NavItem = {
   label: string
@@ -218,39 +219,64 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
 }
 
 export default function Sidebar() {
-  return (
-    <aside className="w-60 min-h-screen bg-white border-r border-gray-200 flex flex-col">
-      {/* Scrollable nav */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        {navigation.map((group) => (
-          <div key={group.section} className="mb-1">
-            {group.section && (
-              <p className="px-4 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                {group.section}
-              </p>
-            )}
-            {group.items.map((item) => (
-              <NavLink key={item.label} item={item} />
-            ))}
-          </div>
-        ))}
-      </nav>
+  const pathname = usePathname()
+  const { open, setOpen } = useSidebar()
 
-      {/* Bottom icons */}
-      <div className="border-t border-gray-100 p-3 flex items-center justify-around">
-        <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-50">
-          <Settings size={18} />
-        </Link>
-        <Link href="/settings/profile" className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-50">
-          <Users size={18} />
-        </Link>
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="p-2 text-gray-500 hover:text-red-500 rounded-lg hover:bg-red-50"
-        >
-          <LogOut size={18} />
-        </button>
-      </div>
-    </aside>
+  // Auto-close sidebar on mobile when navigating
+  const handleLinkClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setOpen(false)
+    }
+  }
+
+  return (
+    <>
+      {/* Mobile Overlay */}
+      {open && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      <aside className={cn(
+        "fixed md:sticky top-14 left-0 h-[calc(100vh-3.4rem)] bg-white border-r border-gray-200 flex flex-col z-40 transition-all duration-300 ease-in-out overflow-hidden shadow-xl md:shadow-none",
+        open ? "w-64 translate-x-0" : "w-0 -translate-x-full md:w-60 md:translate-x-0"
+      )}>
+        {/* Scrollable nav */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
+          {navigation.map((group) => (
+            <div key={group.section} className="mb-2">
+              {group.section && (
+                <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  {group.section}
+                </p>
+              )}
+              {group.items.map((item) => (
+                <div key={item.label} onClick={item.href ? handleLinkClick : undefined}>
+                  <NavLink item={item} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom icons */}
+        <div className="border-t border-gray-100 p-3 flex items-center justify-around bg-gray-50/50">
+          <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
+            <Settings size={18} />
+          </Link>
+          <Link href="/settings/profile" className="p-2 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
+            <Users size={18} />
+          </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="p-2 text-gray-500 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all shadow-sm border border-transparent hover:border-red-100"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }
