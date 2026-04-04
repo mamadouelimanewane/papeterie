@@ -7,8 +7,12 @@ import {
   Alert,
   ScrollView,
   Linking,
+  Dimensions,
 } from "react-native"
+import MapView, { Marker, Polyline } from "react-native-maps"
 import { useDriverStore } from "../../store/useDriverStore"
+
+const { width } = Dimensions.get("window")
 
 const STEPS = [
   { key: "accepted", label: "Aller au magasin", icon: "🏪", desc: "En route vers le point de collecte" },
@@ -63,11 +67,60 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Map placeholder */}
-      <View style={styles.mapPlaceholder}>
-        <Text style={styles.mapIcon}>🗺️</Text>
-        <Text style={styles.mapText}>Carte GPS</Text>
-        <Text style={styles.mapSub}>Intégration Google Maps / Mapbox</Text>
+      {/* Real MapView */}
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: 14.7167, // Dakar rough coordinates
+            longitude: -17.4677,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+        >
+          {/* Store Marker */}
+          <Marker 
+            coordinate={{ latitude: 14.7167, longitude: -17.4677 }} 
+            title="Point de Collecte" 
+            description={currentOrder.storeAddress}
+          >
+            <View style={[styles.markerBody, { backgroundColor: "#FF9800" }]}>
+              <Text style={{ fontSize: 16 }}>🏪</Text>
+            </View>
+          </Marker>
+
+          {/* Delivery Marker */}
+          <Marker 
+            coordinate={{ latitude: 14.7360, longitude: -17.4580 }} 
+            title="Designation"
+            description={currentOrder.deliveryAddress}
+          >
+            <View style={[styles.markerBody, { backgroundColor: "#6B6BD5" }]}>
+              <Text style={{ fontSize: 16 }}>🏠</Text>
+            </View>
+          </Marker>
+
+          {/* Driver Marker */}
+          <Marker 
+            coordinate={{ latitude: 14.7200, longitude: -17.4600 }} 
+            title="Vous êtes ici"
+          >
+            <View style={[styles.markerBody, { backgroundColor: "#4CAF50" }]}>
+              <Text style={{ fontSize: 16 }}>🛵</Text>
+            </View>
+          </Marker>
+
+          <Polyline
+            coordinates={[
+              { latitude: 14.7167, longitude: -17.4677 },
+              { latitude: 14.7200, longitude: -17.4600 },
+              { latitude: 14.7360, longitude: -17.4580 },
+            ]}
+            strokeColor="#1A237E"
+            strokeWidth={3}
+            lineDashPattern={[5, 5]}
+          />
+        </MapView>
       </View>
 
       {/* Progress */}
@@ -163,15 +216,27 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5FA" },
-  mapPlaceholder: {
-    height: 200,
-    backgroundColor: "#E8EAF6",
+  mapContainer: {
+    height: 250,
+    width: "100%",
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  markerBody: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  mapIcon: { fontSize: 48 },
-  mapText: { fontSize: 16, fontWeight: "600", color: "#555", marginTop: 8 },
-  mapSub: { fontSize: 12, color: "#888", marginTop: 4 },
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",

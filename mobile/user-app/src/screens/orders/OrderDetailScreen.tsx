@@ -1,9 +1,12 @@
 import React, { useState } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Linking,
+  SafeAreaView, Linking, Dimensions,
 } from "react-native"
+import MapView, { Marker, Polyline } from "react-native-maps"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+
+const { width } = Dimensions.get("window")
 
 const STEPS = [
   { id: 1, label: "Commande confirmée", icon: "✅", done: true },
@@ -46,6 +49,44 @@ export default function OrderDetailScreen({ route, navigation }: any) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* MapView at the top */}
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: 14.7167,
+              longitude: -17.4677,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            {/* Delivery Designation */}
+            <Marker coordinate={{ latitude: 14.7360, longitude: -17.4580 }} title="Ma position">
+              <View style={[styles.markerBody, { backgroundColor: "#6B6BD5" }]}>
+                <Text style={{ fontSize: 16 }}>🏠</Text>
+              </View>
+            </Marker>
+
+            {/* Driver Position */}
+            <Marker coordinate={{ latitude: 14.7200, longitude: -17.4600 }} title="Livreur en approche">
+              <View style={[styles.markerBody, { backgroundColor: "#4CAF50" }]}>
+                <Text style={{ fontSize: 16 }}>🛵</Text>
+              </View>
+            </Marker>
+
+            {/* Path */}
+            <Polyline
+              coordinates={[
+                { latitude: 14.7200, longitude: -17.4600 },
+                { latitude: 14.7360, longitude: -17.4580 },
+              ]}
+              strokeColor="#1A237E"
+              strokeWidth={4}
+              lineDashPattern={[5, 3]}
+            />
+          </MapView>
+        </View>
+
         {/* Suivi en temps réel */}
         <View style={styles.trackingCard}>
           <Text style={styles.cardTitle}>🛵 Suivi en temps réel</Text>
@@ -141,6 +182,27 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.text },
   statusBadge: { backgroundColor: "#FFF3E0", borderRadius: RADIUS.round, paddingHorizontal: SPACING.sm, paddingVertical: 4 },
   statusText: { color: "#E65100", fontSize: FONTS.sizes.xs, fontWeight: "700" },
+  mapContainer: {
+    height: 250,
+    width: "100%",
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  markerBody: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
+  },
   card: {
     backgroundColor: COLORS.white, margin: SPACING.md, marginBottom: 0,
     borderRadius: RADIUS.lg, padding: SPACING.lg,
