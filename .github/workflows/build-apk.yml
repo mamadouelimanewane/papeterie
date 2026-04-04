@@ -1,4 +1,4 @@
-name: Build Papeterie APK
+name: Build Papeterie APK (Cloud)
 on:
   push:
     branches:
@@ -9,10 +9,8 @@ on:
 
 jobs:
   build_user_app:
-    name: Build Papeterie User APK
+    name: Build Papeterie User APK (Cloud)
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,13 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+          node-version: 22
 
       - name: Setup EAS CLI
         uses: expo/expo-github-action@v8
@@ -34,26 +26,13 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
+      - name: Build User App (Cloud)
         working-directory: ./mobile/user-app
-        run: |
-          npm install
-
-      - name: Build APK (Local)
-        working-directory: ./mobile/user-app
-        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./papeterie-user.apk
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: papeterie-user-apk
-          path: ./mobile/user-app/papeterie-user.apk
+        run: npx eas-cli build --platform android --profile preview --non-interactive --wait
 
   build_driver_app:
-    name: Build Papeterie Driver APK
+    name: Build Papeterie Driver APK (Cloud)
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,13 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+          node-version: 22
 
       - name: Setup EAS CLI
         uses: expo/expo-github-action@v8
@@ -75,17 +48,6 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
+      - name: Build Driver App (Cloud)
         working-directory: ./mobile/driver-app
-        run: |
-          npm install
-
-      - name: Build APK (Local)
-        working-directory: ./mobile/driver-app
-        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./papeterie-driver.apk
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: papeterie-driver-apk
-          path: ./mobile/driver-app/papeterie-driver.apk
+        run: npx eas-cli build --platform android --profile preview --non-interactive --wait
