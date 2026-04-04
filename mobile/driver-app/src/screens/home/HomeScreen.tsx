@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#6B6BD5",
+    backgroundColor: "#1A237E",
     paddingTop: 55,
     paddingBottom: 20,
     paddingHorizontal: 20,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   section: { marginHorizontal: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 15, fontWeight: "700", color: "#333", marginBottom: 12 },
   activeOrderCard: {
-    backgroundColor: "#6B6BD5",
+    backgroundColor: "#1A237E",
     borderRadius: 14,
     padding: 16,
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     borderLeftWidth: 4,
-    borderLeftColor: "#6B6BD5",
+    borderLeftColor: "#1A237E",
   },
   orderRequestHeader: {
     flexDirection: "row",
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   declineBtnText: { color: "#666", fontWeight: "600", fontSize: 14 },
   acceptBtn: {
     flex: 2,
-    backgroundColor: "#6B6BD5",
+    backgroundColor: "#1A237E",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",

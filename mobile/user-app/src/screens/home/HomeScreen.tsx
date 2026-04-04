@@ -9,27 +9,27 @@ import { useStore } from "../../store/useStore"
 const { width } = Dimensions.get("window")
 
 const BANNERS = [
-  { id: "1", title: "Produits Frais\ndu Sénégal", subtitle: "Livraison en 30 min", bg: "#2E7D32", emoji: "🥬" },
-  { id: "2", title: "Poisson Frais\ndu Jour", subtitle: "-20% sur les produits halieutiques", bg: "#00838F", emoji: "🐟" },
-  { id: "3", title: "Commandez\net Gagnez", subtitle: "Des points de fidélité", bg: "#E65100", emoji: "🎁" },
+  { id: "1", title: "Fournitures\nde Bureau", subtitle: "Livraison express en 1h", bg: "#1A237E", emoji: "🖊️" },
+  { id: "2", title: "Pack Rentrée\nScolaire", subtitle: "-15% sur les listes complètes", bg: "#311B92", emoji: "🎓" },
+  { id: "3", title: "Papeterie de\nLuxe", subtitle: "Carnets et stylos premium", bg: "#4A148C", emoji: "📜" },
 ]
 
 const CATEGORIES = [
-  { id: "1", name: "Légumes", emoji: "🥬", color: "#E8F5E9" },
-  { id: "2", name: "Poisson", emoji: "🐟", color: "#E3F2FD" },
-  { id: "3", name: "Viande", emoji: "🥩", color: "#FCE4EC" },
-  { id: "4", name: "Céréales", emoji: "🌾", color: "#FFF8E1" },
-  { id: "5", name: "Épices", emoji: "🌶️", color: "#FBE9E7" },
-  { id: "6", name: "Prêt Cuisin", emoji: "🍱", color: "#F3E5F5" },
-  { id: "7", name: "Panier", emoji: "🧺", color: "#E8EAF6" },
-  { id: "8", name: "Tout", emoji: "📦", color: "#EFEBE9" },
+  { id: "1", name: "Stylos", emoji: "✒️", color: "#E8EAF6" },
+  { id: "2", name: "Cahiers", emoji: "📓", color: "#EDE7F6" },
+  { id: "3", name: "Papier A4", emoji: "📄", color: "#F3E5F5" },
+  { id: "4", name: "Agendas", emoji: "📅", color: "#E1F5FE" },
+  { id: "5", name: "Dessin", emoji: "🎨", color: "#E0F2F1" },
+  { id: "6", name: "Calculs", emoji: "🧮", color: "#F1F8E9" },
+  { id: "7", name: "Bureautique", emoji: "💻", color: "#F9FBE7" },
+  { id: "8", name: "Archivage", emoji: "📁", color: "#FFF3E0" },
 ]
 
 const STORES = [
-  { id: "1", name: "Marché Keur Massar", area: "Dakar", rating: 4.9, orders: 1240, deliveryTime: "25-40 min", minOrder: 2000, emoji: "🏪", tag: "Populaire" },
-  { id: "2", name: "Marché Rufisque", area: "Rufisque", rating: 4.8, orders: 890, deliveryTime: "30-45 min", minOrder: 1500, emoji: "🛒", tag: null },
-  { id: "3", name: "Service Traiteur", area: "Dakar", rating: 4.7, orders: 345, deliveryTime: "45-60 min", minOrder: 5000, emoji: "🍽️", tag: "Nouveau" },
-  { id: "4", name: "Marché Dior", area: "Dakar", rating: 4.6, orders: 210, deliveryTime: "20-35 min", minOrder: 1000, emoji: "🌿", tag: null },
+  { id: "1", name: "La Grande Papeterie", area: "Plateau, Dakar", rating: 4.9, orders: 1240, deliveryTime: "15-30 min", minOrder: 5000, emoji: "🏢", tag: "Populaire" },
+  { id: "2", name: "Maison du Papier", area: "Almadies", rating: 4.8, orders: 890, deliveryTime: "20-35 min", minOrder: 10000, emoji: "🏪", tag: null },
+  { id: "3", name: "Buro-Center", area: "Hann Maristes", rating: 4.7, orders: 345, deliveryTime: "30-45 min", minOrder: 2500, emoji: "🏫", tag: "Nouveau" },
+  { id: "4", name: "Art & Bureau", area: "Point E", rating: 4.6, orders: 210, deliveryTime: "15-25 min", minOrder: 3000, emoji: "🎨", tag: null },
 ]
 
 export default function HomeScreen({ navigation }: any) {

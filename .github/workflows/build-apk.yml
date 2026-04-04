@@ -1,10 +1,15 @@
-name: Build Android APK (Local)
+name: Build Papeterie APK
 on:
-  workflow_dispatch: # Permet de lancer manuellement le build
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
 
 jobs:
   build_user_app:
-    name: Build User App APK
+    name: Build Papeterie User APK
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
@@ -15,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20 # Utilisation d'une version plus stable
+          node-version: 20
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -32,21 +37,20 @@ jobs:
       - name: Install dependencies
         working-directory: ./mobile/user-app
         run: |
-          rm -f yarn.lock
           npm install
 
       - name: Build APK (Local)
         working-directory: ./mobile/user-app
-        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./ndugumi-user.apk
+        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./papeterie-user.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ndugumi-user-apk
-          path: ./mobile/user-app/ndugumi-user.apk
+          name: papeterie-user-apk
+          path: ./mobile/user-app/papeterie-user.apk
 
   build_driver_app:
-    name: Build Driver App APK
+    name: Build Papeterie Driver APK
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
@@ -74,15 +78,14 @@ jobs:
       - name: Install dependencies
         working-directory: ./mobile/driver-app
         run: |
-          rm -f yarn.lock
           npm install
 
       - name: Build APK (Local)
         working-directory: ./mobile/driver-app
-        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./ndugumi-driver.apk
+        run: npx eas-cli build --platform android --profile preview --local --non-interactive --output=./papeterie-driver.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ndugumi-driver-apk
-          path: ./mobile/driver-app/ndugumi-driver.apk
+          name: papeterie-driver-apk
+          path: ./mobile/driver-app/papeterie-driver.apk

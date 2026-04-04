@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "LELUMA",
-    "slug": "ndugumi-user",
+    "name": "Papeterie",
+    "slug": "papeterie-user",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,17 +13,17 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.leluma.userapp",
+      "bundleIdentifier": "com.papeterie.userapp",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "LELUMA utilise votre localisation pour trouver les boutiques proches.",
-        "NSLocationAlwaysUsageDescription": "LELUMA utilise votre localisation pour le suivi des livraisons.",
-        "NSCameraUsageDescription": "LELUMA utilise la caméra pour votre photo de profil.",
-        "NSPhotoLibraryUsageDescription": "LELUMA accède à vos photos pour votre photo de profil."
+        "NSLocationWhenInUseUsageDescription": "Papeterie utilise votre localisation pour trouver les boutiques proches.",
+        "NSLocationAlwaysUsageDescription": "Papeterie utilise votre localisation pour le suivi des livraisons.",
+        "NSCameraUsageDescription": "Papeterie utilise la caméra pour votre photo de profil.",
+        "NSPhotoLibraryUsageDescription": "Papeterie accède à vos photos pour votre photo de profil."
       }
     },
     "android": {
-      "package": "com.leluma.userapp",
+      "package": "com.papeterie.userapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -55,7 +55,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "LELUMA utilise votre localisation pour les livraisons."
+          "locationAlwaysAndWhenInUsePermission": "Papeterie utilise votre localisation pour les livraisons."
         }
       ],
       [
@@ -80,12 +80,30 @@
                       "group.com.leluma.userapp.onesignal"
                     ]
                   }
+                },
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.leluma.userapp.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.leluma.userapp.onesignal"
+                    ]
+                  }
+                },
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.papeterie.userapp.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.papeterie.userapp.onesignal"
+                    ]
+                  }
                 }
               ]
             }
           }
         },
-        "projectId": "2c813298-042b-4c16-b139-a82c0790dc50"
+        "projectId": "885a2dfd-64b5-479c-a4eb-9908d3401f94"
       }
     },
     "owner": "mamadouelimane"

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "LELUMA Livreur",
-    "slug": "ndugumi-driver",
+    "name": "Papeterie Livreur",
+    "slug": "papeterie-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,17 +13,17 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.leluma.driverapp",
+      "bundleIdentifier": "com.papeterie.driverapp",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "LELUMA Livreur utilise votre localisation pour les livraisons.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "LELUMA Livreur utilise votre localisation en arrière-plan pour le suivi en temps réel.",
-        "NSCameraUsageDescription": "LELUMA Livreur utilise la caméra pour les documents d'identification.",
-        "NSPhotoLibraryUsageDescription": "LELUMA Livreur accède à vos photos pour les documents."
+        "NSLocationWhenInUseUsageDescription": "Papeterie Livreur utilise votre localisation pour les livraisons.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Papeterie Livreur utilise votre localisation en arrière-plan pour le suivi en temps réel.",
+        "NSCameraUsageDescription": "Papeterie Livreur utilise la caméra pour les documents d'identification.",
+        "NSPhotoLibraryUsageDescription": "Papeterie Livreur accède à vos photos pour les documents."
       }
     },
     "android": {
-      "package": "com.leluma.driverapp",
+      "package": "com.papeterie.driverapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -60,7 +60,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "LELUMA Livreur utilise votre GPS pour les livraisons en temps réel.",
+          "locationAlwaysAndWhenInUsePermission": "Papeterie Livreur utilise votre GPS pour les livraisons en temps réel.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true
         }
@@ -87,12 +87,30 @@
                       "group.com.leluma.driverapp.onesignal"
                     ]
                   }
+                },
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.leluma.driverapp.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.leluma.driverapp.onesignal"
+                    ]
+                  }
+                },
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.papeterie.driverapp.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.papeterie.driverapp.onesignal"
+                    ]
+                  }
                 }
               ]
             }
           }
         },
-        "projectId": "16c79e64-3d57-481f-80f9-bf7234ee3fcb"
+        "projectId": "e6039cfa-3344-40f1-bf1e-513525cc4b84"
       }
     },
     "owner": "mamadouelimane"
