@@ -9,27 +9,25 @@ import { useStore } from "../../store/useStore"
 const { width } = Dimensions.get("window")
 
 const BANNERS = [
-  { id: "1", title: "Fournitures\nde Bureau", subtitle: "Livraison express en 1h", bg: "#1A237E", emoji: "🖊️" },
-  { id: "2", title: "Pack Rentrée\nScolaire", subtitle: "-15% sur les listes complètes", bg: "#311B92", emoji: "🎓" },
-  { id: "3", title: "Papeterie de\nLuxe", subtitle: "Carnets et stylos premium", bg: "#4A148C", emoji: "📜" },
+  { id: "1", title: "Livres Scolaires\nMon École", subtitle: "De la maternelle à la terminale", bg: "#1A237E", emoji: "📚" },
+  { id: "2", title: "Prêt pour la\nrentrée ?", subtitle: "Listes complètes disponibles en 1h", bg: "#283593", emoji: "🎒" },
+  { id: "3", title: "Géométrie &\nCalculs", subtitle: "Matériel de précision et calculatrices", bg: "#3949AB", emoji: "📐" },
 ]
 
 const CATEGORIES = [
-  { id: "1", name: "Stylos", emoji: "✒️", color: "#E8EAF6" },
+  { id: "1", name: "Livres", emoji: "📖", color: "#E8EAF6" },
   { id: "2", name: "Cahiers", emoji: "📓", color: "#EDE7F6" },
-  { id: "3", name: "Papier A4", emoji: "📄", color: "#F3E5F5" },
-  { id: "4", name: "Agendas", emoji: "📅", color: "#E1F5FE" },
-  { id: "5", name: "Dessin", emoji: "🎨", color: "#E0F2F1" },
-  { id: "6", name: "Calculs", emoji: "🧮", color: "#F1F8E9" },
-  { id: "7", name: "Bureautique", emoji: "💻", color: "#F9FBE7" },
-  { id: "8", name: "Archivage", emoji: "📁", color: "#FFF3E0" },
+  { id: "3", name: "Stylos", emoji: "🖋️", color: "#F3E5F5" },
+  { id: "4", name: "Géométrie", emoji: "📏", color: "#E1F5FE" },
+  { id: "5", name: "Sacs", emoji: "🎒", color: "#E0F2F1" },
+  { id: "6", name: "Art", emoji: "🎨", color: "#F1F8E9" },
+  { id: "7", name: "Révision", emoji: "📝", color: "#F9FBE7" },
+  { id: "8", name: "Calcul", emoji: "🧮", color: "#FFF3E0" },
 ]
 
 const STORES = [
-  { id: "1", name: "La Grande Papeterie", area: "Plateau, Dakar", rating: 4.9, orders: 1240, deliveryTime: "15-30 min", minOrder: 5000, emoji: "🏢", tag: "Populaire" },
-  { id: "2", name: "Maison du Papier", area: "Almadies", rating: 4.8, orders: 890, deliveryTime: "20-35 min", minOrder: 10000, emoji: "🏪", tag: null },
-  { id: "3", name: "Buro-Center", area: "Hann Maristes", rating: 4.7, orders: 345, deliveryTime: "30-45 min", minOrder: 2500, emoji: "🏫", tag: "Nouveau" },
-  { id: "4", name: "Art & Bureau", area: "Point E", rating: 4.6, orders: 210, deliveryTime: "15-25 min", minOrder: 3000, emoji: "🎨", tag: null },
+  { id: "1", name: "Mon École - Plateau", area: "Dakar Plateau", rating: 4.9, orders: 1248, deliveryTime: "15-30 min", minOrder: 5000, emoji: "🏫", tag: "Principal" },
+  { id: "2", name: "Librairie Papeterie", area: "Dakar Centre", rating: 4.8, orders: 2150, deliveryTime: "20-35 min", minOrder: 3000, emoji: "📚", tag: "Populaire" },
 ]
 
 export default function HomeScreen({ navigation }: any) {
