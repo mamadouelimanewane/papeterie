@@ -1,13 +1,14 @@
 import React, { useState } from "react"
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+import { Ionicons } from "@expo/vector-icons"
 
 const MOCK_ORDERS = [
-  { id: "ORD-3253", store: "Mon École - Plateau", items: 3, total: 12500, status: "Livré", date: "15 mars 2026, 10:30", statusColor: COLORS.success, emoji: "✅" },
-  { id: "ORD-3252", store: "Librairie Papeterie", items: 2, total: 8750, status: "En cours", date: "15 mars 2026, 09:45", statusColor: COLORS.warning, emoji: "🚴" },
-  { id: "ORD-3251", store: "Buro-Center", items: 1, total: 5200, status: "En attente", date: "15 mars 2026, 09:00", statusColor: COLORS.info, emoji: "⏳" },
-  { id: "ORD-3244", store: "Mon École - Plateau", items: 5, total: 22000, status: "Livré", date: "14 mars 2026, 18:15", statusColor: COLORS.success, emoji: "✅" },
-  { id: "ORD-3240", store: "Art & Bureau", items: 2, total: 9800, status: "Annulé", date: "13 mars 2026, 12:00", statusColor: COLORS.danger, emoji: "❌" },
+  { id: "ORD-3253", store: "Mon École - Plateau", items: 3, total: 12500, status: "Livré", date: "15 mars 2026, 10:30", statusColor: COLORS.success, icon: "checkmark-circle" },
+  { id: "ORD-3252", store: "Librairie Papeterie", items: 2, total: 8750, status: "En cours", date: "15 mars 2026, 09:45", statusColor: COLORS.warning, icon: "bicycle" },
+  { id: "ORD-3251", store: "Buro-Center", items: 1, total: 5200, status: "En attente", date: "15 mars 2026, 09:00", statusColor: COLORS.info, icon: "time" },
+  { id: "ORD-3244", store: "Mon École - Plateau", items: 5, total: 22000, status: "Livré", date: "14 mars 2026, 18:15", statusColor: COLORS.success, icon: "checkmark-circle" },
+  { id: "ORD-3240", store: "Art & Bureau", items: 2, total: 9800, status: "Annulé", date: "13 mars 2026, 12:00", statusColor: COLORS.danger, icon: "close-circle" },
 ]
 
 const TABS = ["Tous", "En cours", "Livré", "Annulé"]
@@ -18,6 +19,10 @@ export default function OrdersScreen({ navigation }: any) {
   const filtered = MOCK_ORDERS.filter(
     (o) => activeTab === "Tous" || o.status.includes(activeTab.replace("En cours", "En"))
   )
+
+  const handleDev = () => {
+    Alert.alert("En développement", "Cette fonctionnalité sera bientôt disponible !")
+  }
 
   return (
     <View style={styles.container}>
@@ -53,7 +58,7 @@ export default function OrdersScreen({ navigation }: any) {
                 <Text style={styles.orderId}>{item.id}</Text>
                 <View style={[styles.statusBadge, { backgroundColor: item.statusColor + "20" }]}>
                   <Text style={[styles.statusText, { color: item.statusColor }]}>
-                    {item.emoji} {item.status}
+                    <Ionicons name={item.icon as any} size={12} color={item.statusColor} /> {item.status}
                   </Text>
                 </View>
               </View>
@@ -63,20 +68,20 @@ export default function OrdersScreen({ navigation }: any) {
             <View style={styles.divider} />
 
             <View style={styles.orderBody}>
-              <Text style={styles.storeName}>🏪 {item.store}</Text>
+              <Text style={styles.storeName}><Ionicons name="business" size={14} /> {item.store}</Text>
               <Text style={styles.orderItems}>{item.items} article{item.items > 1 ? "s" : ""}</Text>
             </View>
 
             <View style={styles.orderFooter}>
               <Text style={styles.orderTotal}>{item.total.toLocaleString()} FCFA</Text>
               {item.status === "Livré" && (
-                <TouchableOpacity style={styles.reorderBtn}>
-                  <Text style={styles.reorderText}>↺ Recommander</Text>
+                <TouchableOpacity style={styles.reorderBtn} onPress={handleDev}>
+                  <Text style={styles.reorderText}><Ionicons name="refresh" size={12} /> Recommander</Text>
                 </TouchableOpacity>
               )}
               {item.status === "En cours" && (
-                <TouchableOpacity style={styles.trackBtn}>
-                  <Text style={styles.trackText}>📍 Suivre</Text>
+                <TouchableOpacity style={styles.trackBtn} onPress={handleDev}>
+                  <Text style={styles.trackText}><Ionicons name="location" size={12} /> Suivre</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -84,7 +89,7 @@ export default function OrdersScreen({ navigation }: any) {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📦</Text>
+            <Ionicons name="cube-outline" size={60} color={COLORS.grayMedium} />
             <Text style={styles.emptyText}>Aucune commande</Text>
             <Text style={styles.emptySubtext}>Vos commandes apparaîtront ici</Text>
           </View>

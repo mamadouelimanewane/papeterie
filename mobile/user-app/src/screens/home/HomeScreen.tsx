@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  FlatList, Dimensions, Image, TextInput,
+  FlatList, Dimensions, Image, TextInput, Alert,
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { Ionicons } from "@expo/vector-icons"
 
 const { width } = Dimensions.get("window")
 
@@ -37,25 +38,29 @@ export default function HomeScreen({ navigation }: any) {
   const cartCount = useStore((s) => s.cartCount)()
   const unreadCount = useStore((s) => s.unreadCount)
 
+  const handleDev = () => {
+    Alert.alert("En développement", "Cette fonctionnalité sera bientôt disponible !")
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Bonjour, {user?.name?.split(" ")[0] || "Bienvenue"} 👋</Text>
-          <TouchableOpacity style={styles.locationRow}>
-            <Text style={styles.locationIcon}>📍</Text>
+          <TouchableOpacity style={styles.locationRow} onPress={handleDev}>
+            <Ionicons name="location" size={14} color={COLORS.primary} />
             <Text style={styles.locationText}>Dakar, Sénégal</Text>
-            <Text style={styles.locationChevron}>▼</Text>
+            <Ionicons name="chevron-down" size={12} color={COLORS.primary} style={{ marginLeft: 2 }} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate("Notifications")}>
-            <Text style={styles.iconBtnIcon}>🔔</Text>
+            <Ionicons name="notifications" size={20} color={COLORS.primary} />
             {unreadCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{unreadCount}</Text></View>}
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate("Cart")}>
-            <Text style={styles.iconBtnIcon}>🛒</Text>
+            <Ionicons name="cart" size={20} color={COLORS.primary} />
             {cartCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{cartCount}</Text></View>}
           </TouchableOpacity>
         </View>
@@ -65,7 +70,7 @@ export default function HomeScreen({ navigation }: any) {
         {/* Search */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
-            <Text style={styles.searchIcon}>🔍</Text>
+            <Ionicons name="search" size={18} color={COLORS.gray} />
             <TextInput
               style={styles.searchInput}
               placeholder="Rechercher produits, marchés..."
@@ -74,8 +79,8 @@ export default function HomeScreen({ navigation }: any) {
               placeholderTextColor={COLORS.gray}
             />
           </View>
-          <TouchableOpacity style={styles.filterBtn}>
-            <Text>⚙️</Text>
+          <TouchableOpacity style={styles.filterBtn} onPress={handleDev}>
+            <Ionicons name="options" size={20} color={COLORS.white} />
           </TouchableOpacity>
         </View>
 
@@ -93,7 +98,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.bannerContent}>
                 <Text style={styles.bannerTitle}>{item.title}</Text>
                 <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-                <TouchableOpacity style={styles.bannerBtn}>
+                <TouchableOpacity style={styles.bannerBtn} onPress={handleDev}>
                   <Text style={styles.bannerBtnText}>Commander →</Text>
                 </TouchableOpacity>
               </View>
@@ -112,7 +117,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Catégories</Text>
-            <TouchableOpacity><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
+            <TouchableOpacity onPress={handleDev}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
           </View>
           <FlatList
             data={CATEGORIES}
@@ -121,7 +126,7 @@ export default function HomeScreen({ navigation }: any) {
             keyExtractor={(i) => i.id}
             contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}
             renderItem={({ item }) => (
-              <TouchableOpacity style={[styles.categoryCard, { backgroundColor: item.color }]}>
+              <TouchableOpacity style={[styles.categoryCard, { backgroundColor: item.color }]} onPress={handleDev}>
                 <Text style={styles.categoryEmoji}>{item.emoji}</Text>
                 <Text style={styles.categoryName}>{item.name}</Text>
               </TouchableOpacity>
@@ -156,11 +161,11 @@ export default function HomeScreen({ navigation }: any) {
                       </View>
                     )}
                   </View>
-                  <Text style={styles.storeArea}>📍 {store.area}</Text>
+                  <Text style={styles.storeArea}><Ionicons name="location" size={10} /> {store.area}</Text>
                   <View style={styles.storeStats}>
-                    <Text style={styles.storeRating}>⭐ {store.rating}</Text>
+                    <Text style={styles.storeRating}><Ionicons name="star" size={10} color={COLORS.secondary} /> {store.rating}</Text>
                     <Text style={styles.storeSep}>·</Text>
-                    <Text style={styles.storeDelivery}>🕐 {store.deliveryTime}</Text>
+                    <Text style={styles.storeDelivery}><Ionicons name="time" size={10} /> {store.deliveryTime}</Text>
                     <Text style={styles.storeSep}>·</Text>
                     <Text style={styles.storeMin}>Min: {store.minOrder.toLocaleString()} FCFA</Text>
                   </View>

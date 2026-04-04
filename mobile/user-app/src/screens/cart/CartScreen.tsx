@@ -4,6 +4,8 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { Ionicons } from "@expo/vector-icons"
+import { ordersAPI } from "../../services/api"
 
 export default function CartScreen({ navigation }: any) {
   const cart = useStore((s) => s.cart)
@@ -16,24 +18,36 @@ export default function CartScreen({ navigation }: any) {
   const FREE_DELIVERY_THRESHOLD = 10000
   const deliveryFee = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
 
-  function handleCheckout() {
-    Alert.alert(
-      "Confirmer la commande",
-      `Total : ${(cartTotal + deliveryFee).toLocaleString()} FCFA`,
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Commander", onPress: () => {
-          clearCart()
-          navigation.navigate("Orders")
-        }},
-      ]
-    )
+  const handleCheckout = async () => {
+    try {
+      const orderData = {
+        storeId: cart[0]?.storeId || "640000000000000000000000", // Fallback ID for Prisma
+        total: cartTotal + deliveryFee,
+        items: cart,
+        address: "123 Client Address",
+      }
+      
+      const res = await ordersAPI.create(orderData)
+      
+      Alert.alert(
+        "Commande confirmée",
+        `ID: ${res.data.orderId}\nTotal : ${(cartTotal + deliveryFee).toLocaleString()} FCFA`,
+        [
+          { text: "OK", onPress: () => {
+            clearCart()
+            navigation.navigate("Orders")
+          }},
+        ]
+      )
+    } catch (error: any) {
+      Alert.alert("Erreur", error.message || "Impossible de passer la commande")
+    }
   }
 
   if (cart.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyEmoji}>🛒</Text>
+        <Ionicons name="cart-outline" size={80} color={COLORS.grayMedium} />
         <Text style={styles.emptyTitle}>Votre panier est vide</Text>
         <Text style={styles.emptySubtext}>Ajoutez des produits pour commencer</Text>
         <TouchableOpacity style={styles.shopBtn} onPress={() => navigation.navigate("Home")}>
@@ -47,7 +61,7 @@ export default function CartScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Mon Panier ({cart.length})</Text>
         <TouchableOpacity onPress={clearCart}>
@@ -58,7 +72,7 @@ export default function CartScreen({ navigation }: any) {
       {/* Store name */}
       {cart.length > 0 && (
         <View style={styles.storeBanner}>
-          <Text style={styles.storeText}>🏪 {cart[0].storeName}</Text>
+          <Text style={styles.storeText}><Ionicons name="business" size={14} /> {cart[0].storeName}</Text>
         </View>
       )}
 
@@ -69,7 +83,7 @@ export default function CartScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <View style={styles.cartItem}>
             <View style={styles.itemImagePlaceholder}>
-              <Text style={{ fontSize: 30 }}>📦</Text>
+              <Ionicons name="cube-outline" size={30} color={COLORS.grayMedium} />
             </View>
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{item.name}</Text>
@@ -104,7 +118,7 @@ export default function CartScreen({ navigation }: any) {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Livraison</Text>
           <Text style={[styles.summaryValue, deliveryFee === 0 && { color: COLORS.success }]}>
-            {deliveryFee === 0 ? "Gratuit 🎉" : `${deliveryFee.toLocaleString()} FCFA`}
+            {deliveryFee === 0 ? <><Ionicons name="sparkles" size={12} /> Gratuit</> : `${deliveryFee.toLocaleString()} FCFA`}
           </Text>
         </View>
         {cartTotal < FREE_DELIVERY_THRESHOLD && (

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Switch,
 } from "react-native"
 import { useDriverStore } from "../../store/useDriverStore"
+import { Ionicons } from "@expo/vector-icons"
 
 export default function HomeScreen({ navigation }: any) {
   const {
@@ -21,9 +22,21 @@ export default function HomeScreen({ navigation }: any) {
     todayEarnings,
     todayOrders,
     acceptOrder,
+    fetchOrders,
   } = useDriverStore()
 
-  const handleAccept = (order: any) => {
+  useEffect(() => {
+    if (isOnline) {
+      fetchOrders()
+      const interval = setInterval(fetchOrders, 3000) // Poll every 3 seconds
+      return () => clearInterval(interval)
+    }
+  }, [isOnline])
+
+  const handleAccept = async (order: any) => {
+    // Optionally alert the database too, but the store handles mock state for now.
+    // If you want to sync ACCEPT with backend:
+    // await ordersAPI.accept(order.id)
     acceptOrder(order)
     navigation.navigate("ActiveDelivery")
   }
@@ -40,8 +53,8 @@ export default function HomeScreen({ navigation }: any) {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Bonjour, {driver?.name?.split(" ")[0]} 👋</Text>
-          <Text style={styles.subGreeting}>{driver?.vehicleType} · ⭐ {driver?.rating}</Text>
+          <Text style={styles.greeting}>Bonjour, {driver?.name?.split(" ")[0]} <Ionicons name="hand-right" size={18} color="#FFD600" /></Text>
+          <Text style={styles.subGreeting}>{driver?.vehicleType} · <Ionicons name="star" size={12} color="#FFD600" /> {driver?.rating}</Text>
         </View>
         <View style={styles.onlineToggle}>
           <Text style={[styles.onlineLabel, { color: isOnline ? "#4CAF50" : "#999" }]}>
@@ -58,7 +71,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Online status banner */}
       <View style={[styles.statusBanner, { backgroundColor: isOnline ? "#E8F5E9" : "#F5F5F5" }]}>
-        <Text style={styles.statusIcon}>{isOnline ? "🟢" : "⚫"}</Text>
+        <Ionicons name="ellipse" size={12} color={isOnline ? "#4CAF50" : "#999"} />
         <Text style={[styles.statusText, { color: isOnline ? "#2E7D32" : "#777" }]}>
           {isOnline
             ? "Vous êtes en ligne — les commandes vous seront attribuées"
@@ -78,7 +91,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{driver?.rating}</Text>
-          <Text style={styles.statLabel}>Note ⭐</Text>
+          <Text style={styles.statLabel}>Note <Ionicons name="star" size={10} color="#FFD600" /></Text>
         </View>
       </View>
 
@@ -99,13 +112,13 @@ export default function HomeScreen({ navigation }: any) {
               </View>
             </View>
             <View style={styles.routeRow}>
-              <Text style={styles.routeIcon}>📦</Text>
+              <Ionicons name="cube" size={16} color="#fff" />
               <Text style={styles.routeAddress} numberOfLines={1}>
                 {currentOrder.storeAddress}
               </Text>
             </View>
             <View style={styles.routeRow}>
-              <Text style={styles.routeIcon}>📍</Text>
+              <Ionicons name="location" size={16} color="#fff" />
               <Text style={styles.routeAddress} numberOfLines={1}>
                 {currentOrder.deliveryAddress}
               </Text>
@@ -126,17 +139,17 @@ export default function HomeScreen({ navigation }: any) {
                 <Text style={styles.orderRequestEarning}>+{order.earnings} FCFA</Text>
               </View>
               <View style={styles.routeRow}>
-                <Text style={styles.routeIcon}>🏪</Text>
+                <Ionicons name="business" size={16} color="#1A237E" />
                 <Text style={styles.routeText}>{order.storeAddress}</Text>
               </View>
               <View style={styles.routeRow}>
-                <Text style={styles.routeIcon}>🏠</Text>
+                <Ionicons name="home" size={16} color="#1A237E" />
                 <Text style={styles.routeText}>{order.deliveryAddress}</Text>
               </View>
               <View style={styles.orderMeta}>
-                <Text style={styles.metaItem}>👤 {order.customerName}</Text>
-                <Text style={styles.metaItem}>📦 {order.items} articles</Text>
-                <Text style={styles.metaItem}>📏 {order.distance}</Text>
+                <Text style={styles.metaItem}><Ionicons name="person" size={12} /> {order.customerName}</Text>
+                <Text style={styles.metaItem}><Ionicons name="cube" size={12} /> {order.items} articles</Text>
+                <Text style={styles.metaItem}><Ionicons name="navigate" size={12} /> {order.distance}</Text>
               </View>
               <View style={styles.orderActions}>
                 <TouchableOpacity
@@ -160,7 +173,7 @@ export default function HomeScreen({ navigation }: any) {
       {/* Empty state */}
       {isOnline && pendingOrders.length === 0 && !currentOrder && (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🔍</Text>
+          <Ionicons name="search" size={48} color="#ccc" style={{ marginBottom: 16 }} />
           <Text style={styles.emptyTitle}>En attente de commandes...</Text>
           <Text style={styles.emptySubtitle}>Vous recevrez une notification dès qu'une commande est disponible</Text>
         </View>

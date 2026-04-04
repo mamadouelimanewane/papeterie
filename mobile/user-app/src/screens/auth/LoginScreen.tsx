@@ -5,6 +5,7 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { Ionicons } from "@expo/vector-icons"
 
 export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState("")
@@ -32,7 +33,7 @@ export default function LoginScreen({ navigation }: any) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoIcon}>📚</Text>
+            <Ionicons name="book" size={42} color={COLORS.primary} />
             <Text style={styles.logoTextGreen}>PAPETERIE</Text>
           </View>
           <Text style={styles.title}>Bienvenue !</Text>
@@ -67,8 +68,8 @@ export default function LoginScreen({ navigation }: any) {
                 secureTextEntry={!showPassword}
                 placeholderTextColor={COLORS.gray}
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Text>{showPassword ? "🙈" : "👁️"}</Text>
+               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color={COLORS.gray} />
               </TouchableOpacity>
             </View>
           </View>
@@ -96,7 +97,7 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <TouchableOpacity style={styles.phoneOtpBtn}>
-            <Text style={styles.phoneOtpText}>📱 Connexion par SMS OTP</Text>
+            <Text style={styles.phoneOtpText}><Ionicons name="phone-portrait" size={18} /> Connexion par SMS OTP</Text>
           </TouchableOpacity>
         </View>
 

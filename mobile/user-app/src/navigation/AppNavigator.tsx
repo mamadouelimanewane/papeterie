@@ -6,6 +6,7 @@ import { Text, View } from "react-native"
 import { COLORS, FONTS } from "../constants/theme"
 import { useStore } from "../store/useStore"
 
+import { Ionicons } from "@expo/vector-icons"
 // Screens
 import SplashScreen from "../screens/auth/SplashScreen"
 import LoginScreen from "../screens/auth/LoginScreen"
@@ -17,14 +18,15 @@ import ProfileScreen from "../screens/profile/ProfileScreen"
 import NotificationsScreen from "../screens/notifications/NotificationsScreen"
 import WalletScreen from "../screens/wallet/WalletScreen"
 import OrderDetailScreen from "../screens/orders/OrderDetailScreen"
+import StoreDetailScreen from "../screens/stores/StoreDetailScreen"
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
-function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
+function TabIcon({ icon, label, focused }: { icon: any; label: string; focused: boolean }) {
   return (
     <View style={{ alignItems: "center", gap: 2 }}>
-      <Text style={{ fontSize: focused ? 24 : 22 }}>{emoji}</Text>
+      <Ionicons name={focused ? icon : `${icon}-outline`} size={focused ? 24 : 22} color={focused ? COLORS.primary : COLORS.gray} />
       <Text style={{ fontSize: 10, fontWeight: focused ? "700" : "500", color: focused ? COLORS.primary : COLORS.gray }}>
         {label}
       </Text>
@@ -52,12 +54,12 @@ function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Accueil" focused={focused} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="home" label="Accueil" focused={focused} /> }}
       />
       <Tab.Screen
         name="Stores"
         component={HomeScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏫" label="Rayons" focused={focused} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="business" label="Rayons" focused={focused} /> }}
       />
       <Tab.Screen
         name="Cart"
@@ -65,7 +67,7 @@ function MainTabs() {
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={{ position: "relative" }}>
-              <TabIcon emoji="🛒" label="Panier" focused={focused} />
+              <TabIcon icon="cart" label="Panier" focused={focused} />
               {cartCount > 0 && (
                 <View style={{
                   position: "absolute", top: -4, right: -8,
@@ -82,12 +84,12 @@ function MainTabs() {
       <Tab.Screen
         name="Orders"
         component={OrdersScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📦" label="Commandes" focused={focused} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="cube" label="Commandes" focused={focused} /> }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Profil" focused={focused} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="person" label="Profil" focused={focused} /> }}
       />
     </Tab.Navigator>
   )
@@ -111,7 +113,7 @@ function AppStack() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Wallet" component={WalletScreen} />
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
-      <Stack.Screen name="StoreDetail" component={HomeScreen} />
+      <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
     </Stack.Navigator>
   )
 }

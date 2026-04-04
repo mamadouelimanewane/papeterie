@@ -5,6 +5,7 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { Ionicons } from "@expo/vector-icons"
 
 export default function RegisterScreen({ navigation }: any) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" })
@@ -26,7 +27,7 @@ export default function RegisterScreen({ navigation }: any) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Retour</Text>
+          <Text style={styles.backText}><Ionicons name="arrow-back" size={20} /> Retour</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Créer un compte</Text>
@@ -34,16 +35,16 @@ export default function RegisterScreen({ navigation }: any) {
 
         <View style={styles.form}>
           {[
-            { key: "name", label: "Nom complet", placeholder: "Fatou Diallo", icon: "👤" },
-            { key: "phone", label: "Téléphone", placeholder: "+221 77 000 00 00", icon: "📱", keyboardType: "phone-pad" },
-            { key: "email", label: "Email (optionnel)", placeholder: "fatou@gmail.com", icon: "✉️", keyboardType: "email-address" },
-            { key: "password", label: "Mot de passe", placeholder: "••••••••", icon: "🔒", secure: true },
-            { key: "confirmPassword", label: "Confirmer le mot de passe", placeholder: "••••••••", icon: "🔒", secure: true },
+            { key: "name", label: "Nom complet", placeholder: "Fatou Diallo", icon: "person" },
+            { key: "phone", label: "Téléphone", placeholder: "+221 77 000 00 00", icon: "phone-portrait", keyboardType: "phone-pad" },
+            { key: "email", label: "Email (optionnel)", placeholder: "fatou@gmail.com", icon: "mail", keyboardType: "email-address" },
+            { key: "password", label: "Mot de passe", placeholder: "••••••••", icon: "lock-closed", secure: true },
+            { key: "confirmPassword", label: "Confirmer le mot de passe", placeholder: "••••••••", icon: "lock-closed", secure: true },
           ].map(({ key, label, placeholder, icon, keyboardType, secure }: any) => (
             <View key={key} style={styles.inputGroup}>
               <Text style={styles.label}>{label}</Text>
               <View style={styles.inputRow}>
-                <Text style={styles.icon}>{icon}</Text>
+                <Ionicons name={icon as any} size={18} color={COLORS.gray} style={{ marginRight: SPACING.sm }} />
                 <TextInput
                   style={styles.input}
                   placeholder={placeholder}

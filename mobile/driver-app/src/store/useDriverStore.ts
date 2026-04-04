@@ -42,7 +42,11 @@ interface DriverStore {
   todayEarnings: number
   todayOrders: number
   addEarning: (amount: number) => void
+
+  fetchOrders: () => Promise<void>
 }
+
+import { ordersAPI } from "../services/api"
 
 export const useDriverStore = create<DriverStore>((set, get) => ({
   driver: null,
@@ -98,4 +102,15 @@ export const useDriverStore = create<DriverStore>((set, get) => ({
   todayEarnings: 3200,
   todayOrders: 4,
   addEarning: (amount) => set({ todayEarnings: get().todayEarnings + amount }),
+
+  fetchOrders: async () => {
+    try {
+      const res = await ordersAPI.getAvailable()
+      if (res.data && Array.isArray(res.data)) {
+        set({ pendingOrders: res.data })
+      }
+    } catch (e) {
+      console.log("Error fetching orders", e)
+    }
+  }
 }))

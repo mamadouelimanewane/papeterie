@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { Text, View, StyleSheet } from "react-native"
 import { useDriverStore } from "../store/useDriverStore"
+import { Ionicons } from "@expo/vector-icons"
 
 // Auth screens
 import SplashScreen from "../screens/auth/SplashScreen"
@@ -21,10 +22,14 @@ import NotificationsScreen from "../screens/notifications/NotificationsScreen"
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
-function TabIcon({ icon, label, focused }: { icon: string; label: string; focused: boolean }) {
+function TabIcon({ icon, label, focused }: { icon: any; label: string; focused: boolean }) {
   return (
     <View style={styles.tabIcon}>
-      <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>{icon}</Text>
+      <Ionicons
+        name={focused ? icon : `${icon}-outline`}
+        size={22}
+        color={focused ? "#1A237E" : "#999"}
+      />
       <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
     </View>
   )
@@ -43,28 +48,28 @@ function MainTabs({ navigation }: any) {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="🏠" label="Accueil" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="home" label="Accueil" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Orders"
         component={OrdersScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="📦" label="Commandes" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="cube" label="Commandes" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Earnings"
         component={EarningsScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="💰" label="Gains" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="cash" label="Gains" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="👤" label="Profil" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="person" label="Profil" focused={focused} />,
         }}
       />
     </Tab.Navigator>
@@ -146,8 +151,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   tabIcon: { alignItems: "center" },
-  tabEmoji: { fontSize: 22, opacity: 0.5 },
-  tabEmojiActive: { opacity: 1 },
   tabLabel: { fontSize: 10, color: "#999", marginTop: 3 },
-  tabLabelActive: { color: "#6B6BD5", fontWeight: "600" },
+  tabLabelActive: { color: "#1A237E", fontWeight: "600" },
 })

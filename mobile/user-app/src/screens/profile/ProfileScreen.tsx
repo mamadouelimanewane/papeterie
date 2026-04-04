@@ -2,17 +2,18 @@ import React from "react"
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { Ionicons } from "@expo/vector-icons"
 
 const MENU_ITEMS = [
-  { icon: "📦", label: "Mes commandes", screen: "Orders" },
-  { icon: "💳", label: "Mon portefeuille", screen: "Wallet" },
-  { icon: "🔔", label: "Notifications", screen: "Notifications" },
-  { icon: "📍", label: "Mes adresses", screen: "Addresses" },
-  { icon: "⭐", label: "Mes avis", screen: "Reviews" },
-  { icon: "🎁", label: "Mes codes promo", screen: "Promo" },
-  { icon: "🤝", label: "Parrainer des amis", screen: "Referral" },
-  { icon: "❓", label: "Aide & Support", screen: "Support" },
-  { icon: "ℹ️", label: "À propos de Papeterie", screen: "About" },
+  { icon: "cube", label: "Mes commandes", screen: "Orders" },
+  { icon: "card", label: "Mon portefeuille", screen: "Wallet" },
+  { icon: "notifications", label: "Notifications", screen: "Notifications" },
+  { icon: "location", label: "Mes adresses", screen: "Addresses" },
+  { icon: "star", label: "Mes avis", screen: "Reviews" },
+  { icon: "gift", label: "Mes codes promo", screen: "Promo" },
+  { icon: "people", label: "Parrainer des amis", screen: "Referral" },
+  { icon: "help-circle", label: "Aide & Support", screen: "Support" },
+  { icon: "information-circle", label: "À propos de Papeterie", screen: "About" },
 ]
 
 export default function ProfileScreen({ navigation }: any) {
@@ -38,8 +39,8 @@ export default function ProfileScreen({ navigation }: any) {
           <Text style={styles.userPhone}>{user?.phone || "+221 77 000 00 00"}</Text>
           <Text style={styles.userEmail}>{user?.email || "email@example.com"}</Text>
         </View>
-        <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate("EditProfile")}>
-          <Text style={styles.editBtnText}>✏️ Modifier</Text>
+        <TouchableOpacity style={styles.editBtn} onPress={() => Alert.alert("En développement", "Cette fonctionnalité sera bientôt disponible !")}>
+          <Text style={styles.editBtnText}><Ionicons name="create-outline" size={12} /> Modifier</Text>
         </TouchableOpacity>
       </View>
 
@@ -74,18 +75,25 @@ export default function ProfileScreen({ navigation }: any) {
           <TouchableOpacity
             key={item.label}
             style={[styles.menuItem, i < MENU_ITEMS.length - 1 && styles.menuItemBorder]}
-            onPress={() => navigation.navigate(item.screen)}
+            onPress={() => {
+              const availableScreens = ["Orders", "Wallet", "Notifications"]
+              if (availableScreens.includes(item.screen)) {
+                navigation.navigate(item.screen)
+              } else {
+                Alert.alert("En développement", "Cette fonctionnalité sera bientôt disponible !")
+              }
+            }}
           >
-            <Text style={styles.menuIcon}>{item.icon}</Text>
+            <Ionicons name={item.icon as any} size={22} color={COLORS.primary} style={{ width: 28 }} />
             <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.menuChevron}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>🚪 Se déconnecter</Text>
+        <Text style={styles.logoutText}><Ionicons name="log-out" size={18} /> Se déconnecter</Text>
       </TouchableOpacity>
 
       <Text style={styles.version}>Papeterie v1.0.0</Text>
