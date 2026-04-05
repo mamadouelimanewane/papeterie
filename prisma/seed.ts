@@ -121,7 +121,7 @@ async function main() {
         }
       })
       console.log(`- Created/Updated driver: ${d.email}`)
-    } catch (e) {
+    } catch (e: any) {
       console.error(`- Error seeding driver ${d.email}:`, e.message)
     }
   }
