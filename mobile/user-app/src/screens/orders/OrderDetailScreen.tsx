@@ -33,7 +33,7 @@ export default function OrderDetailScreen({ route, navigation }: any) {
       phone: "+221 77 000 00 01", 
       rating: 4.9, 
       vehicle: "Moto — DK 1234 AB",
-      avatar: { uri: "https://ui-avatars.com/api/?name=Mamadou+Lamine&background=4A148C&color=fff&size=200" }
+      avatar: { uri: "https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=200&h=200&fit=crop" }
     },
     items: [
       { name: "Cahier 200 pages", qty: 2, price: 1500 },
