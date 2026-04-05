@@ -1,6 +1,7 @@
 import axios from "axios"
+import * as SecureStore from "expo-secure-store"
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie.vercel.app/api"
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -11,7 +12,6 @@ export const api = axios.create({
 // Inject auth token automatically
 api.interceptors.request.use(async (config) => {
   try {
-    const SecureStore = await import("expo-secure-store")
     const token = await SecureStore.getItemAsync("user_token")
     if (token) config.headers.Authorization = `Bearer ${token}`
   } catch {}
@@ -21,7 +21,7 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    const msg = err.response?.data?.message || "Erreur réseau"
+    const msg = err.response?.data?.error || err.response?.data?.message || "Erreur réseau (Serveur introuvable)"
     return Promise.reject(new Error(msg))
   }
 )
