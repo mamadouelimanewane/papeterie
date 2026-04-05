@@ -6,8 +6,8 @@ import OneSignalProvider from "@/components/providers/OneSignalProvider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "LELUMA Admin",
-  description: "Plateforme LELUMA — Backoffice Administration",
+  title: "Papeterie Admin",
+  description: "Plateforme Papeterie — Backoffice Administration",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
