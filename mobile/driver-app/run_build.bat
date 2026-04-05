@@ -1,0 +1,3 @@
+@echo off
+echo Building Driver APK locally (Free mode)...
+npx eas-cli build --platform android --profile preview --local --non-interactive
