@@ -1,10 +1,10 @@
-"use client"
-
 import React, { useEffect, useRef } from "react"
 import { View, Text, StyleSheet, Animated, Dimensions } from "react-native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { COLORS, FONTS } from "../../constants/theme"
+import { Ionicons } from "@expo/vector-icons"
 
-const { width, height } = Dimensions.get("window")
+const { width } = Dimensions.get("window")
 
 type Props = {
   navigation: NativeStackNavigationProp<any>
@@ -24,7 +24,7 @@ export default function SplashScreen({ navigation }: Props) {
       }),
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 600,
+        duration: 800,
         useNativeDriver: true,
       }),
     ]).start()
@@ -39,13 +39,16 @@ export default function SplashScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { transform: [{ scale }], opacity }]}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoIcon}>🚗</Text>
+        <View style={styles.logoBox}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="book" size={50} color={COLORS.primary} style={styles.bookIcon} />
+            <Ionicons name="create" size={30} color={COLORS.secondary} style={styles.penIcon} />
+          </View>
+          <Text style={styles.logoText}>Papeterie</Text>
         </View>
-        <Text style={styles.appName}>NDUGUMi</Text>
-        <Text style={styles.tagline}>Driver App</Text>
+        <Text style={styles.tagline}>Espace Livreur</Text>
       </Animated.View>
-      <Text style={styles.version}>v1.0.0</Text>
+      <Text style={styles.version}>v1.0.0-PROD</Text>
     </View>
   )
 }
@@ -53,35 +56,45 @@ export default function SplashScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#6B6BD5",
+    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   logoContainer: {
     alignItems: "center",
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  logoBox: {
+    width: 140,
+    height: 140,
+    backgroundColor: COLORS.white,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    marginBottom: 24,
   },
-  logoIcon: {
-    fontSize: 48,
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
   },
-  appName: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: 2,
+  bookIcon: { marginRight: -12 },
+  penIcon: { transform: [{ rotate: "45deg" }] },
+  logoText: {
+    color: COLORS.primary,
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginTop: 4,
   },
   tagline: {
-    fontSize: 16,
-    color: "rgba(255,255,255,0.85)",
-    marginTop: 8,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
     letterSpacing: 1,
   },
   version: {

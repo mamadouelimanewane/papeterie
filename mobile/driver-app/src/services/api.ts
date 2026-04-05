@@ -29,8 +29,8 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────────────────
 export const authAPI = {
-  login: (email: string, password: string) =>
-    api.post("/driver/login", { email, password }),
+  login: (data: { email?: string; phone?: string; password?: string }) =>
+    api.post("/driver/login", data),
   getProfile: () => api.get("/driver/profile"),
   updateProfile: (data: any) => api.put("/driver/profile", data),
   updateLocation: (lat: number, lng: number) =>

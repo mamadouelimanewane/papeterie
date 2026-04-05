@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native"
 import { useDriverStore } from "../../store/useDriverStore"
+import { COLORS } from "../../constants/theme"
 
 const MENU_ITEMS = [
   { icon: "📄", label: "Mes documents", screen: "Documents" },
@@ -16,7 +17,7 @@ const MENU_ITEMS = [
   { icon: "🔔", label: "Notifications", screen: null },
   { icon: "🔒", label: "Changer le mot de passe", screen: null },
   { icon: "⭐", label: "Mes avis clients", screen: null },
-  { icon: "📞", label: "Support NDUGUMi", screen: null },
+  { icon: "📞", label: "Support Papeterie", screen: null },
   { icon: "📋", label: "Conditions générales", screen: null },
 ]
 
@@ -100,7 +101,7 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={styles.logoutText}>🚪 Se déconnecter</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>NDUGUMi Driver v1.0.0</Text>
+      <Text style={styles.version}>Papeterie Livreur v1.0.0-PROD</Text>
       <View style={{ height: 100 }} />
     </ScrollView>
   )
@@ -109,7 +110,7 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5FA" },
   header: {
-    backgroundColor: "#6B6BD5",
+    backgroundColor: COLORS.primary,
     paddingTop: 55,
     paddingBottom: 30,
     alignItems: "center",
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   walletLabel: { fontSize: 12, color: "rgba(255,255,255,0.6)" },
   walletBalance: { fontSize: 22, fontWeight: "700", color: "#fff", marginTop: 4 },
   withdrawBtn: {
-    backgroundColor: "#6B6BD5",
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,

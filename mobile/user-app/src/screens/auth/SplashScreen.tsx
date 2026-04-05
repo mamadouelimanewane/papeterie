@@ -1,6 +1,7 @@
 import React, { useEffect } from "react"
 import { View, Text, StyleSheet, Animated, Dimensions } from "react-native"
 import { COLORS, FONTS } from "../../constants/theme"
+import { Ionicons } from "@expo/vector-icons"
 
 const { width, height } = Dimensions.get("window")
 
@@ -22,10 +23,13 @@ export default function SplashScreen({ navigation }: any) {
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>📚</Text>
+          <View style={styles.iconContainer}>
+            <Ionicons name="book" size={50} color={COLORS.primary} style={styles.bookIcon} />
+            <Ionicons name="create" size={30} color={COLORS.secondary} style={styles.penIcon} />
+          </View>
           <Text style={styles.logoText}>Papeterie</Text>
         </View>
-        <Text style={styles.tagline}>Fournitures Scolaires du Sénégal</Text>
+        <Text style={styles.tagline}>Fournitures Scolaires & Bureau</Text>
       </Animated.View>
       <Text style={styles.footer}>© 2026 Papeterie. Tous droits réservés.</Text>
     </View>
@@ -54,6 +58,13 @@ const styles = StyleSheet.create({
     elevation: 12,
     marginBottom: 20,
   },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
+  },
+  bookIcon: { marginRight: -12 },
+  penIcon: { transform: [{ rotate: "45deg" }] },
   logoIcon: { fontSize: 48 },
   logoText: {
     color: COLORS.primary,

@@ -88,6 +88,44 @@ async function main() {
     await prisma.sliderBanner.create({ data: b })
   }
 
+  // 5. Admin Account
+  const adminPassword = await import("bcryptjs").then(b => b.default.hash("admin123", 10))
+  await prisma.admin.upsert({
+    where: { email: "admin@papeterie.sn" },
+    update: { password: adminPassword },
+    create: {
+      name: "Super Admin Papeterie",
+      email: "admin@papeterie.sn",
+      password: adminPassword,
+      role: "Admin",
+    }
+  })
+
+  // 6. Drivers
+  const driverPassword = await import("bcryptjs").then(b => b.default.hash("driver123", 10))
+  const drivers = [
+    { name: "Moussa Driver", email: "moussa@papeterie.sn", phone: "771234567" },
+    { name: "Fatou Delivery", email: "fatou@papeterie.sn", phone: "778901234" },
+  ]
+
+  for (const d of drivers) {
+    try {
+      await prisma.driver.upsert({
+        where: { email: d.email },
+        update: { password: driverPassword },
+        create: {
+          ...d,
+          password: driverPassword,
+          status: "Online",
+          serviceArea: "Dakar",
+        }
+      })
+      console.log(`- Created/Updated driver: ${d.email}`)
+    } catch (e) {
+      console.error(`- Error seeding driver ${d.email}:`, e.message)
+    }
+  }
+
   console.log("✅ Seeding completed !")
 }
 

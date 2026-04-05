@@ -1,9 +1,9 @@
 export const COLORS = {
-  primary: "#1A237E",       // Indigo Papeterie
-  primaryLight: "#3949AB",
-  primaryDark: "#0D47A1",
+  primary: "#4A148C",       // Violet Papeterie
+  primaryLight: "#7B1FA2",
+  primaryDark: "#311B92",
   secondary: "#FFD600",     // Gold accent
-  accent: "#00ACC1",
+  accent: "#8E24AA",
   background: "#F5F5F5",
   white: "#FFFFFF",
   black: "#1A1A1A",

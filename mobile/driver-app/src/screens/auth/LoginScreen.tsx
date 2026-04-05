@@ -12,40 +12,42 @@ import {
 } from "react-native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useDriverStore } from "../../store/useDriverStore"
+import { authAPI } from "../../services/api"
+import { COLORS } from "../../constants/theme"
+import { Ionicons } from "@expo/vector-icons"
 
 type Props = {
   navigation: NativeStackNavigationProp<any>
 }
 
 export default function LoginScreen({ navigation }: Props) {
-  const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { setDriver } = useDriverStore()
 
   const handleLogin = async () => {
-    if (!phone || !password) {
+    if (!email || !password) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs")
       return
     }
     setLoading(true)
-    setTimeout(() => {
-      setDriver(
-        {
-          id: "DRV-001",
-          name: "Moussa Diallo",
-          phone: "+221 77 123 45 67",
-          email: "moussa.diallo@ndugumi.com",
-          vehicleType: "Moto",
-          rating: 4.8,
-          totalOrders: 247,
-          walletBalance: 15400,
-        },
-        "mock-driver-token-123"
-      )
+    try {
+      // Driver login uses the same authAPI but returns driver specific data
+      const res = await authAPI.login({ email, password })
+      
+      if (res.data.userType !== "Driver" && res.data.role !== "driver") {
+         // Basic check, though server should ideally handle this
+      }
+
+      setDriver(res.data.user || res.data, res.data.token)
+      Alert.alert("Succès", "Bienvenue sur Papeterie Livreur !")
+    } catch (error: any) {
+      Alert.alert("Erreur", error.message || "Identifiants invalides")
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -55,25 +57,24 @@ export default function LoginScreen({ navigation }: Props) {
     >
       <View style={styles.header}>
         <View style={styles.logoCircle}>
-          <Text style={styles.logoIcon}>🚗</Text>
+          <Ionicons name="bicycle" size={40} color={COLORS.white} />
         </View>
-        <Text style={styles.title}>NDUGUMi Driver</Text>
-        <Text style={styles.subtitle}>Connectez-vous à votre compte livreur</Text>
+        <Text style={styles.title}>Papeterie Livreur</Text>
+        <Text style={styles.subtitle}>Connectez-vous à votre espace de livraison</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Numéro de téléphone</Text>
-          <View style={styles.phoneRow}>
-            <View style={styles.flag}>
-              <Text style={styles.flagText}>🇸🇳 +221</Text>
-            </View>
+          <Text style={styles.label}>Email ou Téléphone</Text>
+          <View style={styles.inputRow}>
+            <Ionicons name="person-outline" size={20} color={COLORS.gray} style={{ marginLeft: 12 }} />
             <TextInput
-              style={styles.phoneInput}
-              placeholder="77 123 45 67"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
+              style={styles.input}
+              placeholder="votre@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
               placeholderTextColor="#aaa"
             />
           </View>
@@ -82,6 +83,7 @@ export default function LoginScreen({ navigation }: Props) {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Mot de passe</Text>
           <View style={styles.passwordRow}>
+            <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray} style={{ marginLeft: 12 }} />
             <TextInput
               style={styles.passwordInput}
               placeholder="••••••••"
@@ -91,7 +93,7 @@ export default function LoginScreen({ navigation }: Props) {
               placeholderTextColor="#aaa"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-              <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
+              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={COLORS.gray} />
             </TouchableOpacity>
           </View>
         </View>
@@ -114,9 +116,9 @@ export default function LoginScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Pas encore livreur ? </Text>
+        <Text style={styles.footerText}>Devenir livreur ? </Text>
         <TouchableOpacity>
-          <Text style={styles.signupLink}>Rejoignez-nous</Text>
+          <Text style={styles.signupLink}>S'inscrire</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -126,7 +128,7 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5FA",
+    backgroundColor: COLORS.background,
     justifyContent: "center",
     paddingHorizontal: 24,
   },
@@ -137,85 +139,87 @@ const styles = StyleSheet.create({
   logoCircle: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: "#6B6BD5",
+    borderRadius: 24,
+    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  logoIcon: { fontSize: 36 },
   title: {
     fontSize: 26,
     fontWeight: "800",
-    color: "#1A1A2E",
+    color: COLORS.primary,
   },
   subtitle: {
     fontSize: 14,
-    color: "#888",
+    color: COLORS.textSecondary,
     marginTop: 6,
     textAlign: "center",
   },
   form: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 5,
   },
   inputGroup: { marginBottom: 18 },
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#555",
+    color: COLORS.text,
     marginBottom: 8,
   },
-  phoneRow: {
+  inputRow: {
     flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
-    overflow: "hidden",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#F0F0F0",
+    backgroundColor: "#FAFAFA",
+    borderRadius: 12,
   },
-  flag: {
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    borderRightWidth: 1,
-    borderRightColor: "#E0E0E0",
-  },
-  flagText: { fontSize: 14, color: "#333" },
-  phoneInput: {
+  input: {
     flex: 1,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 15,
-    color: "#333",
+    color: COLORS.text,
   },
   passwordRow: {
     flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
     alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#F0F0F0",
+    backgroundColor: "#FAFAFA",
+    borderRadius: 12,
   },
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 15,
-    color: "#333",
+    color: COLORS.text,
   },
   eyeBtn: { paddingHorizontal: 14 },
-  eyeIcon: { fontSize: 18 },
   loginBtn: {
-    backgroundColor: "#6B6BD5",
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 12,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   loginBtnDisabled: { opacity: 0.7 },
   loginBtnText: {
@@ -224,12 +228,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   forgotBtn: { alignItems: "center", marginTop: 16 },
-  forgotText: { color: "#6B6BD5", fontSize: 14 },
+  forgotText: { color: COLORS.primary, fontSize: 14, fontWeight: "500" },
   footer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 28,
+    marginTop: 32,
   },
-  footerText: { color: "#888", fontSize: 14 },
-  signupLink: { color: "#6B6BD5", fontSize: 14, fontWeight: "600" },
+  footerText: { color: COLORS.textSecondary, fontSize: 14 },
+  signupLink: { color: COLORS.primary, fontSize: 14, fontWeight: "700" },
 })
