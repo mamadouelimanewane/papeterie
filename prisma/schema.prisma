@@ -1,52 +1,72 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       Int      @unique
+  id           String        @id @default(cuid())
+  userId       Int           @unique @default(autoincrement())
   name         String
   phone        String?
-  email        String   @unique
-  walletMoney  Float    @default(0)
-  userType     String   @default("Retail")
-  signupType   String   @default("App/Admin")
-  signupFrom   String   @default("Application")
+  email        String        @unique
+  password     String?
+  walletMoney  Float         @default(0)
+  userType     String        @default("Retail")
+  signupType   String        @default("App/Admin")
+  signupFrom   String        @default("Application")
   country      String?
-  status       String   @default("Active")
-  registeredAt DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  status       String        @default("Active")
+  registeredAt DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
 }
 
 model Driver {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  driverId       Int      @unique
+  id             String           @id @default(cuid())
+  driverId       Int              @unique @default(autoincrement())
   name           String
   phone          String?
-  email          String   @unique
+  email          String           @unique
+  password       String?
   serviceArea    String?
   country        String?
-  totalOrders    Int      @default(0)
-  rating         Float    @default(0)
-  earning        Float    @default(0)
-  walletMoney    Float    @default(0)
-  status         String   @default("Offline")
-  approvalStatus String   @default("Approved")
+  totalOrders    Int              @default(0)
+  rating         Float            @default(0)
+  earning        Float            @default(0)
+  walletMoney    Float            @default(0)
+  status         String           @default("Offline")
+  approvalStatus String           @default("Approved")
   lastLocation   String?
   vehicleType    String?
-  registeredAt   DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  deviceToken    String?
+  deviceType     String?
+  appVersion     String?
+  registeredAt   DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  orders         Order[]
+  transactions   Transaction[]
+  documents      DriverDocument[]
+}
+
+model DriverDocument {
+  id        String   @id @default(cuid())
+  driverId  String
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  type      String
+  label     String
+  fileUrl   String?
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Store {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(cuid())
   name        String
   phone       String?
   email       String    @unique
@@ -66,36 +86,45 @@ model Store {
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(cuid())
   name        String
   description String?
   price       Float
   image       String?
   status      String   @default("Active")
   category    String?
-  storeId     String   @db.ObjectId
-  store       Store    @relation(fields: [storeId], references: [id])
+  stock       Int      @default(0)
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Order {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String   @unique
-  storeId   String   @db.ObjectId
-  store     Store    @relation(fields: [storeId], references: [id])
-  userId    String?
-  driverId  String?
-  total     Float
-  status    String   @default("Pending")
-  items     Json
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  storeId       String
+  store         Store    @relation(fields: [storeId], references: [id])
+  userId        String?
+  driverId      String?
+  driver        Driver?  @relation(fields: [driverId], references: [id])
+  total         Float
+  subtotal      Float    @default(0)
+  deliveryFee   Float    @default(500)
+  status        String   @default("Pending")
+  paymentMethod String   @default("Cash")
+  paymentStatus String   @default("En attente")
+  earning       Float    @default(0)
+  items         Json
+  address       String?
+  invoiceId     String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Category {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(cuid())
   name           String
   segment        String   @default("Papeterie")
   parentCategory String?
@@ -107,7 +136,7 @@ model Category {
 }
 
 model PromoCode {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String    @id @default(cuid())
   code      String    @unique
   discount  Float
   type      String    @default("Percentage")
@@ -120,15 +149,16 @@ model PromoCode {
 }
 
 model Country {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   name      String
   code      String   @unique
+  flag      String?
   status    String   @default("Active")
   createdAt DateTime @default(now())
 }
 
 model ServiceArea {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   name      String
   country   String
   status    String   @default("Active")
@@ -136,7 +166,7 @@ model ServiceArea {
 }
 
 model Vehicle {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   name      String
   image     String?
   status    String   @default("Active")
@@ -144,7 +174,7 @@ model Vehicle {
 }
 
 model SliderBanner {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   title     String?
   image     String
   link      String?
@@ -154,28 +184,34 @@ model SliderBanner {
 }
 
 model Notification {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String    @id @default(cuid())
   title     String
   message   String
   target    String    @default("All")
+  imageUrl  String?
   sentAt    DateTime?
   status    String    @default("Draft")
   createdAt DateTime  @default(now())
 }
 
 model Transaction {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(cuid())
   userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
   driverId    String?
+  driver      Driver?  @relation(fields: [driverId], references: [id])
+  storeId     String?
   amount      Float
   type        String
+  method      String   @default("Cash")
   description String?
+  receiptNo   String?
   status      String   @default("Completed")
   createdAt   DateTime @default(now())
 }
 
 model Admin {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   name      String
   email     String   @unique
   password  String
@@ -183,4 +219,61 @@ model Admin {
   status    String   @default("Active")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FareRule {
+  id          String   @id @default(cuid())
+  name        String
+  baseFare    Float    @default(0)
+  perKm       Float    @default(0)
+  minFare     Float    @default(0)
+  serviceArea String?
+  vehicleType String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SurgePricing {
+  id          String   @id @default(cuid())
+  name        String
+  multiplier  Float    @default(1.5)
+  startTime   String
+  endTime     String
+  daysOfWeek  Json     @default("[]")
+  serviceArea String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ServiceTimeSlot {
+  id         String   @id @default(cuid())
+  label      String
+  startTime  String
+  endTime    String
+  daysOfWeek Json     @default("[0,1,2,3,4,5,6]")
+  maxOrders  Int?
+  status     String   @default("Active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model CancelReason {
+  id        String   @id @default(cuid())
+  reason    String
+  userType  String   @default("All")
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+}
+
+model MapMarker {
+  id          String   @id @default(cuid())
+  label       String
+  lat         Float
+  lng         Float
+  type        String   @default("store")
+  description String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
 }

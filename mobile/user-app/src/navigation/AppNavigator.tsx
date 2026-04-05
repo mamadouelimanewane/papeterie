@@ -19,6 +19,8 @@ import NotificationsScreen from "../screens/notifications/NotificationsScreen"
 import WalletScreen from "../screens/wallet/WalletScreen"
 import OrderDetailScreen from "../screens/orders/OrderDetailScreen"
 import StoreDetailScreen from "../screens/stores/StoreDetailScreen"
+import SearchScreen from "../screens/home/SearchScreen"
+
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -114,7 +116,9 @@ function AppStack() {
       <Stack.Screen name="Wallet" component={WalletScreen} />
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
       <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} />
     </Stack.Navigator>
+
   )
 }
 

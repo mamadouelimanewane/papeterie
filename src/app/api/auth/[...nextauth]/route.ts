@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 const handler = NextAuth({
@@ -13,32 +14,42 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // Demo credentials — replace with DB lookup in production
-        const adminEmail = process.env.ADMIN_EMAIL || "admin@leluma.com"
-        const adminPassword = process.env.ADMIN_PASSWORD || "Astelwane"
+        // Check env-based super admin first (no DB required for initial setup)
+        const adminEmail = process.env.ADMIN_EMAIL
+        const adminPassword = process.env.ADMIN_PASSWORD
 
-        if (
-          credentials.email === adminEmail &&
-          credentials.password === adminPassword
-        ) {
-          return {
-            id: "1",
-            name: "Mamadou Dia",
-            email: adminEmail,
-            role: "admin",
+        if (adminEmail && adminPassword) {
+          if (
+            credentials.email === adminEmail &&
+            credentials.password === adminPassword
+          ) {
+            return { id: "admin-env", name: "Admin", email: adminEmail, role: "admin" }
           }
         }
-        return null
+
+        // Check DB admins
+        try {
+          const admin = await prisma.admin.findUnique({
+            where: { email: credentials.email },
+          })
+          if (!admin || admin.status !== "Active") return null
+          const valid = await bcrypt.compare(credentials.password, admin.password)
+          if (!valid) return null
+          return { id: admin.id, name: admin.name, email: admin.email, role: admin.role }
+        } catch {
+          // DB not yet configured — fall through
+          return null
+        }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = (user as any).role
+      if (user) token.role = user.role
       return token
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).role = token.role
+      if (session.user) session.user.role = token.role
       return session
     },
   },

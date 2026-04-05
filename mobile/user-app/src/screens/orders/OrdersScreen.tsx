@@ -1,22 +1,55 @@
-import React, { useState } from "react"
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react-native"
-import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+import { useStore } from "../../store/useStore"
+import { ordersAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
-
-const MOCK_ORDERS = [
-  { id: "ORD-3253", store: "Mon École - Plateau", items: 3, total: 12500, status: "Livré", date: "15 mars 2026, 10:30", statusColor: COLORS.success, icon: "checkmark-circle" },
-  { id: "ORD-3252", store: "Librairie Papeterie", items: 2, total: 8750, status: "En cours", date: "15 mars 2026, 09:45", statusColor: COLORS.warning, icon: "bicycle" },
-  { id: "ORD-3251", store: "Buro-Center", items: 1, total: 5200, status: "En attente", date: "15 mars 2026, 09:00", statusColor: COLORS.info, icon: "time" },
-  { id: "ORD-3244", store: "Mon École - Plateau", items: 5, total: 22000, status: "Livré", date: "14 mars 2026, 18:15", statusColor: COLORS.success, icon: "checkmark-circle" },
-  { id: "ORD-3240", store: "Art & Bureau", items: 2, total: 9800, status: "Annulé", date: "13 mars 2026, 12:00", statusColor: COLORS.danger, icon: "close-circle" },
-]
+import React, { useState, useEffect } from "react"
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
+import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 
 const TABS = ["Tous", "En cours", "Livré", "Annulé"]
 
 export default function OrdersScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState("Tous")
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const user = useStore((s) => s.user)
 
-  const filtered = MOCK_ORDERS.filter(
+  useEffect(() => {
+    if (user) loadOrders()
+  }, [user])
+
+  async function loadOrders() {
+    try {
+      setLoading(true)
+      const res = await ordersAPI.getAll()
+      setOrders(res.data.orders || res.data)
+    } catch (err) {
+      console.error("[OrdersHistory]", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Delivered": case "Livré": return COLORS.success
+      case "Pending": case "En attente": return COLORS.info
+      case "PickedUp": case "En cours": return COLORS.warning
+      case "Cancelled": case "Annulé": return COLORS.danger
+      default: return COLORS.gray
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Delivered": case "Livré": return "checkmark-circle"
+      case "Pending": case "En attente": return "time"
+      case "PickedUp": case "En cours": return "bicycle"
+      case "Cancelled": case "Annulé": return "close-circle"
+      default: return "help-circle"
+    }
+  }
+
+  const filtered = orders.filter(
     (o) => activeTab === "Tous" || o.status.includes(activeTab.replace("En cours", "En"))
   )
 
@@ -31,7 +64,7 @@ export default function OrdersScreen({ navigation }: any) {
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabs}>
+      <View style={styles.tabs as any}>
         {TABS.map((tab) => (
           <TouchableOpacity
             key={tab}
@@ -48,51 +81,61 @@ export default function OrdersScreen({ navigation }: any) {
         keyExtractor={(i) => i.id}
         contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.md }}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.orderCard}
-            onPress={() => navigation.navigate("OrderDetail", { order: item })}
-          >
-            <View style={styles.orderHeader}>
-              <View style={styles.orderIdRow}>
-                <Text style={styles.orderId}>{item.id}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: item.statusColor + "20" }]}>
-                  <Text style={[styles.statusText, { color: item.statusColor }]}>
-                    <Ionicons name={item.icon as any} size={12} color={item.statusColor} /> {item.status}
-                  </Text>
+        refreshing={loading}
+        onRefresh={loadOrders}
+        renderItem={({ item }) => {
+          const statusColor = getStatusColor(item.status)
+          const statusIcon = getStatusIcon(item.status)
+          return (
+            <TouchableOpacity
+              style={styles.orderCard}
+              onPress={() => navigation.navigate("OrderDetail", { order: item })}
+            >
+              <View style={styles.orderHeader}>
+                <View style={styles.orderIdRow}>
+                  <Text style={styles.orderId}>{item.orderId || item.id}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: statusColor + "20" }]}>
+                    <Text style={[styles.statusText, { color: statusColor }]}>
+                      <Ionicons name={statusIcon as any} size={12} color={statusColor} /> {item.status}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.orderDate}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</Text>
               </View>
-              <Text style={styles.orderDate}>{item.date}</Text>
-            </View>
 
-            <View style={styles.divider} />
+              <View style={styles.divider} />
 
-            <View style={styles.orderBody}>
-              <Text style={styles.storeName}><Ionicons name="business" size={14} /> {item.store}</Text>
-              <Text style={styles.orderItems}>{item.items} article{item.items > 1 ? "s" : ""}</Text>
-            </View>
+              <View style={styles.orderBody}>
+                <Text style={styles.storeName}><Ionicons name="business" size={14} /> {item.store?.name || "Boutique"}</Text>
+                <Text style={styles.orderItems}>{(item.items as any[])?.length || 0} article(s)</Text>
+              </View>
 
-            <View style={styles.orderFooter}>
-              <Text style={styles.orderTotal}>{item.total.toLocaleString()} FCFA</Text>
-              {item.status === "Livré" && (
-                <TouchableOpacity style={styles.reorderBtn} onPress={handleDev}>
-                  <Text style={styles.reorderText}><Ionicons name="refresh" size={12} /> Recommander</Text>
-                </TouchableOpacity>
-              )}
-              {item.status === "En cours" && (
-                <TouchableOpacity style={styles.trackBtn} onPress={handleDev}>
-                  <Text style={styles.trackText}><Ionicons name="location" size={12} /> Suivre</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
+              <View style={styles.orderFooter}>
+                <Text style={styles.orderTotal}>{item.total.toLocaleString()} FCFA</Text>
+                {item.status === "Delivered" && (
+                  <TouchableOpacity style={styles.reorderBtn} onPress={handleDev}>
+                    <Text style={styles.reorderText}><Ionicons name="refresh" size={12} /> Recommander</Text>
+                  </TouchableOpacity>
+                )}
+                {(item.status === "PickedUp" || item.status === "En cours") && (
+                  <TouchableOpacity style={styles.trackBtn} onPress={handleDev}>
+                    <Text style={styles.trackText}><Ionicons name="location" size={12} /> Suivre</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </TouchableOpacity>
+          )
+        }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="cube-outline" size={60} color={COLORS.grayMedium} />
-            <Text style={styles.emptyText}>Aucune commande</Text>
-            <Text style={styles.emptySubtext}>Vos commandes apparaîtront ici</Text>
-          </View>
+          !loading ? (
+            <View style={styles.empty}>
+              <Ionicons name="cube-outline" size={60} color={COLORS.grayMedium} />
+              <Text style={styles.emptyText}>Aucune commande</Text>
+              <Text style={styles.emptySubtext}>Vos commandes apparaîtront ici</Text>
+            </View>
+          ) : (
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+          )
         }
       />
     </View>
@@ -144,7 +187,6 @@ const styles = StyleSheet.create({
   },
   trackText: { color: COLORS.warning, fontSize: FONTS.sizes.xs, fontWeight: "700" },
   empty: { alignItems: "center", paddingTop: 80, gap: SPACING.sm },
-  emptyEmoji: { fontSize: 60 },
   emptyText: { fontSize: FONTS.sizes.lg, fontWeight: "700", color: COLORS.text },
   emptySubtext: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
 })

@@ -1,45 +1,84 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   FlatList, Dimensions, Image, TextInput, Alert,
+  SafeAreaView
 } from "react-native"
+
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { storesAPI, categoriesAPI, sliderAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
+import Skeleton from "../../components/ui/Skeleton"
 
 const { width } = Dimensions.get("window")
 
-const BANNERS = [
-  { id: "1", title: "Livres Scolaires\nMon École", subtitle: "De la maternelle à la terminale", bg: "#1A237E", emoji: "📚" },
-  { id: "2", title: "Prêt pour la\nrentrée ?", subtitle: "Listes complètes disponibles en 1h", bg: "#283593", emoji: "🎒" },
-  { id: "3", title: "Géométrie &\nCalculs", subtitle: "Matériel de précision et calculatrices", bg: "#3949AB", emoji: "📐" },
-]
-
-const CATEGORIES = [
-  { id: "1", name: "Livres", emoji: "📖", color: "#E8EAF6" },
-  { id: "2", name: "Cahiers", emoji: "📓", color: "#EDE7F6" },
-  { id: "3", name: "Stylos", emoji: "🖋️", color: "#F3E5F5" },
-  { id: "4", name: "Géométrie", emoji: "📏", color: "#E1F5FE" },
-  { id: "5", name: "Sacs", emoji: "🎒", color: "#E0F2F1" },
-  { id: "6", name: "Art", emoji: "🎨", color: "#F1F8E9" },
-  { id: "7", name: "Révision", emoji: "📝", color: "#F9FBE7" },
-  { id: "8", name: "Calcul", emoji: "🧮", color: "#FFF3E0" },
-]
-
-const STORES = [
-  { id: "1", name: "Mon École - Plateau", area: "Dakar Plateau", rating: 4.9, orders: 1248, deliveryTime: "15-30 min", minOrder: 5000, emoji: "🏫", tag: "Principal" },
-  { id: "2", name: "Librairie Papeterie", area: "Dakar Centre", rating: 4.8, orders: 2150, deliveryTime: "20-35 min", minOrder: 3000, emoji: "📚", tag: "Populaire" },
-]
+// Mock constants removed — now using real API data with state
 
 export default function HomeScreen({ navigation }: any) {
-  const [bannerIndex, setBannerIndex] = useState(0)
-  const [search, setSearch] = useState("")
+  const [banners, setBanners] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [stores, setStores] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
   const user = useStore((s) => s.user)
   const cartCount = useStore((s) => s.cartCount)()
   const unreadCount = useStore((s) => s.unreadCount)
 
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  async function loadData() {
+    try {
+      setIsLoading(true)
+      const [b, c, s] = await Promise.all([
+        sliderAPI.getBanners(),
+        categoriesAPI.getAll(),
+        storesAPI.getAll(),
+      ])
+      setBanners(b.data.banners || b.data)
+      setCategories(c.data.categories || c.data)
+      setStores((s.data.stores || s.data).filter((x: any) => x.segment === "PAPETERIE"))
+    } catch (err) {
+      console.error("[HomeData]", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleDev = () => {
     Alert.alert("En développement", "Cette fonctionnalité sera bientôt disponible !")
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Skeleton width={120} height={28} radius={4} />
+          <Skeleton width={40} height={40} radius={20} />
+        </View>
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 10 }}>
+          <Skeleton width="100%" height={50} radius={RADIUS.md} />
+        </View>
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 20 }}>
+          <Skeleton width="100%" height={160} radius={RADIUS.lg} />
+        </View>
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 30, flexDirection: "row", gap: 15 }}>
+          <Skeleton width={80} height={90} radius={RADIUS.md} />
+          <Skeleton width={80} height={90} radius={RADIUS.md} />
+          <Skeleton width={80} height={90} radius={RADIUS.md} />
+          <Skeleton width={80} height={90} radius={RADIUS.md} />
+        </View>
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 30 }}>
+           <Skeleton width={200} height={24} radius={4} />
+           <View style={{ marginTop: 15, gap: 10 }}>
+              <Skeleton width="100%" height={80} radius={RADIUS.lg} />
+              <Skeleton width="100%" height={80} radius={RADIUS.lg} />
+           </View>
+        </View>
+      </SafeAreaView>
+    )
   }
 
   return (
@@ -68,47 +107,50 @@ export default function HomeScreen({ navigation }: any) {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Search */}
-        <View style={styles.searchContainer}>
+        <TouchableOpacity 
+          style={styles.searchContainer} 
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("Search")}
+        >
           <View style={styles.searchBox}>
             <Ionicons name="search" size={18} color={COLORS.gray} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Rechercher produits, marchés..."
-              value={search}
-              onChangeText={setSearch}
-              placeholderTextColor={COLORS.gray}
-            />
+            <Text style={styles.searchInputPlaceholder}>Rechercher produits, marchés...</Text>
           </View>
-          <TouchableOpacity style={styles.filterBtn} onPress={handleDev}>
+          <View style={styles.filterBtn}>
             <Ionicons name="options" size={20} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
+
 
         {/* Banners */}
         <FlatList
-          data={BANNERS}
+          data={banners}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           keyExtractor={(i) => i.id}
           onMomentumScrollEnd={(e) => setBannerIndex(Math.round(e.nativeEvent.contentOffset.x / (width - 32)))}
           contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.md }}
-          renderItem={({ item }) => (
-            <View style={[styles.banner, { backgroundColor: item.bg, width: width - 32 }]}>
+          renderItem={({ item, index }) => (
+            <View style={[styles.banner, { backgroundColor: index % 2 === 0 ? COLORS.primary : COLORS.primaryLight, width: width - 32 }]}>
               <View style={styles.bannerContent}>
                 <Text style={styles.bannerTitle}>{item.title}</Text>
-                <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+                <Text style={styles.bannerSubtitle}>{item.subtitle || "Offre exclusive Papeterie"}</Text>
                 <TouchableOpacity style={styles.bannerBtn} onPress={handleDev}>
                   <Text style={styles.bannerBtnText}>Commander →</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.bannerEmoji}>{item.emoji}</Text>
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.bannerImg} />
+              ) : (
+                <Text style={styles.bannerEmoji}>📚</Text>
+              )}
             </View>
           )}
         />
         {/* Dots */}
         <View style={styles.dots}>
-          {BANNERS.map((_, i) => (
+          {banners.map((_, i) => (
             <View key={i} style={[styles.dot, i === bannerIndex && styles.dotActive]} />
           ))}
         </View>
@@ -116,23 +158,31 @@ export default function HomeScreen({ navigation }: any) {
         {/* Categories */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Catégories</Text>
+            <Text style={styles.sectionTitle}>Catégories Premium</Text>
             <TouchableOpacity onPress={handleDev}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
           </View>
           <FlatList
-            data={CATEGORIES}
+            data={categories}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(i) => i.id}
             contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={[styles.categoryCard, { backgroundColor: item.color }]} onPress={handleDev}>
-                <Text style={styles.categoryEmoji}>{item.emoji}</Text>
+            renderItem={({ item, index }) => (
+              <TouchableOpacity 
+                style={[styles.categoryCard, { backgroundColor: index % 2 === 0 ? "#E8EAF6" : "#F1F8E9" }]} 
+                onPress={handleDev}
+              >
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={styles.categoryImg} />
+                ) : (
+                  <Text style={styles.categoryEmoji}>📝</Text>
+                )}
                 <Text style={styles.categoryName}>{item.name}</Text>
               </TouchableOpacity>
             )}
           />
         </View>
+
 
         {/* Nearby Stores */}
         <View style={styles.section}>
@@ -143,7 +193,7 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
           <View style={{ paddingHorizontal: SPACING.lg, gap: SPACING.md }}>
-            {STORES.map((store) => (
+            {stores.map((store) => (
               <TouchableOpacity
                 key={store.id}
                 style={styles.storeCard}
@@ -161,13 +211,13 @@ export default function HomeScreen({ navigation }: any) {
                       </View>
                     )}
                   </View>
-                  <Text style={styles.storeArea}><Ionicons name="location" size={10} /> {store.area}</Text>
+                  <Text style={styles.storeArea}><Ionicons name="location" size={10} /> {store.serviceArea}</Text>
                   <View style={styles.storeStats}>
                     <Text style={styles.storeRating}><Ionicons name="star" size={10} color={COLORS.secondary} /> {store.rating}</Text>
                     <Text style={styles.storeSep}>·</Text>
                     <Text style={styles.storeDelivery}><Ionicons name="time" size={10} /> {store.deliveryTime}</Text>
                     <Text style={styles.storeSep}>·</Text>
-                    <Text style={styles.storeMin}>Min: {store.minOrder.toLocaleString()} FCFA</Text>
+                    <Text style={styles.storeMin}>Min: {(store.minOrder || 0).toLocaleString()} FCFA</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -208,8 +258,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayLight, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md, height: 46,
   },
   searchIcon: { fontSize: 16 },
-  searchInput: { flex: 1, fontSize: FONTS.sizes.md, color: COLORS.text },
+  searchInputPlaceholder: { flex: 1, fontSize: FONTS.sizes.md, color: COLORS.textSecondary },
   filterBtn: {
+
     width: 46, height: 46, backgroundColor: COLORS.primary,
     borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center",
   },
@@ -227,6 +278,7 @@ const styles = StyleSheet.create({
   },
   bannerBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: "600" },
   bannerEmoji: { fontSize: 64 },
+  bannerImg: { width: 120, height: 120, resizeMode: "contain" },
   dots: { flexDirection: "row", justifyContent: "center", gap: 4, marginTop: SPACING.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.grayMedium },
   dotActive: { width: 18, backgroundColor: COLORS.primary },
@@ -234,9 +286,11 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   sectionTitle: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text },
   seeAll: { color: COLORS.primary, fontSize: FONTS.sizes.sm, fontWeight: "600" },
-  categoryCard: { width: 72, height: 80, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center", gap: 4 },
+  categoryCard: { width: 80, height: 90, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center", gap: 4 },
   categoryEmoji: { fontSize: 28 },
+  categoryImg: { width: 44, height: 44, resizeMode: "contain" },
   categoryName: { fontSize: FONTS.sizes.xs, fontWeight: "600", color: COLORS.text, textAlign: "center" },
+
   storeCard: {
     flexDirection: "row", backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
     padding: SPACING.md, gap: SPACING.md,

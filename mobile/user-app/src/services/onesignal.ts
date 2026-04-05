@@ -11,11 +11,8 @@ export function initOneSignal() {
   OneSignal.Debug.setLogLevel(LogLevel.Warn)
   OneSignal.initialize(APP_ID)
 
-  // Demander la permission push
-  OneSignal.Notifications.requestPermission(true)
-
   // Listener : notification reçue en foreground
-  OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
+  OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event: any) => {
     event.preventDefault()
     event.notification.display()
   })
@@ -33,10 +30,12 @@ export function logout() {
   OneSignal.logout()
 }
 
-export function getSubscriptionId(): string | null {
-  return OneSignal.User.pushSubscription.id ?? null
+export function getPushId() {
+  // @ts-ignore - SDK v5 specific access
+  return OneSignal.User.pushSubscription.getUserId() ?? null
 }
 
-export function isSubscribed(): boolean {
-  return OneSignal.User.pushSubscription.optedIn ?? false
+export function isPushEnabled() {
+  // @ts-ignore
+  return OneSignal.User.pushSubscription.getOptedIn() ?? false
 }

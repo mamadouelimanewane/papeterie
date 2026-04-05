@@ -1,0 +1,39 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": MongoDB database "leluma" at "localhost:27017"
+Applying the following changes:
+
+[+] Collection `User`
+[+] Collection `Driver`
+[+] Collection `Store`
+[+] Collection `Product`
+[+] Collection `Order`
+[+] Collection `Category`
+[+] Collection `PromoCode`
+[+] Collection `Country`
+[+] Collection `ServiceArea`
+[+] Collection `Vehicle`
+[+] Collection `SliderBanner`
+[+] Collection `Notification`
+[+] Collection `Transaction`
+[+] Collection `Admin`
+[+] Unique index `User_userId_key` on ({"userId":1})
+[+] Unique index `User_email_key` on ({"email":1})
+[+] Unique index `Driver_driverId_key` on ({"driverId":1})
+[+] Unique index `Driver_email_key` on ({"email":1})
+[+] Unique index `Store_email_key` on ({"email":1})
+[+] Unique index `Order_orderId_key` on ({"orderId":1})
+[+] Unique index `PromoCode_code_key` on ({"code":1})
+[+] Unique index `Country_code_key` on ({"code":1})
+[+] Unique index `Admin_email_key` on ({"email":1})
+
+
+Your database indexes are now in sync with your Prisma schema. Done in 1.70s
+┌─────────────────────────────────────────────────────────┐
+│  Update available 7.5.0 -> 7.6.0                        │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+

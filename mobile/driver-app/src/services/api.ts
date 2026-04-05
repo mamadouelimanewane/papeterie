@@ -9,9 +9,9 @@ export const api = axios.create({
 })
 
 // Inject driver auth token automatically
-api.interceptors.request.use(async (config) => {
+api.interceptors.request.use(async (config: any) => {
   try {
-    const SecureStore = await import("expo-secure-store")
+    const { default: SecureStore } = await import("expo-secure-store")
     const token = await SecureStore.getItemAsync("driver_token")
     if (token) config.headers.Authorization = `Bearer ${token}`
   } catch {}
@@ -19,12 +19,13 @@ api.interceptors.request.use(async (config) => {
 })
 
 api.interceptors.response.use(
-  (res) => res,
-  (err) => {
+  (res: any) => res,
+  (err: any) => {
     const msg = err.response?.data?.message || "Erreur réseau"
     return Promise.reject(new Error(msg))
   }
 )
+
 
 // ── Auth ──────────────────────────────────────────────────────────
 export const authAPI = {

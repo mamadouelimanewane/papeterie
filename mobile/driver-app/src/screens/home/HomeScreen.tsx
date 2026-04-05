@@ -8,9 +8,11 @@ import {
   FlatList,
   Alert,
   Switch,
+  SafeAreaView,
 } from "react-native"
 import { useDriverStore } from "../../store/useDriverStore"
 import { Ionicons } from "@expo/vector-icons"
+import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 
 export default function HomeScreen({ navigation }: any) {
   const {
@@ -28,15 +30,12 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => {
     if (isOnline) {
       fetchOrders()
-      const interval = setInterval(fetchOrders, 3000) // Poll every 3 seconds
+      const interval = setInterval(fetchOrders, 3000)
       return () => clearInterval(interval)
     }
   }, [isOnline])
 
   const handleAccept = async (order: any) => {
-    // Optionally alert the database too, but the store handles mock state for now.
-    // If you want to sync ACCEPT with backend:
-    // await ordersAPI.accept(order.id)
     acceptOrder(order)
     navigation.navigate("ActiveDelivery")
   }
@@ -44,286 +43,243 @@ export default function HomeScreen({ navigation }: any) {
   const handleDecline = (orderId: string) => {
     Alert.alert("Décliner", "Voulez-vous décliner cette commande ?", [
       { text: "Non", style: "cancel" },
-      { text: "Oui", style: "destructive", onPress: () => {} },
+      { text: "Oui", style: "destructive" },
     ])
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Bonjour, {driver?.name?.split(" ")[0]} <Ionicons name="hand-right" size={18} color="#FFD600" /></Text>
-          <Text style={styles.subGreeting}>{driver?.vehicleType} · <Ionicons name="star" size={12} color="#FFD600" /> {driver?.rating}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Salut, {driver?.name?.split(" ")[0]} 👋</Text>
+            <Text style={styles.subGreeting}>{driver?.vehicleType} · <Ionicons name="star" size={12} color={COLORS.secondary} /> {driver?.rating}</Text>
+          </View>
+          <View style={styles.onlineToggle}>
+            <Text style={[styles.onlineLabel, { color: isOnline ? COLORS.success : COLORS.gray }]}>
+              {isOnline ? "EN LIGNE" : "HORS LIGNE"}
+            </Text>
+            <Switch
+              value={isOnline}
+              onValueChange={toggleOnline}
+              trackColor={{ false: COLORS.grayMedium, true: COLORS.success + "66" }}
+              thumbColor={isOnline ? COLORS.success : COLORS.white}
+            />
+          </View>
         </View>
-        <View style={styles.onlineToggle}>
-          <Text style={[styles.onlineLabel, { color: isOnline ? "#4CAF50" : "#999" }]}>
-            {isOnline ? "En ligne" : "Hors ligne"}
-          </Text>
-          <Switch
-            value={isOnline}
-            onValueChange={toggleOnline}
-            trackColor={{ false: "#ccc", true: "#4CAF5066" }}
-            thumbColor={isOnline ? "#4CAF50" : "#999"}
-          />
-        </View>
-      </View>
 
-      {/* Online status banner */}
-      <View style={[styles.statusBanner, { backgroundColor: isOnline ? "#E8F5E9" : "#F5F5F5" }]}>
-        <Ionicons name="ellipse" size={12} color={isOnline ? "#4CAF50" : "#999"} />
-        <Text style={[styles.statusText, { color: isOnline ? "#2E7D32" : "#777" }]}>
-          {isOnline
-            ? "Vous êtes en ligne — les commandes vous seront attribuées"
-            : "Vous êtes hors ligne — activez pour recevoir des commandes"}
-        </Text>
-      </View>
+        {/* Today stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{todayEarnings.toLocaleString()}</Text>
+            <Text style={styles.statCurrency}>FCFA</Text>
+            <Text style={styles.statLabel}>Gains du jour</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{todayOrders}</Text>
+            <Text style={styles.statCurrency}>COURSE(S)</Text>
+            <Text style={styles.statLabel}>Livraisons</Text>
+          </View>
+        </View>
 
-      {/* Today stats */}
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{todayEarnings.toLocaleString()} FCFA</Text>
-          <Text style={styles.statLabel}>Gains du jour</Text>
-        </View>
-        <View style={[styles.statCard, styles.statCardMiddle]}>
-          <Text style={styles.statValue}>{todayOrders}</Text>
-          <Text style={styles.statLabel}>Livraisons</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{driver?.rating}</Text>
-          <Text style={styles.statLabel}>Note <Ionicons name="star" size={10} color="#FFD600" /></Text>
-        </View>
-      </View>
+        {/* Status banner */}
+        {!isOnline && (
+          <View style={styles.offlineBanner}>
+            <Ionicons name="notifications-off-outline" size={24} color={COLORS.textSecondary} />
+            <Text style={styles.offlineText}>
+              Passez en ligne pour commencer à recevoir des courses à proximité.
+            </Text>
+          </View>
+        )}
 
-      {/* Current active order */}
-      {currentOrder && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Commande en cours</Text>
-          <TouchableOpacity
-            style={styles.activeOrderCard}
-            onPress={() => navigation.navigate("ActiveDelivery")}
-          >
-            <View style={styles.activeOrderHeader}>
-              <Text style={styles.activeOrderId}>{currentOrder.id}</Text>
-              <View style={styles.activeBadge}>
-                <Text style={styles.activeBadgeText}>
-                  {currentOrder.status === "accepted" ? "Récupération" : "En livraison"}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.routeRow}>
-              <Ionicons name="cube" size={16} color="#fff" />
-              <Text style={styles.routeAddress} numberOfLines={1}>
-                {currentOrder.storeAddress}
-              </Text>
-            </View>
-            <View style={styles.routeRow}>
-              <Ionicons name="location" size={16} color="#fff" />
-              <Text style={styles.routeAddress} numberOfLines={1}>
-                {currentOrder.deliveryAddress}
-              </Text>
-            </View>
-            <Text style={styles.viewDelivery}>Voir la livraison →</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Pending order requests */}
-      {isOnline && pendingOrders.length > 0 && !currentOrder && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nouvelles commandes ({pendingOrders.length})</Text>
-          {pendingOrders.map((order) => (
-            <View key={order.id} style={styles.orderRequestCard}>
-              <View style={styles.orderRequestHeader}>
-                <Text style={styles.orderRequestId}>{order.id}</Text>
-                <Text style={styles.orderRequestEarning}>+{order.earnings} FCFA</Text>
+        {/* Current active order */}
+        {currentOrder && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Course en cours</Text>
+            <TouchableOpacity
+              style={styles.activeOrderCard}
+              onPress={() => navigation.navigate("ActiveDelivery")}
+            >
+              <View style={styles.activeOrderHeader}>
+                <View style={styles.orderIdBadge}>
+                  <Text style={styles.activeOrderId}>{currentOrder.id}</Text>
+                </View>
+                <View style={[styles.activeBadge, { backgroundColor: COLORS.secondary }]}>
+                  <Text style={styles.activeBadgeText}>
+                    {currentOrder.status === "accepted" ? "En route vers magasin" : "En route vers client"}
+                  </Text>
+                </View>
               </View>
               <View style={styles.routeRow}>
-                <Ionicons name="business" size={16} color="#1A237E" />
-                <Text style={styles.routeText}>{order.storeAddress}</Text>
+                <Ionicons name="storefront" size={16} color={COLORS.white} />
+                <Text style={styles.routeAddress} numberOfLines={1}>{currentOrder.storeAddress}</Text>
               </View>
               <View style={styles.routeRow}>
-                <Ionicons name="home" size={16} color="#1A237E" />
-                <Text style={styles.routeText}>{order.deliveryAddress}</Text>
+                <Ionicons name="location" size={16} color={COLORS.white} />
+                <Text style={styles.routeAddress} numberOfLines={1}>{currentOrder.deliveryAddress}</Text>
               </View>
-              <View style={styles.orderMeta}>
-                <Text style={styles.metaItem}><Ionicons name="person" size={12} /> {order.customerName}</Text>
-                <Text style={styles.metaItem}><Ionicons name="cube" size={12} /> {order.items} articles</Text>
-                <Text style={styles.metaItem}><Ionicons name="navigate" size={12} /> {order.distance}</Text>
+              <View style={styles.activeFooter}>
+                 <Text style={styles.viewDelivery}>Accéder au suivi →</Text>
               </View>
-              <View style={styles.orderActions}>
-                <TouchableOpacity
-                  style={styles.declineBtn}
-                  onPress={() => handleDecline(order.id)}
-                >
-                  <Text style={styles.declineBtnText}>Décliner</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.acceptBtn}
-                  onPress={() => handleAccept(order)}
-                >
-                  <Text style={styles.acceptBtnText}>Accepter</Text>
-                </TouchableOpacity>
-              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Pending order requests */}
+        {isOnline && pendingOrders.length > 0 && !currentOrder && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Nouvelles demandes</Text>
+              <View style={styles.countBadge}><Text style={styles.countBadgeText}>{pendingOrders.length}</Text></View>
             </View>
-          ))}
-        </View>
-      )}
+            {pendingOrders.map((order) => (
+              <View key={order.id} style={styles.orderRequestCard}>
+                <View style={styles.orderRequestHeader}>
+                  <Text style={styles.orderRequestId}>{order.id}</Text>
+                  <Text style={styles.orderRequestEarning}>{order.earnings.toLocaleString()} F</Text>
+                </View>
+                <View style={styles.routeRowDark}>
+                  <Ionicons name="business" size={16} color={COLORS.primary} />
+                  <Text style={styles.routeText}>{order.storeAddress}</Text>
+                </View>
+                <View style={[styles.routeRowDark, { marginTop: 4 }]}>
+                  <Ionicons name="location" size={16} color={COLORS.primary} />
+                  <Text style={styles.routeText}>{order.deliveryAddress}</Text>
+                </View>
+                <View style={styles.orderMeta}>
+                  <Text style={styles.metaItem}><Ionicons name="cube" size={12} /> {order.items} articles</Text>
+                  <Text style={styles.metaItem}><Ionicons name="navigate" size={12} /> {order.distance}</Text>
+                </View>
+                <View style={styles.orderActions}>
+                  <TouchableOpacity
+                    style={styles.declineBtn}
+                    onPress={() => handleDecline(order.id)}
+                  >
+                    <Text style={styles.declineBtnText}>Ignorer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.acceptBtn}
+                    onPress={() => handleAccept(order)}
+                  >
+                    <Text style={styles.acceptBtnText}>Accepter</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
 
-      {/* Empty state */}
-      {isOnline && pendingOrders.length === 0 && !currentOrder && (
-        <View style={styles.emptyState}>
-          <Ionicons name="search" size={48} color="#ccc" style={{ marginBottom: 16 }} />
-          <Text style={styles.emptyTitle}>En attente de commandes...</Text>
-          <Text style={styles.emptySubtitle}>Vous recevrez une notification dès qu'une commande est disponible</Text>
-        </View>
-      )}
+        {/* Empty state */}
+        {isOnline && pendingOrders.length === 0 && !currentOrder && (
+          <View style={styles.emptyState}>
+            <View style={styles.radarContainer}>
+               <View style={styles.radarCircle} />
+               <Ionicons name="navigate" size={32} color={COLORS.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>Radar activé...</Text>
+            <Text style={styles.emptySubtitle}>Recherche de nouvelles courses autour de vous.</Text>
+          </View>
+        )}
 
-      <View style={{ height: 100 }} />
-    </ScrollView>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5FA" },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#1A237E",
-    paddingTop: 55,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    paddingTop: 40,
+    paddingBottom: 30,
+    paddingHorizontal: SPACING.lg,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  greeting: { fontSize: 20, fontWeight: "700", color: "#fff" },
-  subGreeting: { fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 3 },
+  greeting: { fontSize: FONTS.sizes.xl, fontWeight: "800", color: COLORS.white },
+  subGreeting: { fontSize: FONTS.sizes.sm, color: "rgba(255,255,255,0.7)", marginTop: 4 },
   onlineToggle: { alignItems: "center" },
-  onlineLabel: { fontSize: 12, fontWeight: "600", marginBottom: 4 },
-  statusBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    margin: 16,
-    padding: 14,
-    borderRadius: 12,
-    gap: 10,
-  },
-  statusIcon: { fontSize: 16 },
-  statusText: { fontSize: 13, flex: 1 },
+  onlineLabel: { fontSize: 10, fontWeight: "900", marginBottom: 4 },
   statsRow: {
     flexDirection: "row",
-    marginHorizontal: 16,
-    marginBottom: 16,
-    gap: 10,
+    paddingHorizontal: SPACING.lg,
+    marginTop: -25,
+    gap: SPACING.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5,
   },
-  statCardMiddle: {
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: "#F0F0F0",
+  statValue: { fontSize: FONTS.sizes.xxl, fontWeight: "900", color: COLORS.primary },
+  statCurrency: { fontSize: 10, fontWeight: "700", color: COLORS.textSecondary, marginBottom: 4 },
+  statLabel: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
+  offlineBanner: {
+    margin: SPACING.lg, padding: SPACING.lg,
+    backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
+    alignItems: "center", borderStyle: "dashed", borderWidth: 2, borderColor: COLORS.grayMedium,
   },
-  statValue: { fontSize: 16, fontWeight: "700", color: "#1A1A2E" },
-  statLabel: { fontSize: 11, color: "#888", marginTop: 4 },
-  section: { marginHorizontal: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 15, fontWeight: "700", color: "#333", marginBottom: 12 },
+  offlineText: { textAlign: "center", color: COLORS.textSecondary, fontSize: FONTS.sizes.sm, marginTop: 10, lineHeight: 20 },
+  section: { marginTop: SPACING.xl, paddingHorizontal: SPACING.lg },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SPACING.md },
+  sectionTitle: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text },
+  countBadge: { backgroundColor: COLORS.danger, paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.round },
+  countBadgeText: { color: COLORS.white, fontSize: 11, fontWeight: "800" },
   activeOrderCard: {
-    backgroundColor: "#1A237E",
-    borderRadius: 14,
-    padding: 16,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
   },
   activeOrderHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
-  activeOrderId: { fontSize: 15, fontWeight: "700", color: "#fff" },
-  activeBadge: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  activeBadgeText: { color: "#fff", fontSize: 12, fontWeight: "600" },
-  routeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 6,
-  },
-  routeIcon: { fontSize: 14 },
-  routeAddress: { fontSize: 13, color: "rgba(255,255,255,0.9)", flex: 1 },
-  routeText: { fontSize: 13, color: "#444", flex: 1 },
-  viewDelivery: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 13,
-    fontWeight: "600",
-    textAlign: "right",
-    marginTop: 8,
-  },
+  orderIdBadge: { backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.sm },
+  activeOrderId: { fontSize: FONTS.sizes.sm, fontWeight: "800", color: COLORS.white },
+  activeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.round },
+  activeBadgeText: { color: COLORS.primary, fontSize: 11, fontWeight: "800" },
+  routeRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  routeRowDark: { flexDirection: "row", alignItems: "center", gap: 8 },
+  routeAddress: { fontSize: FONTS.sizes.sm, color: "rgba(255,255,255,0.8)", flex: 1 },
+  routeText: { fontSize: FONTS.sizes.sm, color: COLORS.text, flex: 1 },
+  activeFooter: { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)", marginTop: 12, paddingTop: 12 },
+  viewDelivery: { color: COLORS.secondary, fontSize: FONTS.sizes.sm, fontWeight: "800", textAlign: "right" },
   orderRequestCard: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: "#1A237E",
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    borderLeftWidth: 5, borderLeftColor: COLORS.primary,
   },
-  orderRequestHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
+  orderRequestHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  orderRequestId: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.text },
+  orderRequestEarning: { fontSize: FONTS.sizes.lg, fontWeight: "900", color: COLORS.success },
+  orderMeta: { flexDirection: "row", gap: 15, marginTop: 15, marginBottom: 20 },
+  metaItem: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, fontWeight: "600" },
+  orderActions: { flexDirection: "row", gap: SPACING.md },
+  declineBtn: { flex: 1, paddingVertical: 12, alignItems: "center", borderRadius: RADIUS.md, backgroundColor: COLORS.grayLight },
+  declineBtnText: { color: COLORS.textSecondary, fontWeight: "700" },
+  acceptBtn: { flex: 2, paddingVertical: 12, alignItems: "center", borderRadius: RADIUS.md, backgroundColor: COLORS.primary },
+  acceptBtnText: { color: COLORS.white, fontWeight: "800" },
+  emptyState: { alignItems: "center", paddingTop: 80, paddingHorizontal: 40 },
+  radarContainer: { width: 100, height: 100, alignItems: "center", justifyContent: "center", marginBottom: 20 },
+  radarCircle: { 
+    position: "absolute", width: 80, height: 80, borderRadius: 40, 
+    borderWidth: 1, borderColor: COLORS.primary, opacity: 0.3 
   },
-  orderRequestId: { fontSize: 15, fontWeight: "700", color: "#1A1A2E" },
-  orderRequestEarning: { fontSize: 16, fontWeight: "700", color: "#4CAF50" },
-  orderMeta: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 10,
-    marginBottom: 14,
-  },
-  metaItem: { fontSize: 12, color: "#666" },
-  orderActions: { flexDirection: "row", gap: 10 },
-  declineBtn: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  declineBtnText: { color: "#666", fontWeight: "600", fontSize: 14 },
-  acceptBtn: {
-    flex: 2,
-    backgroundColor: "#1A237E",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  acceptBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  emptyState: {
-    alignItems: "center",
-    paddingTop: 60,
-    paddingHorizontal: 40,
-  },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: "700", color: "#333", marginBottom: 8 },
-  emptySubtitle: { fontSize: 14, color: "#888", textAlign: "center", lineHeight: 20 },
+  emptyTitle: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text, marginBottom: 8 },
+  emptySubtitle: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, textAlign: "center", lineHeight: 22 },
 })
+

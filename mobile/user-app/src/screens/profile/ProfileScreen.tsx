@@ -19,8 +19,11 @@ const MENU_ITEMS = [
 export default function ProfileScreen({ navigation }: any) {
   const user = useStore((s) => s.user)
   const logout = useStore((s) => s.logout)
+  const language = useStore((s) => s.language)
+  const setLanguage = useStore((s) => s.setLanguage)
 
   function handleLogout() {
+
     Alert.alert("Déconnexion", "Voulez-vous vraiment vous déconnecter ?", [
       { text: "Annuler", style: "cancel" },
       { text: "Déconnexion", style: "destructive", onPress: logout },
@@ -55,12 +58,31 @@ export default function ProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {/* Language Switcher [PREMIUM] */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Langue / Lakku</Text>
+      </View>
+      <View style={styles.languageRow}>
+        <TouchableOpacity 
+          style={[styles.langBtn, language === "fr" && styles.langBtnActive]} 
+          onPress={() => setLanguage("fr")}
+        >
+          <Text style={[styles.langBtnText, language === "fr" && styles.langBtnTextActive]}>Français 🇫🇷</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.langBtn, language === "wo" && styles.langBtnActive]} 
+          onPress={() => setLanguage("wo")}
+        >
+          <Text style={[styles.langBtnText, language === "wo" && styles.langBtnTextActive]}>Wolof 🇸🇳</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Stats */}
       <View style={styles.statsRow}>
         {[
-          { label: "Commandes", value: "12" },
-          { label: "Avis", value: "8" },
-          { label: "Points", value: "450" },
+          { label: language === "fr" ? "Commandes" : "Ndigeul", value: "12" },
+          { label: language === "fr" ? "Avis" : "Gis-gis", value: "8" },
+          { label: language === "fr" ? "Points" : "Kërëñ", value: "450" },
         ].map((stat) => (
           <View key={stat.label} style={styles.statCard}>
             <Text style={styles.statValue}>{stat.value}</Text>
@@ -68,6 +90,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         ))}
       </View>
+
 
       {/* Menu */}
       <View style={styles.menuSection}>
@@ -142,5 +165,13 @@ const styles = StyleSheet.create({
   menuChevron: { fontSize: 20, color: COLORS.gray },
   logoutBtn: { margin: SPACING.lg, backgroundColor: COLORS.danger + "15", borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: "center" },
   logoutText: { color: COLORS.danger, fontSize: FONTS.sizes.md, fontWeight: "700" },
+  sectionHeader: { paddingHorizontal: SPACING.lg, marginTop: SPACING.lg, marginBottom: SPACING.sm },
+  sectionTitle: { fontSize: 13, fontWeight: "800", color: COLORS.textSecondary, textTransform: "uppercase", letterSpacing: 1 },
+  languageRow: { flexDirection: "row", marginHorizontal: SPACING.lg, gap: SPACING.sm, marginBottom: SPACING.lg },
+  langBtn: { flex: 1, paddingVertical: 12, borderRadius: RADIUS.md, backgroundColor: COLORS.white, alignItems: "center", borderWidth: 1, borderColor: COLORS.grayMedium },
+  langBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  langBtnText: { fontSize: FONTS.sizes.sm, fontWeight: "600", color: COLORS.text },
+  langBtnTextActive: { color: COLORS.white, fontWeight: "800" },
   version: { textAlign: "center", color: COLORS.gray, fontSize: FONTS.sizes.xs, marginBottom: SPACING.sm },
 })
+

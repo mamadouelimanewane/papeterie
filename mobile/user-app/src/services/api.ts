@@ -28,8 +28,8 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────────────────
 export const authAPI = {
-  login: (email: string, password: string) =>
-    api.post("/user/login", { email, password }),
+  login: (credentials: { email?: string, phone?: string, password: string }) =>
+    api.post("/user/login", credentials),
   register: (data: any) => api.post("/user/register", data),
   getProfile: () => api.get("/user/profile"),
   updateProfile: (data: any) => api.put("/user/profile", data),

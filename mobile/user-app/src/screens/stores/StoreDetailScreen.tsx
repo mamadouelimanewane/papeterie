@@ -1,37 +1,49 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  FlatList, Dimensions, Alert
+  FlatList, Dimensions, Alert, Image
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { storesAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
 
 const { width } = Dimensions.get("window")
 
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Cahier 200 pages quadrillé", price: 1500, category: "Cahiers" },
-  { id: "p2", name: "Stylo à bille bleu (lot de 4)", price: 800, category: "Stylos" },
-  { id: "p3", name: "Kit de géométrie complet", price: 2500, category: "Géométrie" },
-  { id: "p4", name: "Sac à dos d'école standard", price: 8500, category: "Sacs" },
-  { id: "p5", name: "Boîte de crayons de couleur (24)", price: 3200, category: "Art" },
-  { id: "p6", name: "Surligneur jaune fluorescent", price: 500, category: "Révision" },
-  { id: "p7", name: "Classeur grand format A4", price: 1200, category: "Cahiers" },
-  { id: "p8", name: "Calculatrice scientifique", price: 9500, category: "Calcul" },
-]
+// Mock products removed — now using real API data with state
 
 export default function StoreDetailScreen({ route, navigation }: any) {
   const { store } = route.params || {}
+  const [products, setProducts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState("Tous")
   
   const addToCart = useStore((s) => s.addToCart)
   const cartCount = useStore((s) => s.cartCount)()
+  const toggleFavorite = useStore((s) => s.toggleFavorite)
+  const isFavorite = useStore((s) => s.isFavorite)
+
+  useEffect(() => {
+    if (store?.id) loadProducts()
+  }, [store?.id])
+
+  async function loadProducts() {
+    try {
+      setIsLoading(true)
+      const res = await storesAPI.getProducts(store.id)
+      setProducts(res.data.products || res.data)
+    } catch (err) {
+      console.error("[StoreDetailData]", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
   
-  const categories = ["Tous", ...Array.from(new Set(MOCK_PRODUCTS.map(p => p.category)))]
+  const categories = ["Tous", ...Array.from(new Set(products.map(p => p.category)))]
   
   const filteredProducts = activeCategory === "Tous" 
-    ? MOCK_PRODUCTS 
-    : MOCK_PRODUCTS.filter(p => p.category === activeCategory)
+    ? products 
+    : products.filter(p => p.category === activeCategory)
 
   if (!store) {
     return (
@@ -46,14 +58,12 @@ export default function StoreDetailScreen({ route, navigation }: any) {
 
   const handleAddToCart = (product: any) => {
     addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
+      ...product,
       quantity: 1,
       storeId: store.id,
       storeName: store.name,
     })
-    console.log(`Ajouté ${product.name} au panier`)
+    Alert.alert("Panier", `${product.name} ajouté au panier !`)
   }
 
   return (
@@ -103,7 +113,7 @@ export default function StoreDetailScreen({ route, navigation }: any) {
             </View>
             <View style={styles.separator} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{store.minOrder.toLocaleString()}F</Text>
+              <Text style={styles.statValue}>{(store.minOrder || 0).toLocaleString()}F</Text>
               <Text style={styles.statLabel}>Min. Commande</Text>
             </View>
           </View>
@@ -133,11 +143,25 @@ export default function StoreDetailScreen({ route, navigation }: any) {
             {filteredProducts.map((product) => (
               <View key={product.id} style={styles.productCard}>
                 <View style={styles.productImagePlaceholder}>
-                  <Ionicons name="cube-outline" size={32} color={COLORS.grayMedium} />
+                  {product.image ? (
+                    <Image source={{ uri: product.image }} style={{ width: "100%", height: "100%", borderRadius: RADIUS.sm }} />
+                  ) : (
+                    <Ionicons name="cube-outline" size={32} color={COLORS.grayMedium} />
+                  )}
+                  <TouchableOpacity 
+                    style={styles.favBtn} 
+                    onPress={() => toggleFavorite(product.id)}
+                  >
+                    <Ionicons 
+                      name={isFavorite(product.id) ? "heart" : "heart-outline"} 
+                      size={18} 
+                      color={isFavorite(product.id) ? COLORS.danger : COLORS.gray} 
+                    />
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
                 <View style={styles.productFooter}>
-                  <Text style={styles.productPrice}>{product.price.toLocaleString()} FCFA</Text>
+                  <Text style={styles.productPrice}>{(product.price || 0).toLocaleString()} F</Text>
                   <TouchableOpacity style={styles.addBtn} onPress={() => handleAddToCart(product)}>
                     <Ionicons name="add" size={20} color={COLORS.white} />
                   </TouchableOpacity>
@@ -259,7 +283,15 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     marginBottom: SPACING.sm,
   },
+  favBtn: {
+    position: "absolute", top: 8, right: 8,
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: COLORS.white,
+    alignItems: "center", justifyContent: "center",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
+  },
   productName: { fontSize: FONTS.sizes.sm, fontWeight: "600", color: COLORS.text, height: 36 },
+
   productFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
   productPrice: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.primary },
   addBtn: {

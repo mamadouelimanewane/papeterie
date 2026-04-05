@@ -1,8 +1,8 @@
 export const COLORS = {
-  primary: "#6B6BD5",       // Violet NDUGUMi admin
-  primaryLight: "#8E8EDF",
-  primaryDark: "#4A4AB0",
-  secondary: "#FF6F00",
+  primary: "#1A237E",       // Indigo Papeterie
+  primaryLight: "#3949AB",
+  primaryDark: "#0D47A1",
+  secondary: "#FFD600",     // Gold accent
   accent: "#00ACC1",
   background: "#F5F5F5",
   white: "#FFFFFF",
@@ -20,6 +20,7 @@ export const COLORS = {
   online: "#4CAF50",
   offline: "#9E9E9E",
 }
+
 
 export const FONTS = {
   sizes: { xs: 11, sm: 13, md: 15, lg: 17, xl: 20, xxl: 24, xxxl: 30 },

@@ -5,6 +5,7 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { authAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
 
 export default function LoginScreen({ navigation }: any) {
@@ -20,11 +21,18 @@ export default function LoginScreen({ navigation }: any) {
       return
     }
     setLoading(true)
-    // Mock login — replace with real API call
-    setTimeout(() => {
+    try {
+      const { data } = await authAPI.login({ phone, password })
+      if (data.token) {
+        setUser(data.user, data.token)
+        // La navigation vers l'app se fait automatiquement via l'état du store
+      }
+    } catch (err: any) {
+      console.error("[Login]", err)
+      Alert.alert("Erreur", err.message || "Identifiants incorrects")
+    } finally {
       setLoading(false)
-      setUser({ id: "1", name: "Fatou Diallo", email: "fatou@gmail.com", phone }, "mock_token")
-    }, 1200)
+    }
   }
 
   return (

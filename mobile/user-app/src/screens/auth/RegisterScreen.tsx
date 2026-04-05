@@ -5,7 +5,9 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { authAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
+import { Alert } from "react-native"
 
 export default function RegisterScreen({ navigation }: any) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" })
@@ -15,12 +17,34 @@ export default function RegisterScreen({ navigation }: any) {
   function update(key: string, val: string) { setForm((f) => ({ ...f, [key]: val })) }
 
   async function handleRegister() {
-    if (!form.name || !form.phone || !form.password) return
+    if (!form.name || !form.phone || !form.password) {
+      Alert.alert("Erreur", "Veuillez remplir les champs obligatoires.")
+      return
+    }
+    if (form.password !== form.confirmPassword) {
+      Alert.alert("Erreur", "Les mots de passe ne correspondent pas.")
+      return
+    }
+
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const { data } = await authAPI.register({
+        name: form.name,
+        phone: form.phone,
+        email: form.email || undefined,
+        password: form.password,
+      })
+
+      if (data.token) {
+        setUser(data.user, data.token)
+        // La navigation vers l'app se fait automatiquement via l'état du store
+      }
+    } catch (err: any) {
+      console.error("[Register]", err)
+      Alert.alert("Erreur", err.message || "Impossible de créer le compte")
+    } finally {
       setLoading(false)
-      setUser({ id: "1", name: form.name, email: form.email, phone: form.phone }, "mock_token")
-    }, 1200)
+    }
   }
 
   return (

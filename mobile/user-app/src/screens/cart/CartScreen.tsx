@@ -1,6 +1,6 @@
 import React from "react"
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert,
+  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
@@ -20,11 +20,18 @@ export default function CartScreen({ navigation }: any) {
 
   const handleCheckout = async () => {
     try {
+      if (cart.length === 0) return
+
       const orderData = {
-        storeId: cart[0]?.storeId || "640000000000000000000000", // Fallback ID for Prisma
+        storeId: cart[0].storeId, // Now reliable because products are real
         total: cartTotal + deliveryFee,
-        items: cart,
-        address: "123 Client Address",
+        items: cart.map(i => ({
+          productId: i.id,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity
+        })),
+        address: "Dakar Plateau, Immeuble ABC", // In a real app, this would come from user profile/selection
       }
       
       const res = await ordersAPI.create(orderData)
@@ -83,7 +90,11 @@ export default function CartScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <View style={styles.cartItem}>
             <View style={styles.itemImagePlaceholder}>
-              <Ionicons name="cube-outline" size={30} color={COLORS.grayMedium} />
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.itemImage} />
+              ) : (
+                <Ionicons name="cube-outline" size={30} color={COLORS.grayMedium} />
+              )}
             </View>
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{item.name}</Text>
@@ -166,6 +177,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1 },
   itemName: { fontSize: FONTS.sizes.md, fontWeight: "600", color: COLORS.text },
   itemPrice: { fontSize: FONTS.sizes.md, fontWeight: "700", color: COLORS.primary, marginTop: 4 },
+  itemImage: { width: "100%", height: "100%", borderRadius: RADIUS.md },
   qtyControl: { flexDirection: "row", alignItems: "center", gap: SPACING.sm },
   qtyBtn: { width: 30, height: 30, borderRadius: RADIUS.round, borderWidth: 1.5, borderColor: COLORS.border, alignItems: "center", justifyContent: "center" },
   qtyBtnAdd: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },

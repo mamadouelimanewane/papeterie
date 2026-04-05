@@ -15,7 +15,7 @@ export function initOneSignal() {
   OneSignal.Notifications.requestPermission(true)
 
   // Afficher les notifications même en foreground
-  OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event) => {
+  OneSignal.Notifications.addEventListener("foregroundWillDisplay", (event: any) => {
     event.preventDefault()
     event.notification.display()
   })
@@ -34,3 +34,14 @@ export function setDriverOnlineStatus(isOnline: boolean) {
 export function logout() {
   OneSignal.logout()
 }
+
+export function getPushId() {
+  // @ts-ignore - SDK v5 specific access
+  return OneSignal.User.pushSubscription.getUserId() ?? null
+}
+
+export function isPushEnabled() {
+  // @ts-ignore
+  return OneSignal.User.pushSubscription.getOptedIn() ?? false
+}
+

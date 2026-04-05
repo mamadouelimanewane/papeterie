@@ -1,16 +1,19 @@
 import React, { useState } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Linking, Dimensions,
+  SafeAreaView, Linking, Dimensions, Image, Alert
 } from "react-native"
+
 import MapView, { Marker, Polyline } from "react-native-maps"
+import { Ionicons } from "@expo/vector-icons"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+
 
 const { width } = Dimensions.get("window")
 
 const STEPS = [
   { id: 1, label: "Commande confirmée", icon: "✅", done: true },
-  { id: 2, label: "En préparation", icon: "👨‍🍳", done: true },
+  { id: 2, label: "En préparation", icon: "📦", done: true },
   { id: 3, label: "Livreur assigné", icon: "🛵", done: true },
   { id: 4, label: "En route vers vous", icon: "📍", done: false, active: true },
   { id: 5, label: "Livré", icon: "🏠", done: false },
@@ -19,30 +22,36 @@ const STEPS = [
 export default function OrderDetailScreen({ route, navigation }: any) {
   const order = route?.params?.order ?? {
     id: "ORD-1234",
-    store: "Marché Keur Massar",
+    store: "Mon École - Plateau",
     date: "15 Mars 2026, 10:35",
     status: "delivering",
     total: 12500,
     deliveryFee: 500,
     address: "Cité Fadia, Appartement B4, Dakar",
-    driver: { name: "Mamadou Lamine Diallo", phone: "+221 77 000 00 01", rating: 4.9, vehicle: "Moto — DK 1234 AB" },
+    driver: { 
+      name: "Mamadou Lamine Diallo", 
+      phone: "+221 77 000 00 01", 
+      rating: 4.9, 
+      vehicle: "Moto — DK 1234 AB",
+      avatar: require("../../assets/images/driver_avatar.png")
+    },
     items: [
-      { name: "Légumes assortis", qty: 2, price: 2500 },
-      { name: "Poulet entier 1kg", qty: 1, price: 5000 },
-      { name: "Oignons 1kg", qty: 2, price: 1000 },
-      { name: "Huile de palme 1L", qty: 1, price: 1500 },
+      { name: "Cahier 200 pages", qty: 2, price: 1500 },
+      { name: "Kit de géométrie", qty: 1, price: 2500 },
+      { name: "Calculatrice Scientifique", qty: 1, price: 7000 },
     ],
   }
 
-  const subtotal = order.items.reduce((sum: number, i: any) => sum + i.price * i.qty, 0)
+  const items = order?.items || []
+  const subtotal = items.reduce((sum: number, i: any) => sum + (i.price * i.qty), 0)
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Commande {order.id}</Text>
+        <Text style={styles.title}>Suivi de commande {order.id}</Text>
         <View style={styles.statusBadge}>
           <Text style={styles.statusText}>En route</Text>
         </View>
@@ -60,37 +69,45 @@ export default function OrderDetailScreen({ route, navigation }: any) {
               longitudeDelta: 0.05,
             }}
           >
-            {/* Delivery Designation */}
-            <Marker coordinate={{ latitude: 14.7360, longitude: -17.4580 }} title="Ma position">
-              <View style={[styles.markerBody, { backgroundColor: "#6B6BD5" }]}>
-                <Text style={{ fontSize: 16 }}>🏠</Text>
+            {/* Delivery Destination */}
+            <Marker coordinate={{ latitude: 14.7360, longitude: -17.4580 }}>
+              <View style={styles.homeMarker}>
+                <Ionicons name="home" size={16} color={COLORS.white} />
               </View>
             </Marker>
 
             {/* Driver Position */}
-            <Marker coordinate={{ latitude: 14.7200, longitude: -17.4600 }} title="Livreur en approche">
-              <View style={[styles.markerBody, { backgroundColor: "#4CAF50" }]}>
-                <Text style={{ fontSize: 16 }}>🛵</Text>
+            <Marker coordinate={{ latitude: 14.7250, longitude: -17.4620 }}>
+              <View style={styles.driverMarker}>
+                <Image source={order.driver.avatar} style={styles.driverMarkerImg} />
+                <View style={styles.driverMarkerDot} />
               </View>
             </Marker>
 
             {/* Path */}
             <Polyline
               coordinates={[
-                { latitude: 14.7200, longitude: -17.4600 },
+                { latitude: 14.7250, longitude: -17.4620 },
                 { latitude: 14.7360, longitude: -17.4580 },
               ]}
-              strokeColor="#1A237E"
+              strokeColor={COLORS.primary}
               strokeWidth={4}
-              lineDashPattern={[5, 3]}
+              lineDashPattern={[5, 5]}
             />
           </MapView>
+          <View style={styles.mapOverlay}>
+             <Text style={styles.mapOverlayText}>Livreur en approche</Text>
+          </View>
         </View>
 
         {/* Suivi en temps réel */}
         <View style={styles.trackingCard}>
-          <Text style={styles.cardTitle}>🛵 Suivi en temps réel</Text>
-          <Text style={styles.eta}>Arrivée estimée : <Text style={styles.etaTime}>15 min</Text></Text>
+          <View style={styles.trackingHeader}>
+             <Text style={styles.cardTitle}>📦 Statut de livraison</Text>
+             <View style={styles.etaBadge}>
+                <Text style={styles.etaText}>12 min</Text>
+             </View>
+          </View>
           <View style={styles.steps}>
             {STEPS.map((step, idx) => (
               <View key={step.id} style={styles.stepRow}>
@@ -110,21 +127,28 @@ export default function OrderDetailScreen({ route, navigation }: any) {
 
         {/* Livreur */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Votre livreur</Text>
+          <Text style={styles.cardSectionTitle}>Votre livreur</Text>
           <View style={styles.driverRow}>
-            <View style={styles.driverAvatar}>
-              <Text style={{ fontSize: 28 }}>🛵</Text>
-            </View>
+            <Image source={order.driver.avatar} style={styles.driverAvatarImg} />
             <View style={styles.driverInfo}>
               <Text style={styles.driverName}>{order.driver.name}</Text>
               <Text style={styles.driverVehicle}>{order.driver.vehicle}</Text>
-              <Text style={styles.driverRating}>⭐ {order.driver.rating}</Text>
+              <View style={styles.driverRatingRow}>
+                <Ionicons name="star" size={12} color={COLORS.secondary} />
+                <Text style={styles.driverRatingText}>{order.driver.rating}</Text>
+              </View>
             </View>
-            <TouchableOpacity style={styles.callBtn} onPress={() => Linking.openURL(`tel:${order.driver.phone}`)}>
-              <Text style={{ fontSize: 22 }}>📞</Text>
-            </TouchableOpacity>
+            <View style={styles.driverActions}>
+               <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${order.driver.phone}`)}>
+                 <Ionicons name="call" size={20} color={COLORS.success} />
+               </TouchableOpacity>
+               <TouchableOpacity style={[styles.actionBtn, { marginLeft: 10 }]} onPress={() => Alert.alert("Chat", "Le chat avec le livreur sera disponible bientôt !")}>
+                 <Ionicons name="chatbubble-ellipses" size={20} color={COLORS.primary} />
+               </TouchableOpacity>
+            </View>
           </View>
         </View>
+
 
         {/* Adresse */}
         <View style={styles.card}>
@@ -189,33 +213,39 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
-  markerBody: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 4,
+  homeMarker: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.primary,
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: COLORS.white,
   },
+  driverMarker: {
+    width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.white,
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: COLORS.success,
+  },
+  driverMarkerImg: { width: 34, height: 34, borderRadius: 17 },
+  driverMarkerDot: {
+    position: "absolute", bottom: -2, right: -2,
+    width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.success,
+    borderWidth: 2, borderColor: COLORS.white,
+  },
+  mapOverlay: {
+    position: "absolute", bottom: 10, left: 10, backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.round,
+  },
+  mapOverlayText: { fontSize: 12, fontWeight: "700", color: COLORS.text },
   card: {
     backgroundColor: COLORS.white, margin: SPACING.md, marginBottom: 0,
     borderRadius: RADIUS.lg, padding: SPACING.lg,
     shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
   },
+  cardSectionTitle: { fontSize: FONTS.sizes.sm, fontWeight: "800", color: COLORS.textSecondary, marginBottom: SPACING.md, textTransform: "uppercase" },
   trackingCard: {
     backgroundColor: COLORS.white, margin: SPACING.md, marginBottom: 0,
     borderRadius: RADIUS.lg, padding: SPACING.lg,
-    borderLeftWidth: 4, borderLeftColor: COLORS.primary,
   },
-  cardTitle: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.text, marginBottom: SPACING.md },
-  eta: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginBottom: SPACING.md },
-  etaTime: { color: COLORS.primary, fontWeight: "800" },
+  trackingHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SPACING.lg },
+  etaBadge: { backgroundColor: COLORS.primary + "10", paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.round },
+  etaText: { color: COLORS.primary, fontWeight: "800", fontSize: 13 },
+  cardTitle: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.text },
   steps: { gap: 0 },
   stepRow: { flexDirection: "row", alignItems: "flex-start", gap: SPACING.md },
   stepLeft: { alignItems: "center", width: 32 },
@@ -229,21 +259,21 @@ const styles = StyleSheet.create({
   stepLine: { width: 2, height: 24, backgroundColor: COLORS.grayMedium, marginTop: 2 },
   stepLineDone: { backgroundColor: COLORS.primary },
   stepLabel: { flex: 1, fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, paddingTop: 6, paddingBottom: SPACING.md },
-  stepLabelActive: { color: COLORS.secondary, fontWeight: "700" },
+  stepLabelActive: { color: COLORS.text, fontWeight: "800" },
   stepLabelDone: { color: COLORS.text, fontWeight: "600" },
   driverRow: { flexDirection: "row", alignItems: "center", gap: SPACING.md },
-  driverAvatar: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: "#EDE7F6", alignItems: "center", justifyContent: "center",
-  },
+  driverAvatarImg: { width: 56, height: 56, borderRadius: 28 },
   driverInfo: { flex: 1 },
   driverName: { fontSize: FONTS.sizes.md, fontWeight: "700", color: COLORS.text },
   driverVehicle: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 2 },
-  driverRating: { fontSize: FONTS.sizes.xs, color: COLORS.text, marginTop: 2 },
-  callBtn: {
-    width: 48, height: 48, borderRadius: RADIUS.round,
-    backgroundColor: "#E8F5E9", alignItems: "center", justifyContent: "center",
+  driverRatingRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
+  driverRatingText: { fontSize: FONTS.sizes.xs, color: COLORS.text, fontWeight: "600" },
+  driverActions: { flexDirection: "row" },
+  actionBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: COLORS.grayLight, alignItems: "center", justifyContent: "center",
   },
+
   addressRow: { flexDirection: "row", gap: SPACING.sm, alignItems: "flex-start" },
   addressText: { flex: 1, fontSize: FONTS.sizes.sm, color: COLORS.text, lineHeight: 20 },
   itemRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.grayMedium, gap: SPACING.sm },
