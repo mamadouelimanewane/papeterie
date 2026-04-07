@@ -15,7 +15,7 @@
       },
       "env": {
         "APP_ENV": "development",
-        "EXPO_PUBLIC_API_URL": "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://papeterie.vercel.app/api"
       }
     },
     "preview": {
@@ -28,7 +28,7 @@
       },
       "env": {
         "APP_ENV": "preview",
-        "EXPO_PUBLIC_API_URL": "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://papeterie.vercel.app/api"
       }
     },
     "preview-ios": {
@@ -38,7 +38,7 @@
       },
       "env": {
         "APP_ENV": "preview",
-        "EXPO_PUBLIC_API_URL": "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://papeterie.vercel.app/api"
       }
     },
     "production": {
@@ -48,7 +48,7 @@
       },
       "env": {
         "APP_ENV": "production",
-        "EXPO_PUBLIC_API_URL": "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://papeterie.vercel.app/api"
       }
     }
   },

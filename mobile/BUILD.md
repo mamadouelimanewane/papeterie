@@ -165,9 +165,9 @@ Update the `API_URL` in `eas.json` for each environment:
 
 | Environment | URL |
 |-------------|-----|
-| Development | `http://192.168.1.3:3001/api` |
-| Preview | `https://api-staging.ndugumi.com/api` |
-| Production | `https://api.ndugumi.com/api` |
+| Development | `https://papeterie.vercel.app/api` |
+| Preview | `https://papeterie.vercel.app/api` |
+| Production | `https://papeterie.vercel.app/api` |
 
 ---
 

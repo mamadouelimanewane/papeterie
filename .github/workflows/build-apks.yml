@@ -45,6 +45,8 @@ jobs:
       - name: Compilation de l'APK (Gradle)
         working-directory: ./mobile/${{ matrix.app }}/android
         run: ./gradlew assembleRelease
+        env:
+          EXPO_PUBLIC_API_URL: "https://papeterie.vercel.app/api"
 
       - name: Upload de l'APK
         uses: actions/upload-artifact@v4
