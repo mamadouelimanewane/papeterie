@@ -9,7 +9,7 @@ const mockStores: Record<string, { name: string; email: string; id: number }> = 
 }
 
 function generateToken(storeId: number, email: string): string {
-  return btoa(`store:${storeId}:${email}:leluma2024`).replace(/=/g, "")
+  return btoa(`store:${storeId}:${email}:papeterie2024`).replace(/=/g, "")
 }
 
 function validateToken(storeId: string, token: string): boolean {
@@ -68,7 +68,7 @@ function LoginContent() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg mb-4">
             <BookOpen size={32} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">LELUMA</h1>
+          <h1 className="text-2xl font-bold text-gray-800">PAPETERIE</h1>
           <p className="text-gray-500 text-sm mt-1">Espace Marchand — Mon École</p>
         </div>
 
@@ -175,7 +175,7 @@ function LoginContent() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2026 LELUMA · Plateforme multi-boutiques en ligne
+          © 2026 PAPETERIE · Plateforme multi-boutiques en ligne
         </p>
       </div>
     </div>

@@ -1,11 +1,11 @@
 import axios from "axios"
 import * as SecureStore from "expo-secure-store"
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie.vercel.app/api"
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 30000,
   headers: { "Content-Type": "application/json" },
 })
 
@@ -21,7 +21,13 @@ api.interceptors.request.use(async (config: any) => {
 api.interceptors.response.use(
   (res: any) => res,
   (err: any) => {
-    const msg = err.response?.data?.error || err.response?.data?.message || "Erreur réseau (Serveur introuvable)"
+    if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+      return Promise.reject(new Error("Délai de connexion dépassé. Vérifiez votre connexion internet."))
+    }
+    if (!err.response) {
+      return Promise.reject(new Error("Impossible de joindre le serveur. Vérifiez votre connexion internet."))
+    }
+    const msg = err.response?.data?.error || err.response?.data?.message || "Erreur serveur, veuillez réessayer."
     return Promise.reject(new Error(msg))
   }
 )

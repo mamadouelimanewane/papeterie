@@ -1,0 +1,90 @@
+name: Générer les APKs Android (User & Driver)
+
+on:
+  workflow_dispatch: # Permet de lancer le build manuellement depuis l'interface GitHub
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**' # Se déclenche uniquement si on modifie des fichiers mobiles
+
+jobs:
+  build-user-app:
+    name: Build Papeterie Client (User App)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Configuration de Java (Nécessaire pour Android)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Installation des dépendances Expo
+        working-directory: ./mobile/user-app
+        run: |
+          npm install -g npx
+          npm install
+
+      - name: Génération des fichiers natifs Android (Prebuild)
+        working-directory: ./mobile/user-app
+        run: npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_API_URL: "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+
+      - name: Compilation de l'APK (Gradle)
+        working-directory: ./mobile/user-app/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload de l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: papeterie-user-app-apk
+          path: mobile/user-app/android/app/build/outputs/apk/release/app-release.apk
+
+  build-driver-app:
+    name: Build Papeterie Livreur (Driver App)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Configuration de Java (Nécessaire pour Android)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Installation des dépendances Expo
+        working-directory: ./mobile/driver-app
+        run: |
+          npm install -g npx
+          npm install
+
+      - name: Génération des fichiers natifs Android (Prebuild)
+        working-directory: ./mobile/driver-app
+        run: npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_API_URL: "https://papeterie-h2rj9fu6w-mamadou-dias-projects-979b1f4f.vercel.app/api"
+
+      - name: Compilation de l'APK (Gradle)
+        working-directory: ./mobile/driver-app/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload de l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: papeterie-driver-app-apk
+          path: mobile/driver-app/android/app/build/outputs/apk/release/app-release.apk

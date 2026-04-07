@@ -50,10 +50,10 @@ function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile
           <span className="w-2 h-2 rounded-full bg-green-400"></span>
           <span className="text-xs text-green-400">Boutique en ligne</span>
         </div>
-        {/* LELUMA badge */}
+        {/* PAPETERIE badge */}
         <div className="mt-2 flex items-center gap-1.5">
           <BookOpen size={12} className="text-indigo-300" />
-          <span className="text-xs text-indigo-300 font-semibold">LELUMA · Papeterie scolaire</span>
+          <span className="text-xs text-indigo-300 font-semibold">PAPETERIE · Boutique scolaire</span>
         </div>
       </div>
 
@@ -135,7 +135,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <span className="text-lg">🏫</span>
             <span className="font-semibold text-gray-700 text-sm hidden sm:block">{store.name}</span>
-            <span className="text-xs text-indigo-500 hidden md:block">· LELUMA</span>
+            <span className="text-xs text-indigo-500 hidden md:block">· PAPETERIE</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">

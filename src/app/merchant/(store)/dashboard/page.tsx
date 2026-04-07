@@ -45,7 +45,7 @@ function DashboardContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-800">Tableau de bord — Mon École</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Papeterie scolaire en ligne · LELUMA · Lundi 16 mars 2026</p>
+          <p className="text-sm text-gray-500 mt-0.5">Papeterie scolaire en ligne · PAPETERIE · Lundi 16 mars 2026</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100">
           <Package size={14} className="text-indigo-600" />

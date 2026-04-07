@@ -58,8 +58,8 @@ export default function DashboardCharts({ chartData, categoryStats }: Props) {
               <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} yAxisId="right" orientation="right" tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
-                formatter={(value: number, name: string) => [
-                  name === "revenus" ? `${value.toLocaleString("fr-FR")} FCFA` : value,
+                formatter={(value: any, name: any) => [
+                  name === "revenus" ? `${Number(value).toLocaleString("fr-FR")} FCFA` : value,
                   name === "commandes" ? "Commandes" : "Revenus",
                 ]}
               />
@@ -90,7 +90,7 @@ export default function DashboardCharts({ chartData, categoryStats }: Props) {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v: number) => [v, "Produits"]} />
+              <Tooltip formatter={(v: any) => [v, "Produits"]} />
               <Legend verticalAlign="bottom" height={36} />
             </PieChart>
           </ResponsiveContainer>
