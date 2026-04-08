@@ -57,7 +57,6 @@ jobs:
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             echo "$GOOGLE_SERVICES_JSON" > google-services.json
-            echo "google-services.json reel utilise"
           else
             cat > google-services.json << EOF
           {
@@ -70,71 +69,82 @@ jobs:
               {
                 "client_info": {
                   "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
-                  "android_client_info": {
-                    "package_name": "${{ matrix.package }}"
-                  }
+                  "android_client_info": { "package_name": "${{ matrix.package }}" }
                 },
                 "oauth_client": [],
-                "api_key": [
-                  {
-                    "current_key": "AIza0000000000000000000000000000000000000"
-                  }
-                ],
-                "services": {
-                  "appinvite_service": {
-                    "other_platform_oauth_client": []
-                  }
-                }
+                "api_key": [{ "current_key": "AIza0000000000000000000000000000000000000" }],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
               }
             ],
             "configuration_version": "1"
           }
           EOF
-            echo "google-services.json placeholder cree"
           fi
 
-      - name: Generer le keystore de signature
-        working-directory: ./mobile/${{ matrix.app }}
+      - name: Afficher le build.gradle genere (diagnostic)
+        working-directory: ./mobile/${{ matrix.app }}/android/app
+        run: |
+          echo "=== build.gradle signingConfigs ==="
+          grep -A 20 "signingConfigs" build.gradle || echo "Aucun signingConfigs trouve"
+          echo "=== buildTypes release ==="
+          grep -A 10 "release {" build.gradle || true
+
+      - name: Configurer signing release via gradle.properties
+        working-directory: ./mobile/${{ matrix.app }}/android
         run: |
           keytool -genkeypair -v \
-            -keystore android/app/release.keystore \
+            -keystore app/release.keystore \
             -alias papeterie \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=Papeterie,OU=Mobile,O=Papeterie,L=Dakar,S=SN,C=SN" \
             -storepass papeterie2024 \
             -keypass papeterie2024
-          echo "Keystore genere avec succes"
-
-      - name: Configurer signing dans gradle.properties
-        working-directory: ./mobile/${{ matrix.app }}/android
-        run: |
           echo "" >> gradle.properties
-          echo "MYAPP_RELEASE_STORE_FILE=release.keystore" >> gradle.properties
-          echo "MYAPP_RELEASE_KEY_ALIAS=papeterie" >> gradle.properties
-          echo "MYAPP_RELEASE_STORE_PASSWORD=papeterie2024" >> gradle.properties
-          echo "MYAPP_RELEASE_KEY_PASSWORD=papeterie2024" >> gradle.properties
-          echo "Signing configure dans gradle.properties"
+          echo "PAPETERIE_STORE_FILE=release.keystore" >> gradle.properties
+          echo "PAPETERIE_KEY_ALIAS=papeterie" >> gradle.properties
+          echo "PAPETERIE_STORE_PASSWORD=papeterie2024" >> gradle.properties
+          echo "PAPETERIE_KEY_PASSWORD=papeterie2024" >> gradle.properties
 
-      - name: Patcher build.gradle avec la config signing
+      - name: Injecter la config signing dans build.gradle via Node.js
         working-directory: ./mobile/${{ matrix.app }}/android/app
         run: |
-          # Ajouter signingConfigs avant buildTypes
-          sed -i '/buildTypes {/i\
-              signingConfigs {\
-                  release {\
-                      storeFile file(MYAPP_RELEASE_STORE_FILE)\
-                      storePassword MYAPP_RELEASE_STORE_PASSWORD\
-                      keyAlias MYAPP_RELEASE_KEY_ALIAS\
-                      keyPassword MYAPP_RELEASE_KEY_PASSWORD\
-                  }\
-              }\
-          ' build.gradle
-          # Associer signingConfig.release au buildType release
-          sed -i '/release {/{n; s/^/            signingConfig signingConfigs.release\n/}' build.gradle
-          echo "build.gradle patche avec succes"
-          grep -A 10 "signingConfigs" build.gradle || true
+          node -e "
+          const fs = require('fs');
+          let content = fs.readFileSync('build.gradle', 'utf8');
 
-      - name: Compilation APK Release
+          // Ajouter signingConfig release si pas deja present
+          const signingBlock = \`
+              signingConfigs {
+                  release {
+                      storeFile file(PAPETERIE_STORE_FILE)
+                      storePassword PAPETERIE_STORE_PASSWORD
+                      keyAlias PAPETERIE_KEY_ALIAS
+                      keyPassword PAPETERIE_KEY_PASSWORD
+                  }
+              }
+          \`;
+
+          if (!content.includes('PAPETERIE_STORE_FILE')) {
+              // Inserer avant buildTypes
+              content = content.replace('buildTypes {', signingBlock + '\n    buildTypes {');
+          }
+
+          // Associer signingConfig.release au buildType release
+          content = content.replace(
+              /release\s*\{([^}]*)}/,
+              (match, inner) => {
+                  if (!inner.includes('signingConfig')) {
+                      return match.replace(inner, inner + '\n            signingConfig signingConfigs.release\n        ');
+                  }
+                  return match;
+              }
+          );
+
+          fs.writeFileSync('build.gradle', content);
+          console.log('build.gradle patche avec succes');
+          "
+
+      - name: Compilation APK Release (bundle JS inclus)
         working-directory: ./mobile/${{ matrix.app }}/android
         env:
           EXPO_PUBLIC_API_URL: "https://papeterie.vercel.app/api"
@@ -147,10 +157,7 @@ jobs:
           path: mobile/${{ matrix.app }}/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
-      - name: Afficher le lien de telechargement
+      - name: Succes
         run: |
-          echo "============================================"
-          echo "APK ${{ matrix.name }} compile avec succes !"
-          echo "Telecharger depuis l onglet Artifacts ci-dessous"
-          echo "URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "============================================"
+          echo "APK ${{ matrix.name }} pret !"
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
