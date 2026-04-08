@@ -1,4 +1,5 @@
-﻿name: Build APKs Android (Client & Livreur)
+﻿# APK client + livreur via Gradle (sans quota EAS). Artefacts téléchargeables dans l’onglet Actions.
+name: Build APKs Android (Client & Livreur)
 
 on:
   workflow_dispatch:
