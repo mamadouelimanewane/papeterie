@@ -50,10 +50,11 @@ jobs:
           CI: "1"
         run: npx expo prebuild --platform android --clean
 
-      - name: Copier le keystore fixe
+      - name: Installer le keystore comme debug.keystore Android
         run: |
-          cp mobile/papeterie-release.keystore mobile/${{ matrix.app }}/android/app/release.keystore
-          echo "Keystore copie: $(ls -la mobile/${{ matrix.app }}/android/app/release.keystore)"
+          mkdir -p ~/.android
+          cp mobile/papeterie-release.keystore ~/.android/debug.keystore
+          echo "Keystore installe"
 
       - name: Creation du google-services.json
         working-directory: ./mobile/${{ matrix.app }}/android/app
@@ -86,48 +87,15 @@ jobs:
           EOF
           fi
 
-      - name: Configurer signing gradle.properties
-        working-directory: ./mobile/${{ matrix.app }}/android
-        run: |
-          echo "" >> gradle.properties
-          echo "PAPETERIE_STORE_FILE=release.keystore" >> gradle.properties
-          echo "PAPETERIE_KEY_ALIAS=papeterie" >> gradle.properties
-          echo "PAPETERIE_STORE_PASSWORD=Papeterie2024!" >> gradle.properties
-          echo "PAPETERIE_KEY_PASSWORD=Papeterie2024!" >> gradle.properties
-
-      - name: Patcher build.gradle (signing config via Node.js)
+      - name: Diagnostic signingConfigs
         working-directory: ./mobile/${{ matrix.app }}/android/app
-        run: |
-          node -e "
-          const fs = require('fs');
-          let c = fs.readFileSync('build.gradle', 'utf8');
-          const sigBlock = \`
-              signingConfigs {
-                  release {
-                      storeFile file(PAPETERIE_STORE_FILE)
-                      storePassword PAPETERIE_STORE_PASSWORD
-                      keyAlias PAPETERIE_KEY_ALIAS
-                      keyPassword PAPETERIE_KEY_PASSWORD
-                  }
-              }
-          \`;
-          if (!c.includes('PAPETERIE_STORE_FILE')) {
-            c = c.replace('    buildTypes {', sigBlock + '\n    buildTypes {');
-          }
-          // Associer signingConfig.release si pas encore fait
-          c = c.replace(
-            /release\s*\{(\s*(?!.*signingConfig)[\s\S]*?)\}/m,
-            (m, inner) => m.includes('signingConfig') ? m : m.replace(inner, inner + '\n            signingConfig signingConfigs.release\n        ')
-          );
-          fs.writeFileSync('build.gradle', c);
-          console.log('build.gradle patche');
-          "
+        run: grep -A 10 'signingConfigs' build.gradle || echo "Pas de signingConfigs trouve"
 
       - name: Compilation APK Release
         working-directory: ./mobile/${{ matrix.app }}/android
         env:
           EXPO_PUBLIC_API_URL: "https://papeterie.vercel.app/api"
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tail -150
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -137,6 +105,4 @@ jobs:
           retention-days: 30
 
       - name: Info
-        run: |
-          echo "APK ${{ matrix.name }} pret !"
-          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: echo "APK ${{ matrix.name }} pret - ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
