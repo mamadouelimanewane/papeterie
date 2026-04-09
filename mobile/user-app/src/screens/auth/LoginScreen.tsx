@@ -7,6 +7,7 @@ import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
 import { authAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
+import * as SecureStore from "expo-secure-store"
 
 export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState("")
@@ -24,6 +25,7 @@ export default function LoginScreen({ navigation }: any) {
     try {
       const { data } = await authAPI.login({ phone, password })
       if (data.token) {
+        await SecureStore.setItemAsync("user_token", data.token)
         setUser(data.user, data.token)
         // La navigation vers l'app se fait automatiquement via l'état du store
       }

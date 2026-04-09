@@ -49,8 +49,14 @@ export default function OrdersScreen({ navigation }: any) {
     }
   }
 
+  const STATUS_MAP: Record<string, string[]> = {
+    "Tous": [],
+    "En cours": ["Pending", "Processing", "PickedUp"],
+    "Livré": ["Completed", "Delivered"],
+    "Annulé": ["Cancelled"],
+  }
   const filtered = orders.filter(
-    (o) => activeTab === "Tous" || o.status.includes(activeTab.replace("En cours", "En"))
+    (o) => STATUS_MAP[activeTab].length === 0 || STATUS_MAP[activeTab].includes(o.status)
   )
 
   const handleDev = () => {

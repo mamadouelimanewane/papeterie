@@ -5,6 +5,7 @@ import {
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
+import { walletAPI } from "../../services/api"
 
 const TRANSACTIONS = [
   { id: "1", type: "credit", label: "Recharge portefeuille", method: "Orange Money", amount: 5000, date: "Aujourd'hui, 10:00" },
@@ -23,19 +24,24 @@ const PAYMENT_METHODS = [
 
 export default function WalletScreen({ navigation }: any) {
   const user = useStore((s) => s.user)
-  const balance = user?.walletBalance ?? 12350
+  const balance = user?.walletBalance ?? 0
   const [showRecharge, setShowRecharge] = useState(false)
   const [amount, setAmount] = useState("")
   const [selectedMethod, setSelectedMethod] = useState("orange")
 
-  const handleRecharge = () => {
-    if (!amount || Number(amount) < 500) {
-      Alert.alert("Montant invalide", "Le montant minimum est 500 FCFA")
+  const handleRecharge = async () => {
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      Alert.alert("Erreur", "Montant invalide")
       return
     }
-    Alert.alert("Recharge initiée", `Recharge de ${Number(amount).toLocaleString()} FCFA via ${PAYMENT_METHODS.find(p => p.id === selectedMethod)?.label}. Suivez les instructions sur votre téléphone.`)
-    setShowRecharge(false)
-    setAmount("")
+    try {
+      await walletAPI.recharge(Number(amount))
+      Alert.alert("Succès", `Recharge de ${Number(amount).toLocaleString()} FCFA effectuée`)
+      setShowRecharge(false)
+      setAmount("")
+    } catch (e: any) {
+      Alert.alert("Erreur", e.message || "Recharge impossible")
+    }
   }
 
   return (

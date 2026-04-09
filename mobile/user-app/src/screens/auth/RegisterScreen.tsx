@@ -8,6 +8,7 @@ import { useStore } from "../../store/useStore"
 import { authAPI } from "../../services/api"
 import { Ionicons } from "@expo/vector-icons"
 import { Alert } from "react-native"
+import * as SecureStore from "expo-secure-store"
 
 export default function RegisterScreen({ navigation }: any) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", confirmPassword: "" })
@@ -36,6 +37,7 @@ export default function RegisterScreen({ navigation }: any) {
       })
 
       if (data.token) {
+        await SecureStore.setItemAsync("user_token", data.token)
         setUser(data.user, data.token)
         // La navigation vers l'app se fait automatiquement via l'état du store
       }

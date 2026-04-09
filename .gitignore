@@ -44,3 +44,6 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+papeterie-release.keystore
+papeterie-release.keystore.b64

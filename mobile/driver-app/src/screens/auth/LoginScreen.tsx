@@ -15,6 +15,7 @@ import { useDriverStore } from "../../store/useDriverStore"
 import { authAPI } from "../../services/api"
 import { COLORS } from "../../constants/theme"
 import { Ionicons } from "@expo/vector-icons"
+import * as SecureStore from "expo-secure-store"
 
 type Props = {
   navigation: NativeStackNavigationProp<any>
@@ -41,7 +42,8 @@ export default function LoginScreen({ navigation }: Props) {
          // Basic check, though server should ideally handle this
       }
 
-      setDriver(res.data.user || res.data, res.data.token)
+      await SecureStore.setItemAsync("driver_token", res.data.token)
+      setDriver(res.data.driver, res.data.token)
       Alert.alert("SuccÃ¨s", "Bienvenue sur Papeterie Livreur !")
     } catch (error: any) {
       Alert.alert("Erreur", error.message || "Identifiants invalides")

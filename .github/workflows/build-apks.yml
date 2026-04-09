@@ -1,5 +1,4 @@
-﻿# APK client + livreur via Gradle (sans quota EAS). Artefacts téléchargeables dans l’onglet Actions.
-name: Build APKs Android (Client & Livreur)
+﻿name: Build APKs Android (Client & Livreur)
 
 on:
   workflow_dispatch:
@@ -51,6 +50,11 @@ jobs:
           CI: "1"
         run: npx expo prebuild --platform android --clean
 
+      - name: Copier le keystore fixe
+        run: |
+          cp mobile/papeterie-release.keystore mobile/${{ matrix.app }}/android/app/release.keystore
+          echo "Keystore copie: $(ls -la mobile/${{ matrix.app }}/android/app/release.keystore)"
+
       - name: Creation du google-services.json
         working-directory: ./mobile/${{ matrix.app }}/android/app
         env:
@@ -82,13 +86,42 @@ jobs:
           EOF
           fi
 
-      - name: Diagnostic build.gradle
+      - name: Configurer signing gradle.properties
+        working-directory: ./mobile/${{ matrix.app }}/android
+        run: |
+          echo "" >> gradle.properties
+          echo "PAPETERIE_STORE_FILE=release.keystore" >> gradle.properties
+          echo "PAPETERIE_KEY_ALIAS=papeterie" >> gradle.properties
+          echo "PAPETERIE_STORE_PASSWORD=Papeterie2024!" >> gradle.properties
+          echo "PAPETERIE_KEY_PASSWORD=Papeterie2024!" >> gradle.properties
+
+      - name: Patcher build.gradle (signing config via Node.js)
         working-directory: ./mobile/${{ matrix.app }}/android/app
         run: |
-          echo "=== signingConfigs ==="
-          grep -n "signingConfig\|signingConfigs\|storeFile\|keyAlias" build.gradle || echo "Aucun"
-          echo "=== buildTypes ==="
-          grep -n -A 5 "buildTypes" build.gradle || echo "Aucun"
+          node -e "
+          const fs = require('fs');
+          let c = fs.readFileSync('build.gradle', 'utf8');
+          const sigBlock = \`
+              signingConfigs {
+                  release {
+                      storeFile file(PAPETERIE_STORE_FILE)
+                      storePassword PAPETERIE_STORE_PASSWORD
+                      keyAlias PAPETERIE_KEY_ALIAS
+                      keyPassword PAPETERIE_KEY_PASSWORD
+                  }
+              }
+          \`;
+          if (!c.includes('PAPETERIE_STORE_FILE')) {
+            c = c.replace('    buildTypes {', sigBlock + '\n    buildTypes {');
+          }
+          // Associer signingConfig.release si pas encore fait
+          c = c.replace(
+            /release\s*\{(\s*(?!.*signingConfig)[\s\S]*?)\}/m,
+            (m, inner) => m.includes('signingConfig') ? m : m.replace(inner, inner + '\n            signingConfig signingConfigs.release\n        ')
+          );
+          fs.writeFileSync('build.gradle', c);
+          console.log('build.gradle patche');
+          "
 
       - name: Compilation APK Release
         working-directory: ./mobile/${{ matrix.app }}/android
@@ -102,3 +135,8 @@ jobs:
           name: papeterie-${{ matrix.app }}-release
           path: mobile/${{ matrix.app }}/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+
+      - name: Info
+        run: |
+          echo "APK ${{ matrix.name }} pret !"
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -8,6 +8,7 @@ import { useDriverStore } from "../../store/useDriverStore"
 import { authAPI } from "../../services/api"
 import { COLORS } from "../../constants/theme"
 import { Ionicons } from "@expo/vector-icons"
+import * as SecureStore from "expo-secure-store"
 
 type Props = { navigation: NativeStackNavigationProp<any> }
 
@@ -28,6 +29,7 @@ export default function RegisterScreen({ navigation }: Props) {
     setLoading(true)
     try {
       const res = await authAPI.register({ name, email: email || undefined, phone: phone || undefined, password })
+      await SecureStore.setItemAsync("driver_token", res.data.token)
       setDriver(res.data.driver, res.data.token)
       Alert.alert("Succès", "Compte créé ! Votre demande est en attente de validation.")
     } catch (error: any) {

@@ -16,13 +16,14 @@ const { width } = Dimensions.get("window")
 // Mock constants removed — now using real API data with state
 
 export default function HomeScreen({ navigation }: any) {
+  const [bannerIndex, setBannerIndex] = useState(0)
   const [banners, setBanners] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [stores, setStores] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const user = useStore((s) => s.user)
-  const cartCount = useStore((s) => s.cartCount)()
+  const cartCount = useStore((s) => s.cartCount())
   const unreadCount = useStore((s) => s.unreadCount)
 
   useEffect(() => {
