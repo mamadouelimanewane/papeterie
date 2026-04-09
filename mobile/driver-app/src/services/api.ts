@@ -1,4 +1,4 @@
-import axios from "axios"
+﻿import axios from "axios"
 import * as SecureStore from "expo-secure-store"
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie.vercel.app/api"
@@ -22,21 +22,23 @@ api.interceptors.response.use(
   (res: any) => res,
   (err: any) => {
     if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
-      return Promise.reject(new Error("Délai de connexion dépassé. Vérifiez votre connexion internet."))
+      return Promise.reject(new Error("DÃ©lai de connexion dÃ©passÃ©. VÃ©rifiez votre connexion internet."))
     }
     if (!err.response) {
-      return Promise.reject(new Error("Impossible de joindre le serveur. Vérifiez votre connexion internet."))
+      return Promise.reject(new Error("Impossible de joindre le serveur. VÃ©rifiez votre connexion internet."))
     }
-    const msg = err.response?.data?.error || err.response?.data?.message || "Erreur serveur, veuillez réessayer."
+    const msg = err.response?.data?.error || err.response?.data?.message || "Erreur serveur, veuillez rÃ©essayer."
     return Promise.reject(new Error(msg))
   }
 )
 
 
-// ── Auth ──────────────────────────────────────────────────────────
+// â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const authAPI = {
   login: (data: { email?: string; phone?: string; password?: string }) =>
     api.post("/driver/login", data),
+  register: (data: { name: string; email?: string; phone?: string; password: string; vehicleType?: string; serviceArea?: string }) =>
+    api.post("/driver/register", data),
   getProfile: () => api.get("/driver/profile"),
   updateProfile: (data: any) => api.put("/driver/profile", data),
   updateLocation: (lat: number, lng: number) =>
@@ -45,7 +47,7 @@ export const authAPI = {
     api.put("/driver/status", { online }),
 }
 
-// ── Orders ────────────────────────────────────────────────────────
+// â”€â”€ Orders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const ordersAPI = {
   getAvailable: () => api.get("/driver/orders/available"),
   getActive: () => api.get("/driver/orders/active"),
@@ -56,14 +58,15 @@ export const ordersAPI = {
     api.put(`/driver/orders/${id}/status`, { status }),
 }
 
-// ── Earnings ──────────────────────────────────────────────────────
+// â”€â”€ Earnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const earningsAPI = {
   getSummary: () => api.get("/driver/earnings"),
   getHistory: () => api.get("/driver/earnings/history"),
 }
 
-// ── Notifications ─────────────────────────────────────────────────
+// â”€â”€ Notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const notificationsAPI = {
   getAll: () => api.get("/driver/notifications"),
   markRead: (id: string) => api.put(`/driver/notifications/${id}/read`),
 }
+

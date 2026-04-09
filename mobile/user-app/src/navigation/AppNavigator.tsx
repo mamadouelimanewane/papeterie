@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
@@ -37,7 +37,7 @@ function TabIcon({ icon, label, focused }: { icon: any; label: string; focused: 
 }
 
 function MainTabs() {
-  const cartCount = useStore((s) => s.cartCount)()
+  const cartCount = useStore((s) => s.cartCount())
 
   return (
     <Tab.Navigator

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+﻿import React, { useState } from "react"
 import {
   View,
   Text,
@@ -42,7 +42,7 @@ export default function LoginScreen({ navigation }: Props) {
       }
 
       setDriver(res.data.user || res.data, res.data.token)
-      Alert.alert("Succès", "Bienvenue sur Papeterie Livreur !")
+      Alert.alert("SuccÃ¨s", "Bienvenue sur Papeterie Livreur !")
     } catch (error: any) {
       Alert.alert("Erreur", error.message || "Identifiants invalides")
     } finally {
@@ -60,12 +60,12 @@ export default function LoginScreen({ navigation }: Props) {
           <Ionicons name="bicycle" size={40} color={COLORS.white} />
         </View>
         <Text style={styles.title}>Papeterie Livreur</Text>
-        <Text style={styles.subtitle}>Connectez-vous à votre espace de livraison</Text>
+        <Text style={styles.subtitle}>Connectez-vous Ã  votre espace de livraison</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email ou Téléphone</Text>
+          <Text style={styles.label}>Email ou TÃ©lÃ©phone</Text>
           <View style={styles.inputRow}>
             <Ionicons name="person-outline" size={20} color={COLORS.gray} style={{ marginLeft: 12 }} />
             <TextInput
@@ -86,7 +86,7 @@ export default function LoginScreen({ navigation }: Props) {
             <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray} style={{ marginLeft: 12 }} />
             <TextInput
               style={styles.passwordInput}
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
@@ -111,13 +111,13 @@ export default function LoginScreen({ navigation }: Props) {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.forgotBtn}>
-          <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+          <Text style={styles.forgotText}>Mot de passe oubliÃ© ?</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Devenir livreur ? </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.signupLink}>S'inscrire</Text>
         </TouchableOpacity>
       </View>
@@ -237,3 +237,4 @@ const styles = StyleSheet.create({
   footerText: { color: COLORS.textSecondary, fontSize: 14 },
   signupLink: { color: COLORS.primary, fontSize: 14, fontWeight: "700" },
 })
+

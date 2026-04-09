@@ -33,7 +33,7 @@
 
 ```
 EXPO_PUBLIC_ONESIGNAL_APP_ID=votre-app-id   ← OneSignal App ID
-API_URL=https://api.ndugumi.com/api          ← URL de l'API backend
+API_URL=https://papeterie.vercel.app/api          ← URL de l'API backend
 ```
 
 ## Étape obligatoire avant le premier build : projectId EAS

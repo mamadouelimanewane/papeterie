@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons"
 // Auth screens
 import SplashScreen from "../screens/auth/SplashScreen"
 import LoginScreen from "../screens/auth/LoginScreen"
+import RegisterScreen from "../screens/auth/RegisterScreen"
 
 // Main screens
 import HomeScreen from "../screens/home/HomeScreen"
@@ -81,6 +82,7 @@ function AuthStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   )
 }
@@ -154,3 +156,4 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: 10, color: "#999", marginTop: 3 },
   tabLabelActive: { color: "#1A237E", fontWeight: "600" },
 })
+
