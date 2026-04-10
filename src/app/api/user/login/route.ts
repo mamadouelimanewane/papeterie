@@ -54,6 +54,7 @@ export async function POST(req: Request) {
         email: user.email,
         phone: user.phone,
         walletBalance: user.walletMoney,
+        walletMoney: user.walletMoney,
       }
     })
   } catch (error) {
