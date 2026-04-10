@@ -55,7 +55,7 @@ export const ordersAPI = {
   accept: (id: string) => api.post(`/driver/orders/${id}/accept`),
   reject: (id: string) => api.post(`/driver/orders/${id}/reject`),
   updateStatus: (id: string, status: string) =>
-    api.put(`/driver/orders/${id}/accept`, { status }),
+    api.patch(`/orders/${id}`, { status }),
 }
 
 // â”€â”€ Earnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
