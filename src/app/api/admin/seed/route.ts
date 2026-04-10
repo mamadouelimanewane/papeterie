@@ -173,6 +173,25 @@ export async function POST(req: Request) {
     }
     results.notifications = await prisma.notification.count()
 
+    // 9. Admin account
+    const adminEmail = process.env.ADMIN_EMAIL ?? "admin@papeterie.sn"
+    const adminPass = process.env.ADMIN_PASSWORD ?? "Admin2024!"
+    const hashedAdmin = await bcrypt.hash(adminPass, 10)
+    
+    let admin = await prisma.admin.findUnique({ where: { email: adminEmail } })
+    if (!admin) {
+      admin = await prisma.admin.create({
+        data: {
+          name: "Manager Papeterie",
+          email: adminEmail,
+          password: hashedAdmin,
+          role: "Admin",
+          status: "Active"
+        }
+      })
+    }
+    results.admin = admin.email
+
     return NextResponse.json({ success: true, message: "Seed OK", results })
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur"
