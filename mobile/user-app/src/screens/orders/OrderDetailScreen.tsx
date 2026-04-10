@@ -1,49 +1,74 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Linking, Dimensions, Image, Alert
+  SafeAreaView, Linking, Dimensions, Image, Alert, ActivityIndicator
 } from "react-native"
 
 import MapView, { Marker, Polyline } from "react-native-maps"
 import { Ionicons } from "@expo/vector-icons"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+import { ordersAPI } from "../../services/api"
 
 
 const { width } = Dimensions.get("window")
 
 const STEPS = [
-  { id: 1, label: "Commande confirmée", icon: "✅", done: true },
-  { id: 2, label: "En préparation", icon: "📦", done: true },
-  { id: 3, label: "Livreur assigné", icon: "🛵", done: true },
-  { id: 4, label: "En route vers vous", icon: "📍", done: false, active: true },
-  { id: 5, label: "Livré", icon: "🏠", done: false },
+  { id: 1, label: "Commande confirmée", icon: "✅", status: "Pending" },
+  { id: 2, label: "En préparation", icon: "📦", status: "Processing" },
+  { id: 3, label: "Livreur assigné", icon: "🛵", status: "Accepted" },
+  { id: 4, label: "En route vers vous", icon: "📍", status: "Pickedup" },
+  { id: 5, label: "Livré", icon: "🏠", status: "Delivered" },
 ]
 
 export default function OrderDetailScreen({ route, navigation }: any) {
-  const order = route?.params?.order ?? {
-    id: "ORD-1234",
-    store: "Mon École - Plateau",
-    date: "15 Mars 2026, 10:35",
-    status: "delivering",
-    total: 12500,
-    deliveryFee: 500,
-    address: "Cité Fadia, Appartement B4, Dakar",
-    driver: { 
-      name: "Mamadou Lamine Diallo", 
-      phone: "+221 77 000 00 01", 
-      rating: 4.9, 
-      vehicle: "Moto — DK 1234 AB",
-      avatar: { uri: "https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=200&h=200&fit=crop" }
-    },
-    items: [
-      { name: "Cahier 200 pages", qty: 2, price: 1500 },
-      { name: "Kit de géométrie", qty: 1, price: 2500 },
-      { name: "Calculatrice Scientifique", qty: 1, price: 7000 },
-    ],
+  const initialOrder = route?.params?.order
+  const [orderData, setOrderData] = useState<any>(initialOrder)
+  const [driverPos, setDriverPos] = useState({ latitude: 14.7250, longitude: -17.4620 })
+  const [loading, setLoading] = useState(!initialOrder)
+
+  const fetchOrderDetails = async () => {
+    try {
+      const res = await ordersAPI.getById(orderData?.id || initialOrder?.id)
+      const freshOrder = res.data
+      setOrderData(freshOrder)
+      
+      if (freshOrder?.driver?.lastLocation) {
+        const [lat, lng] = freshOrder.driver.lastLocation.split(",").map(Number)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setDriverPos({ latitude: lat, longitude: lng })
+        }
+      }
+    } catch (error) {
+       console.log("Error polling order status", error)
+    } finally {
+       setLoading(false)
+    }
   }
 
-  const items = order?.items || []
-  const subtotal = items.reduce((sum: number, i: any) => sum + (i.price * i.qty), 0)
+  useEffect(() => {
+    fetchOrderDetails()
+    const interval = setInterval(fetchOrderDetails, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (loading || !orderData) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    )
+  }
+
+  const items = orderData?.items || []
+  const subtotal = Array.isArray(items) ? items.reduce((sum: number, i: any) => sum + (i.price * i.qty), 0) : 0
+  
+  // Dynamic status check for steps
+  const currentStatusIndex = STEPS.findIndex(s => s.status === orderData.status)
+  const stepsWithStatus = STEPS.map((s, i) => ({
+    ...s,
+    done: i < currentStatusIndex || orderData.status === "Delivered",
+    active: i === currentStatusIndex && orderData.status !== "Delivered"
+  }))
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,9 +76,9 @@ export default function OrderDetailScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Suivi de commande {order.id}</Text>
+        <Text style={styles.title}>Suivi de commande {orderData.orderId || orderData.id}</Text>
         <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>En route</Text>
+          <Text style={styles.statusText}>{orderData.status}</Text>
         </View>
       </View>
 
@@ -62,11 +87,11 @@ export default function OrderDetailScreen({ route, navigation }: any) {
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
-            initialRegion={{
-              latitude: 14.7167,
-              longitude: -17.4677,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
+            region={{
+              latitude: driverPos.latitude,
+              longitude: driverPos.longitude,
+              latitudeDelta: 0.02,
+              longitudeDelta: 0.02,
             }}
           >
             {/* Delivery Destination */}
@@ -77,17 +102,19 @@ export default function OrderDetailScreen({ route, navigation }: any) {
             </Marker>
 
             {/* Driver Position */}
-            <Marker coordinate={{ latitude: 14.7250, longitude: -17.4620 }}>
-              <View style={styles.driverMarker}>
-                <Image source={order.driver.avatar} style={styles.driverMarkerImg} />
-                <View style={styles.driverMarkerDot} />
-              </View>
-            </Marker>
+            {orderData.driver && (
+              <Marker coordinate={driverPos}>
+                <View style={styles.driverMarker}>
+                   <Ionicons name="bicycle" size={20} color={COLORS.white} />
+                   <View style={styles.driverMarkerDot} />
+                </View>
+              </Marker>
+            )}
 
             {/* Path */}
             <Polyline
               coordinates={[
-                { latitude: 14.7250, longitude: -17.4620 },
+                driverPos,
                 { latitude: 14.7360, longitude: -17.4580 },
               ]}
               strokeColor={COLORS.primary}
@@ -96,7 +123,9 @@ export default function OrderDetailScreen({ route, navigation }: any) {
             />
           </MapView>
           <View style={styles.mapOverlay}>
-             <Text style={styles.mapOverlayText}>Livreur en approche</Text>
+             <Text style={styles.mapOverlayText}>
+               {orderData.status === "Delivered" ? "Colis livré !" : "Livreur en approche"}
+             </Text>
           </View>
         </View>
 
@@ -105,17 +134,17 @@ export default function OrderDetailScreen({ route, navigation }: any) {
           <View style={styles.trackingHeader}>
              <Text style={styles.cardTitle}>📦 Statut de livraison</Text>
              <View style={styles.etaBadge}>
-                <Text style={styles.etaText}>12 min</Text>
+                <Text style={styles.etaText}>{orderData.status === "Delivered" ? "Terminée" : "En cours"}</Text>
              </View>
           </View>
           <View style={styles.steps}>
-            {STEPS.map((step, idx) => (
+            {stepsWithStatus.map((step, idx) => (
               <View key={step.id} style={styles.stepRow}>
                 <View style={styles.stepLeft}>
                   <View style={[styles.stepDot, step.done && styles.stepDotDone, step.active && styles.stepDotActive]}>
                     <Text style={styles.stepDotText}>{step.done || step.active ? step.icon : ""}</Text>
                   </View>
-                  {idx < STEPS.length - 1 && <View style={[styles.stepLine, step.done && styles.stepLineDone]} />}
+                  {idx < stepsWithStatus.length - 1 && <View style={[styles.stepLine, step.done && styles.stepLineDone]} />}
                 </View>
                 <Text style={[styles.stepLabel, step.active && styles.stepLabelActive, step.done && styles.stepLabelDone]}>
                   {step.label}
@@ -126,28 +155,43 @@ export default function OrderDetailScreen({ route, navigation }: any) {
         </View>
 
         {/* Livreur */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionTitle}>Votre livreur</Text>
-          <View style={styles.driverRow}>
-            <Image source={order.driver.avatar} style={styles.driverAvatarImg} />
-            <View style={styles.driverInfo}>
-              <Text style={styles.driverName}>{order.driver.name}</Text>
-              <Text style={styles.driverVehicle}>{order.driver.vehicle}</Text>
-              <View style={styles.driverRatingRow}>
-                <Ionicons name="star" size={12} color={COLORS.secondary} />
-                <Text style={styles.driverRatingText}>{order.driver.rating}</Text>
+        {orderData.driver && (
+          <View style={styles.card}>
+            <Text style={styles.cardSectionTitle}>Votre livreur</Text>
+            <View style={styles.driverRow}>
+              <View style={[styles.driverAvatarImg, { backgroundColor: COLORS.primary, alignItems: "center", justifyContent: "center" }]}>
+                 <Text style={{ color: COLORS.white, fontWeight: "bold" }}>{orderData.driver.name.charAt(0)}</Text>
+              </View>
+              <View style={styles.driverInfo}>
+                <Text style={styles.driverName}>{orderData.driver.name}</Text>
+                <Text style={styles.driverVehicle}>{orderData.driver.phone}</Text>
+                <View style={styles.driverRatingRow}>
+                  <Ionicons name="star" size={12} color={COLORS.secondary} />
+                  <Text style={styles.driverRatingText}>4.9</Text>
+                </View>
+              </View>
+              <View style={styles.driverActions}>
+                 <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${orderData.driver.phone}`)}>
+                   <Ionicons name="call" size={20} color={COLORS.success} />
+                 </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.driverActions}>
-               <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${order.driver.phone}`)}>
-                 <Ionicons name="call" size={20} color={COLORS.success} />
-               </TouchableOpacity>
-               <TouchableOpacity style={[styles.actionBtn, { marginLeft: 10 }]} onPress={() => Alert.alert("Chat", "Le chat avec le livreur sera disponible bientôt !")}>
-                 <Ionicons name="chatbubble-ellipses" size={20} color={COLORS.primary} />
-               </TouchableOpacity>
+          </View>
+        )}
+
+        {/* OTP Code (New) */}
+        {orderData.status !== "Delivered" && (
+          <View style={[styles.card, styles.otpCard]}>
+            <View style={styles.otpHeader}>
+               <Ionicons name="key" size={20} color={COLORS.primary} />
+               <Text style={styles.otpTitle}>Code de livraison</Text>
+            </View>
+            <Text style={styles.otpDesc}>Donnez ce code au livreur pour confirmer la bonne réception de votre colis.</Text>
+            <View style={styles.otpCodeContainer}>
+               <Text style={styles.otpCodeText}>{orderData.deliveryOtp || "------"}</Text>
             </View>
           </View>
-        </View>
+        )}
 
 
         {/* Adresse */}
@@ -155,14 +199,14 @@ export default function OrderDetailScreen({ route, navigation }: any) {
           <Text style={styles.cardTitle}>Adresse de livraison</Text>
           <View style={styles.addressRow}>
             <Text style={{ fontSize: 20 }}>📍</Text>
-            <Text style={styles.addressText}>{order.address}</Text>
+            <Text style={styles.addressText}>{orderData.address}</Text>
           </View>
         </View>
 
         {/* Articles */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Articles commandés</Text>
-          {order.items.map((item: any, idx: number) => (
+          {Array.isArray(orderData.items) && orderData.items.map((item: any, idx: number) => (
             <View key={idx} style={styles.itemRow}>
               <Text style={styles.itemQty}>{item.qty}x</Text>
               <Text style={styles.itemName}>{item.name}</Text>
@@ -180,11 +224,11 @@ export default function OrderDetailScreen({ route, navigation }: any) {
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Livraison</Text>
-            <Text style={styles.totalValue}>{order.deliveryFee.toLocaleString()} FCFA</Text>
+            <Text style={styles.totalValue}>{orderData.deliveryFee?.toLocaleString() || "500"} FCFA</Text>
           </View>
           <View style={[styles.totalRow, styles.totalRowFinal]}>
             <Text style={styles.totalFinalLabel}>Total</Text>
-            <Text style={styles.totalFinalValue}>{order.total.toLocaleString()} FCFA</Text>
+            <Text style={styles.totalFinalValue}>{orderData.total?.toLocaleString()} FCFA</Text>
           </View>
         </View>
 
@@ -286,4 +330,10 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: FONTS.sizes.sm, color: COLORS.text },
   totalFinalLabel: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.text },
   totalFinalValue: { fontSize: FONTS.sizes.md, fontWeight: "800", color: COLORS.primary },
+  otpCard: { backgroundColor: COLORS.primary + "08", borderColor: COLORS.primary + "20", borderWidth: 1 },
+  otpHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  otpTitle: { fontSize: 16, fontWeight: "800", color: COLORS.primary },
+  otpDesc: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 15, lineHeight: 18 },
+  otpCodeContainer: { backgroundColor: COLORS.white, borderRadius: RADIUS.md, paddingVertical: 12, alignItems: "center", borderStyle: "dashed", borderWidth: 2, borderColor: COLORS.primary },
+  otpCodeText: { fontSize: 28, fontWeight: "900", color: COLORS.primary, letterSpacing: 4 },
 })

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   View,
   Text,
@@ -9,14 +9,20 @@ import {
   Linking,
   Dimensions,
   SafeAreaView,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator
 } from "react-native"
+import * as Location from "expo-location"
 import MapView, { Marker, Polyline } from "react-native-maps"
 import { useDriverStore } from "../../store/useDriverStore"
 import { Ionicons } from "@expo/vector-icons"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
-import { ordersAPI } from "../../services/api"
+import { ordersAPI, authAPI } from "../../services/api"
 
-const { width } = Dimensions.get("window")
+const { width, height } = Dimensions.get("window")
 
 const STEPS = [
   { key: "accepted", label: "Collecte", icon: "storefront", desc: "Aller au magasin" },
@@ -27,6 +33,47 @@ const STEPS = [
 export default function ActiveDeliveryScreen({ navigation }: any) {
   const { currentOrder, setCurrentOrder, completeDelivery } = useDriverStore()
   const [step, setStep] = useState(0)
+  const [driverPos, setDriverPos] = useState({ latitude: 14.7200, longitude: -17.4600 })
+  
+  // OTP & Signature State
+  const [otpModalVisible, setOtpModalVisible] = useState(false)
+  const [signatureModalVisible, setSignatureModalVisible] = useState(false)
+  const [otpValue, setOtpValue] = useState("")
+  const [signatureName, setSignatureName] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  // Real-time tracking logic
+  useEffect(() => {
+    let locationWatcher: Location.LocationSubscription | null = null
+
+    const startTracking = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== "granted") {
+        Alert.alert("Permission refusée", "L'accès à la localisation est requis pour le suivi de livraison.")
+        return
+      }
+
+      locationWatcher = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.Balanced,
+          distanceInterval: 10, // Update every 10 meters
+          timeInterval: 10000,   // or every 10 seconds
+        },
+        (location) => {
+          const { latitude, longitude } = location.coords
+          setDriverPos({ latitude, longitude })
+          // Update Server
+          authAPI.updateLocation(latitude, longitude).catch(err => console.log("Location update error", err))
+        }
+      )
+    }
+
+    startTracking()
+
+    return () => {
+      if (locationWatcher) locationWatcher.remove()
+    }
+  }, [])
 
   if (!currentOrder) {
     navigation.goBack()
@@ -35,18 +82,48 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
 
   const handleNextStep = async () => {
     if (step === 0) {
-      try {
-        await ordersAPI.updateStatus(currentOrder._id || currentOrder.id, "Processing")
-      } catch {}
+      setOtpValue("")
+      setOtpModalVisible(true)
+    } else if (step === 1) {
+      setOtpValue("")
+      setSignatureName("")
+      setSignatureModalVisible(true)
+    } else {
+      completeDelivery()
+      navigation.navigate("Home")
+    }
+  }
+
+  const confirmPickup = async () => {
+    if (otpValue.length < 4) {
+      Alert.alert("Erreur", "Veuillez saisir un code OTP valide.")
+      return
+    }
+    setLoading(true)
+    try {
+      await ordersAPI.updateStatus(currentOrder.id, "Processing", otpValue)
+      setOtpModalVisible(false)
       setCurrentOrder({ ...currentOrder, status: "pickedup" })
       setStep(1)
-    } else if (step === 1) {
+    } catch (error: any) {
+      Alert.alert("Erreur OTP", error.message || "Code incorrect.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const confirmDelivery = async () => {
+    if (otpValue.length < 4 || !signatureName) {
+      Alert.alert("Erreur", "Veuillez saisir le code OTP et le nom du réceptionnaire.")
+      return
+    }
+    setLoading(true)
+    try {
+      // Pour la démo, la signature est le nom saisi
+      await ordersAPI.updateStatus(currentOrder.id, "Delivered", otpValue, `Signature: ${signatureName}`)
+      setSignatureModalVisible(false)
       setCurrentOrder({ ...currentOrder, status: "delivered" })
       setStep(2)
-    } else {
-      try {
-        await ordersAPI.updateStatus(currentOrder._id || currentOrder.id, "Delivered")
-      } catch {}
       Alert.alert(
         "Livraison terminée ! 🎉",
         `Gains confirmés : ${currentOrder.earnings.toLocaleString()} FCFA.\nBeau travail !`,
@@ -60,6 +137,10 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
           },
         ]
       )
+    } catch (error: any) {
+      Alert.alert("Erreur", error.message || "Code incorrect ou erreur serveur.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -76,6 +157,7 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Real MapView */}
         <View style={styles.mapContainer}>
@@ -103,7 +185,7 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
             </Marker>
 
             {/* Driver Marker */}
-            <Marker coordinate={{ latitude: 14.7200, longitude: -17.4600 }}>
+            <Marker coordinate={driverPos}>
               <View style={[styles.markerBody, { backgroundColor: COLORS.success, borderColor: COLORS.white, width: 40, height: 40, borderRadius: 20 }]}>
                  <Ionicons name="bicycle" size={20} color={COLORS.white} />
               </View>
@@ -112,7 +194,7 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
             <Polyline
               coordinates={[
                 { latitude: 14.7167, longitude: -17.4677 },
-                { latitude: 14.7200, longitude: -17.4600 },
+                driverPos,
                 { latitude: 14.7360, longitude: -17.4580 },
               ]}
               strokeColor={COLORS.primary}
@@ -212,8 +294,82 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        {/* Modal OTP Ramassage */}
+        <Modal visible={otpModalVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Ionicons name="key" size={24} color={COLORS.warning} />
+                <Text style={styles.modalTitle}>Code de ramassage</Text>
+              </View>
+              <Text style={styles.modalDesc}>Saisissez le code fourni par le commerçant pour confirmer la récupération.</Text>
+              <TextInput
+                style={styles.otpInput}
+                placeholder="000000"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otpValue}
+                onChangeText={setOtpValue}
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setOtpModalVisible(false)}>
+                  <Text style={styles.cancelBtnText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.confirmBtn} onPress={confirmPickup}>
+                  {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.confirmBtnText}>Valider</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal Signature Livraison */}
+        <Modal visible={signatureModalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Ionicons name="checkbox-outline" size={24} color={COLORS.success} />
+                <Text style={styles.modalTitle}>Validation Livraison</Text>
+              </View>
+              
+              <Text style={styles.inputLabel}>CODE OTP CLIENT</Text>
+              <TextInput
+                style={styles.otpInput}
+                placeholder="Code à 6 chiffres"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otpValue}
+                onChangeText={setOtpValue}
+              />
+
+              <Text style={styles.inputLabel}>NOM DU RÉCEPTIONNAIRE</Text>
+              <TextInput
+                style={styles.otpInput}
+                placeholder="Ex: M. Diop"
+                value={signatureName}
+                onChangeText={setSignatureName}
+              />
+              
+              <View style={styles.signaturePad}>
+                 <Ionicons name="pencil" size={30} color={COLORS.grayMedium} />
+                 <Text style={{ color: COLORS.grayMedium, fontSize: 12 }}>Signature numérique requise</Text>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setSignatureModalVisible(false)}>
+                  <Text style={styles.cancelBtnText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: COLORS.success }]} onPress={confirmDelivery}>
+                  {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.confirmBtnText}>Confirmer</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
@@ -292,5 +448,18 @@ const styles = StyleSheet.create({
   mainActionBtn: { borderRadius: RADIUS.lg, paddingVertical: 18, shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, elevation: 6 },
   btnContent: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   actionBtnText: { color: COLORS.white, fontSize: 14, fontWeight: "900", letterSpacing: 0.5 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 },
+  modalContent: { backgroundColor: COLORS.white, width: "100%", borderRadius: RADIUS.lg, padding: 30, shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  modalHeader: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 15 },
+  modalTitle: { fontSize: 20, fontWeight: "800", color: COLORS.text },
+  modalDesc: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 20, lineHeight: 20 },
+  otpInput: { backgroundColor: COLORS.grayLight, height: 60, borderRadius: RADIUS.md, fontSize: 24, fontWeight: "800", textAlign: "center", color: COLORS.primary, marginBottom: 20 },
+  inputLabel: { fontSize: 10, fontWeight: "900", color: COLORS.textSecondary, marginBottom: 8, letterSpacing: 0.5 },
+  modalActions: { flexDirection: "row", gap: 15 },
+  cancelBtn: { flex: 1, height: 55, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.grayLight },
+  cancelBtnText: { fontSize: 14, fontWeight: "700", color: COLORS.textSecondary },
+  confirmBtn: { flex: 2, height: 55, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.primary },
+  confirmBtnText: { fontSize: 14, fontWeight: "800", color: COLORS.white },
+  signaturePad: { height: 120, borderStyle: "dashed", borderWidth: 2, borderColor: COLORS.grayMedium, borderRadius: RADIUS.md, marginBottom: 20, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.grayLight + "50" },
 })
 

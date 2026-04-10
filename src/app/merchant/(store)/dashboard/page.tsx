@@ -74,6 +74,69 @@ function DashboardContent() {
         ))}
       </div>
 
+      {/* Innovation & Insights IA (New Section) */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Heatmap Section */}
+        <div className="lg:col-span-2 bg-slate-900 rounded-2xl p-5 shadow-xl border border-slate-800 relative overflow-hidden">
+           <div className="flex items-center justify-between mb-4 relative z-10">
+              <div>
+                 <h3 className="text-white font-bold flex items-center gap-2">
+                    <TrendingUp size={18} className="text-indigo-400" />
+                    Heatmap de la Demande IA
+                 </h3>
+                 <p className="text-slate-400 text-xs mt-1">Zones de forte affluence en temps réel (Dakar & Banlieue)</p>
+              </div>
+              <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                 <span className="text-slate-300 text-[10px] font-bold uppercase tracking-wider">Live Insights</span>
+              </div>
+           </div>
+           
+           {/* Simulated Heatmap Map Overlay */}
+           <div className="h-64 bg-slate-800 rounded-xl relative overflow-hidden border border-slate-700">
+              <div className="absolute inset-0 opacity-30 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-17.44,14.71,11/600x400?access_token=mock')] bg-cover" />
+              {/* Heatmap Blobs */}
+              <div className="absolute top-1/4 left-1/3 w-32 h-32 bg-orange-500/40 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-red-500/30 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-yellow-500/40 rounded-full blur-3xl animate-pulse" />
+              
+              <div className="absolute inset-0 flex items-center justify-center">
+                 <div className="bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-lg border border-slate-700 text-center">
+                    <p className="text-white font-bold text-sm">Zone Critique : Almadies 📍</p>
+                    <p className="text-indigo-400 text-[10px] mt-1">Surcharge de commandes prévue dans 15 min</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        {/* AI Predictive Analytics */}
+        <div className="bg-white rounded-2xl border-2 border-indigo-100 p-5 shadow-sm">
+           <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 bg-indigo-600 rounded-lg">
+                 <Star size={16} className="text-white" />
+              </div>
+              <h3 className="font-bold text-gray-800">IA Prédictive Stock</h3>
+           </div>
+           <div className="space-y-4">
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                 <div className="flex items-center gap-2 text-amber-700 font-bold text-xs mb-1">
+                    <Clock size={14} /> Alerte Rupture
+                 </div>
+                 <p className="text-gray-700 text-sm font-medium">Cahiers 200p (Sérigne Fallu)</p>
+                 <p className="text-gray-500 text-xs mt-1">Rupture prévue sous 48h selon le cycle actuel.</p>
+                 <button className="mt-2 w-full py-1.5 bg-amber-600 text-white text-[10px] font-bold rounded-lg uppercase">Commander en 1-clic</button>
+              </div>
+              <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                 <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs mb-1">
+                    <ShoppingBag size={14} /> Opportunité de Groupage
+                 </div>
+                 <p className="text-gray-700 text-sm font-medium">Kit Géométrie x50</p>
+                 <p className="text-gray-500 text-xs mt-1">Besoins groupés détectés via innovation hub (Parcelles Assainies).</p>
+              </div>
+           </div>
+        </div>
+      </div>
+
       {/* Order status row */}
       <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
         {orderStats.map((o) => (

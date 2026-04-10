@@ -75,6 +75,8 @@ export async function POST(req: Request) {
     const orderId = "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 1000)
     const invoiceId = "INV-" + orderId.split("-")[1]
 
+    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString()
+
     const order = await prisma.order.create({
       data: {
         orderId,
@@ -91,6 +93,7 @@ export async function POST(req: Request) {
         items: data.items,
         address: data.address ?? null,
         notes: data.notes ?? null,
+        deliveryOtp,
       },
     })
     return NextResponse.json(order, { status: 201 })

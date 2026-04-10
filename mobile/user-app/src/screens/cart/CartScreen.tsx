@@ -21,6 +21,8 @@ export default function CartScreen({ navigation }: any) {
   const removeFromCart = useStore((s) => s.removeFromCart)
   const clearCart = useStore((s) => s.clearCart)
   const user = useStore((s) => s.user)
+  const isGroupOrder = useStore((s) => s.isGroupOrder)
+  const setGroupOrder = useStore((s) => s.setGroupOrder)
 
   const [paymentMethod, setPaymentMethod] = useState("Cash")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -28,7 +30,7 @@ export default function CartScreen({ navigation }: any) {
 
   const DELIVERY_FEE = 500
   const FREE_DELIVERY_THRESHOLD = 10000
-  const deliveryFee = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
+  const deliveryFee = (cartTotal >= FREE_DELIVERY_THRESHOLD || isGroupOrder) ? 0 : DELIVERY_FEE
 
   const selectedPayment = PAYMENT_OPTIONS.find(p => p.id === paymentMethod) ?? PAYMENT_OPTIONS[0]
 
@@ -104,6 +106,21 @@ export default function CartScreen({ navigation }: any) {
           <Text style={styles.storeText}>
             <Ionicons name="business" size={14} /> {cart[0].storeName}
           </Text>
+          <TouchableOpacity 
+            style={styles.groupOrderBtn}
+            onPress={() => isGroupOrder ? navigation.navigate("GroupOrder") : setGroupOrder(true, "PAP-42")}
+          >
+             <Ionicons name="people" size={16} color={isGroupOrder ? COLORS.success : COLORS.primary} />
+             <Text style={[styles.groupOrderBtnText, isGroupOrder && { color: COLORS.success }]}>
+               {isGroupOrder ? "Session Groupée Active (PAP-42)" : "Commande Groupée"}
+             </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isGroupOrder && (
+        <View style={styles.groupStatusBanner}>
+           <Text style={styles.groupStatusText}>🤝 Vos voisins ont rejoint ! Livraison gratuite débloquée.</Text>
         </View>
       )}
 
@@ -213,8 +230,15 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   title: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text },
   clearText: { color: COLORS.danger, fontSize: FONTS.sizes.sm, fontWeight: "600" },
-  storeBanner: { backgroundColor: COLORS.primaryLight + "15", padding: SPACING.md, paddingHorizontal: SPACING.lg },
+  storeBanner: { 
+    backgroundColor: COLORS.primaryLight + "15", padding: SPACING.md, paddingHorizontal: SPACING.lg,
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center"
+  },
   storeText: { color: COLORS.primary, fontSize: FONTS.sizes.sm, fontWeight: "600" },
+  groupOrderBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: COLORS.white, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.round, borderWidth: 1, borderColor: COLORS.primary + "30" },
+  groupOrderBtnText: { fontSize: 11, fontWeight: "700", color: COLORS.primary },
+  groupStatusBanner: { backgroundColor: COLORS.success + "15", padding: 10, alignItems: "center" },
+  groupStatusText: { color: COLORS.success, fontSize: 12, fontWeight: "700" },
   cartItem: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.white, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.md, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   itemImagePlaceholder: { width: 60, height: 60, backgroundColor: COLORS.grayLight, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center" },
   itemImage: { width: "100%", height: "100%", borderRadius: RADIUS.md },

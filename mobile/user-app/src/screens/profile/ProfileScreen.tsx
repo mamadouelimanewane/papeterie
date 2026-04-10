@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons"
 const MENU_ITEMS = [
   { icon: "cube", label: "Mes commandes", screen: "Orders" },
   { icon: "card", label: "Mon portefeuille", screen: "Wallet" },
+  { icon: "repeat", label: "Besoins récurrents (Refill)", screen: "Refill" },
+  { icon: "calendar", label: "Mes abonnements", screen: "Subscriptions" },
   { icon: "notifications", label: "Notifications", screen: "Notifications" },
   { icon: "location", label: "Mes adresses", screen: "Addresses" },
   { icon: "gift", label: "Mes codes promo", screen: "Promo" },

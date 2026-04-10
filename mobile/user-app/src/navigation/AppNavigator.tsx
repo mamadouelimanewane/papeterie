@@ -1,4 +1,4 @@
-﻿import React from "react"
+import React from "react"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
@@ -21,6 +21,10 @@ import WalletScreen from "../screens/wallet/WalletScreen"
 import OrderDetailScreen from "../screens/orders/OrderDetailScreen"
 import StoreDetailScreen from "../screens/stores/StoreDetailScreen"
 import SearchScreen from "../screens/home/SearchScreen"
+import AIScannerScreen from "../screens/home/AIScannerScreen"
+import GroupOrderSessionScreen from "../screens/cart/GroupOrderSessionScreen"
+import SecondHandScreen from "../screens/products/SecondHandScreen"
+import RefillSubscriptionScreen from "../screens/profile/RefillSubscriptionScreen"
 
 
 const Stack = createNativeStackNavigator()
@@ -119,6 +123,11 @@ function AppStack() {
       <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
       <Stack.Screen name="Stores" component={StoresScreen} />
+      <Stack.Screen name="AIScanner" component={AIScannerScreen} />
+      <Stack.Screen name="GroupOrder" component={GroupOrderSessionScreen} />
+      <Stack.Screen name="SecondHand" component={SecondHandScreen} />
+      <Stack.Screen name="Refill" component={RefillSubscriptionScreen} />
+      <Stack.Screen name="Subscriptions" component={RefillSubscriptionScreen} />
     </Stack.Navigator>
 
   )

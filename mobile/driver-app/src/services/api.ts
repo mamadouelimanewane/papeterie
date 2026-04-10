@@ -1,4 +1,4 @@
-﻿import axios from "axios"
+import axios from "axios"
 import * as SecureStore from "expo-secure-store"
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://papeterie.vercel.app/api"
@@ -54,8 +54,8 @@ export const ordersAPI = {
   getHistory: () => api.get("/driver/orders/history"),
   accept: (id: string) => api.post(`/driver/orders/${id}/accept`),
   reject: (id: string) => api.post(`/driver/orders/${id}/reject`),
-  updateStatus: (id: string, status: string) =>
-    api.patch(`/orders/${id}`, { status }),
+  updateStatus: (id: string, status: string, otp?: string, signature?: string) =>
+    api.patch(`/orders/${id}`, { status, otp, signature }),
 }
 
 // â”€â”€ Earnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

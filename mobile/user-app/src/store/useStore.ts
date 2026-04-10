@@ -50,12 +50,18 @@ interface AppStore {
   // Notifications
   unreadCount: number
   setUnreadCount: (n: number) => void
+
+  // Group Order
+  isGroupOrder: boolean
+  groupCode: string | null
+  groupMembers: string[]
+  setGroupOrder: (active: boolean, code?: string | null) => void
 }
 
 export const useStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      // Auth
+      // ... previous state
       user: null,
       token: null,
       isAuthenticated: false,
@@ -70,7 +76,6 @@ export const useStore = create<AppStore>()(
         if (existing) {
           set({ cart: cart.map((c) => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c) })
         } else {
-          // Si boutique différente, on vide le panier (choix business classique)
           const differentStore = cart.length > 0 && cart[0].storeId !== item.storeId
           set({ cart: differentStore ? [item] : [...cart, item] })
         }
@@ -107,6 +112,16 @@ export const useStore = create<AppStore>()(
       // Notifications
       unreadCount: 3,
       setUnreadCount: (n) => set({ unreadCount: n }),
+
+      // Group Order
+      isGroupOrder: false,
+      groupCode: null,
+      groupMembers: [],
+      setGroupOrder: (active, code = null) => set({ 
+        isGroupOrder: active, 
+        groupCode: code,
+        groupMembers: active ? ["Moi", "Ami #1", "Voisin"] : [] 
+      }),
     }),
     {
       name: "papeterie-storage",

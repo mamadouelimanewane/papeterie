@@ -156,6 +156,25 @@ export default function HomeScreen({ navigation }: any) {
           ))}
         </View>
 
+        {/* Innovation Hub (New) */}
+        <View style={styles.innovationHub}>
+           <TouchableOpacity 
+             style={styles.aiScanBanner}
+             onPress={() => navigation.navigate("AIScanner")}
+           >
+              <View style={styles.aiScanContent}>
+                 <View style={styles.aiBadge}>
+                    <Text style={styles.aiBadgeText}>NOUVEAU · IA</Text>
+                 </View>
+                 <Text style={styles.aiTitle}>Scanner ma liste scolaire</Text>
+                 <Text style={styles.aiDesc}>Prenez en photo votre liste de fournitures, l'IA s'occupe du reste !</Text>
+              </View>
+              <View style={styles.aiIconContainer}>
+                 <Ionicons name="scan-circle" size={60} color={COLORS.white} />
+              </View>
+           </TouchableOpacity>
+        </View>
+
         {/* Categories */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -182,6 +201,42 @@ export default function HomeScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
           />
+        </View>
+
+        {/* Second Hand Section (New) */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Le Coin Occasion ♻️</Text>
+              <Text style={styles.sectionSubtitle}>Donnez une seconde vie aux livres & matériel</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate("SecondHand")}>
+              <Text style={styles.seeAll}>Tout voir</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.md }}
+          >
+             <TouchableOpacity style={styles.secondHandCard} onPress={() => navigation.navigate("SecondHand")}>
+                <View style={styles.shBadge}><Text style={styles.shBadgeText}>-60%</Text></View>
+                <Text style={styles.shEmoji}>📚</Text>
+                <Text style={styles.shName}>Livre Hist-Géo 3ème</Text>
+                <Text style={styles.shPrice}>3 500 F</Text>
+             </TouchableOpacity>
+             <TouchableOpacity style={styles.secondHandCard} onPress={() => navigation.navigate("SecondHand")}>
+                <View style={[styles.shBadge, { backgroundColor: COLORS.success }]}><Text style={styles.shBadgeText}>État Neuf</Text></View>
+                <Text style={styles.shEmoji}>📟</Text>
+                <Text style={styles.shName}>Calculatrice TI-83</Text>
+                <Text style={styles.shPrice}>15 000 F</Text>
+             </TouchableOpacity>
+             <TouchableOpacity style={styles.secondHandCard} onPress={() => navigation.navigate("SecondHand")}>
+                <Text style={styles.shEmoji}>🎨</Text>
+                <Text style={styles.shName}>Chevalet Peinture</Text>
+                <Text style={styles.shPrice}>8 000 F</Text>
+             </TouchableOpacity>
+          </ScrollView>
         </View>
 
 
@@ -228,6 +283,15 @@ export default function HomeScreen({ navigation }: any) {
 
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
+
+      {/* Floating Action Button for Scan */}
+      <TouchableOpacity 
+        style={styles.fabBtn}
+        onPress={() => navigation.navigate("AIScanner")}
+      >
+         <Ionicons name="scan" size={28} color={COLORS.white} />
+         <View style={styles.fabBadge}><Text style={styles.fabBadgeText}>IA</Text></View>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -283,6 +347,19 @@ const styles = StyleSheet.create({
   dots: { flexDirection: "row", justifyContent: "center", gap: 4, marginTop: SPACING.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.grayMedium },
   dotActive: { width: 18, backgroundColor: COLORS.primary },
+  innovationHub: { paddingHorizontal: SPACING.lg, marginTop: SPACING.lg },
+  aiScanBanner: { 
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, 
+    flexDirection: "row", padding: 20, alignItems: "center",
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 15, elevation: 8,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)"
+  },
+  aiScanContent: { flex: 1 },
+  aiBadge: { backgroundColor: COLORS.secondary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, alignSelf: "flex-start", marginBottom: 8 },
+  aiBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: "900" },
+  aiTitle: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
+  aiDesc: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 4 },
+  aiIconContainer: { marginLeft: 10 },
   section: { marginTop: SPACING.lg },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   sectionTitle: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text },
@@ -313,4 +390,32 @@ const styles = StyleSheet.create({
   storeSep: { color: COLORS.gray, fontSize: FONTS.sizes.xs },
   storeDelivery: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
   storeMin: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
+  fabBtn: {
+    position: "absolute", bottom: 30, right: 25,
+    width: 65, height: 65, borderRadius: 33,
+    backgroundColor: COLORS.primary, alignItems: "center", justifyContent: "center",
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 12,
+  },
+  fabBadge: {
+    position: "absolute", top: -5, right: -5,
+    backgroundColor: COLORS.secondary, paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 8, borderWidth: 2, borderColor: COLORS.white
+  },
+  fabBadgeText: { color: COLORS.white, fontSize: 10, fontWeight: "900" },
+
+  sectionSubtitle: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
+  secondHandCard: { 
+    width: 140, backgroundColor: COLORS.white, borderRadius: RADIUS.lg, 
+    padding: SPACING.md, alignItems: "center",
+    borderWidth: 1, borderColor: COLORS.grayLight
+  },
+  shBadge: { 
+    position: "absolute", top: 8, right: 8, 
+    backgroundColor: COLORS.danger, paddingHorizontal: 6, paddingVertical: 2, 
+    borderRadius: 4, zIndex: 1 
+  },
+  shBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: "800" },
+  shEmoji: { fontSize: 40, marginVertical: 10 },
+  shName: { fontSize: 12, fontWeight: "700", color: COLORS.text, textAlign: "center" },
+  shPrice: { fontSize: 14, fontWeight: "800", color: COLORS.primary, marginTop: 4 },
 })
