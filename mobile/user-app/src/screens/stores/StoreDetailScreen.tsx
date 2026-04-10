@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+﻿import React, { useState, useEffect } from "react"
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   FlatList, Dimensions, Alert, Image
@@ -10,6 +10,13 @@ import { Ionicons } from "@expo/vector-icons"
 
 const { width } = Dimensions.get("window")
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  "Cahiers": "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400",
+  "Livres": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
+  "Geometrie": "https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?w=400",
+  "Fournitures": "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400",
+  "Art & Creativite": "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=400",
+}
 // Mock products removed — now using real API data with state
 
 export default function StoreDetailScreen({ route, navigation }: any) {
@@ -143,8 +150,8 @@ export default function StoreDetailScreen({ route, navigation }: any) {
             {filteredProducts.map((product) => (
               <View key={product.id} style={styles.productCard}>
                 <View style={styles.productImagePlaceholder}>
-                  {product.image ? (
-                    <Image source={{ uri: product.image }} style={{ width: "100%", height: "100%", borderRadius: RADIUS.sm }} />
+                  {(product.image || CATEGORY_IMAGES[product.category]) ? (
+                    <Image source={{ uri: product.image || CATEGORY_IMAGES[product.category] }} style={{ width: "100%", height: "100%", borderRadius: RADIUS.sm }} />
                   ) : (
                     <Ionicons name="cube-outline" size={32} color={COLORS.grayMedium} />
                   )}
