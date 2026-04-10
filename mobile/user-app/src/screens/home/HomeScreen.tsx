@@ -88,7 +88,7 @@ export default function HomeScreen({ navigation }: any) {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Bonjour, {user?.name?.split(" ")[0] || "Bienvenue"} 👋</Text>
-          <TouchableOpacity style={styles.locationRow} onPress={handleDev}>
+          <TouchableOpacity style={styles.locationRow} onPress={() => {}}>
             <Ionicons name="location" size={14} color={COLORS.primary} />
             <Text style={styles.locationText}>Dakar, Sénégal</Text>
             <Ionicons name="chevron-down" size={12} color={COLORS.primary} style={{ marginLeft: 2 }} />
@@ -137,7 +137,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.bannerContent}>
                 <Text style={styles.bannerTitle}>{item.title}</Text>
                 <Text style={styles.bannerSubtitle}>{item.subtitle || "Offre exclusive Papeterie"}</Text>
-                <TouchableOpacity style={styles.bannerBtn} onPress={handleDev}>
+                <TouchableOpacity style={styles.bannerBtn} onPress={() => navigation.navigate("Stores")}>
                   <Text style={styles.bannerBtnText}>Commander →</Text>
                 </TouchableOpacity>
               </View>
@@ -160,7 +160,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Catégories Premium</Text>
-            <TouchableOpacity onPress={handleDev}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Stores")}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
           </View>
           <FlatList
             data={categories}
@@ -171,7 +171,7 @@ export default function HomeScreen({ navigation }: any) {
             renderItem={({ item, index }) => (
               <TouchableOpacity 
                 style={[styles.categoryCard, { backgroundColor: index % 2 === 0 ? "#E8EAF6" : "#F1F8E9" }]} 
-                onPress={handleDev}
+                onPress={() => navigation.navigate("Stores")}
               >
                 {item.image ? (
                   <Image source={{ uri: item.image }} style={styles.categoryImg} />

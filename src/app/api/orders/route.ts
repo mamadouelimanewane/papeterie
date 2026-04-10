@@ -60,6 +60,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "storeId, total et items sont requis" }, { status: 400 })
     }
 
+    // Extraire userId depuis le token JWT si présent
+    let userId: string | null = null
+    const authHeader = req.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const { verify } = await import("jsonwebtoken")
+        const JWT_SECRET = process.env.NEXTAUTH_SECRET ?? "papeterie-secret-2024-neon-pg"
+        const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
+        userId = decoded.id
+      } catch {}
+    }
+
     const orderId = "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 1000)
     const invoiceId = "INV-" + orderId.split("-")[1]
 
@@ -68,7 +80,7 @@ export async function POST(req: Request) {
         orderId,
         invoiceId,
         storeId: data.storeId,
-        userId: data.userId ?? null,
+        userId: userId ?? data.userId ?? null,
         total: Number(data.total),
         subtotal: Number(data.subtotal ?? data.total),
         deliveryFee: Number(data.deliveryFee ?? 500),

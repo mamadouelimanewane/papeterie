@@ -15,6 +15,7 @@ import HomeScreen from "../screens/home/HomeScreen"
 import OrdersScreen from "../screens/orders/OrdersScreen"
 import CartScreen from "../screens/cart/CartScreen"
 import ProfileScreen from "../screens/profile/ProfileScreen"
+import StoresScreen from "../screens/stores/StoresScreen"
 import NotificationsScreen from "../screens/notifications/NotificationsScreen"
 import WalletScreen from "../screens/wallet/WalletScreen"
 import OrderDetailScreen from "../screens/orders/OrderDetailScreen"
@@ -60,7 +61,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Stores"
-        component={HomeScreen}
+        component={StoresScreen}
         options={{ tabBarIcon: ({ focused }) => <TabIcon icon="business" label="Rayons" focused={focused} /> }}
       />
       <Tab.Screen
@@ -117,6 +118,7 @@ function AppStack() {
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
       <Stack.Screen name="StoreDetail" component={StoreDetailScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
+      <Stack.Screen name="Stores" component={StoresScreen} />
     </Stack.Navigator>
 
   )

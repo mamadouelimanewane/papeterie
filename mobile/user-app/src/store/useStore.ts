@@ -18,6 +18,7 @@ interface User {
   email: string
   phone?: string
   walletBalance?: number
+  walletMoney?: number
 }
 
 interface AppStore {
