@@ -14,6 +14,7 @@ import MapView, { Marker, Polyline } from "react-native-maps"
 import { useDriverStore } from "../../store/useDriverStore"
 import { Ionicons } from "@expo/vector-icons"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
+import { ordersAPI } from "../../services/api"
 
 const { width } = Dimensions.get("window")
 
@@ -32,14 +33,20 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
     return null
   }
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (step === 0) {
+      try {
+        await ordersAPI.updateStatus(currentOrder._id || currentOrder.id, "Processing")
+      } catch {}
       setCurrentOrder({ ...currentOrder, status: "pickedup" })
       setStep(1)
     } else if (step === 1) {
       setCurrentOrder({ ...currentOrder, status: "delivered" })
       setStep(2)
     } else {
+      try {
+        await ordersAPI.updateStatus(currentOrder._id || currentOrder.id, "Delivered")
+      } catch {}
       Alert.alert(
         "Livraison terminée ! 🎉",
         `Gains confirmés : ${currentOrder.earnings.toLocaleString()} FCFA.\nBeau travail !`,
