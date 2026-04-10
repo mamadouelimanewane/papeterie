@@ -15,9 +15,23 @@ const MOCK_USED_ITEMS = [
 
 export default function SecondHandScreen({ navigation }: any) {
   const [search, setSearch] = useState("")
+  const [showSellModal, setShowSellModal] = useState(false)
+  const [newItem, setNewItem] = useState({ name: "", price: "", state: "Bon état", emoji: "📚" })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSell = () => {
-    Alert.alert("Bientôt disponible", "Le module de mise en vente d'articles d'occasion arrive bientôt sur Papeterie !")
+  const handleSell = async () => {
+    if (!newItem.name || !newItem.price) {
+      Alert.alert("Erreur", "Veuillez remplir le nom et le prix.")
+      return
+    }
+    setIsSubmitting(true)
+    // Simulation d'envoi API
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setShowSellModal(false)
+      Alert.alert("Succès", "Votre annonce a été publiée ! Elle sera visible après validation.")
+      setNewItem({ name: "", price: "", state: "Bon état", emoji: "📚" })
+    }, 1500)
   }
 
   return (
@@ -27,7 +41,7 @@ export default function SecondHandScreen({ navigation }: any) {
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Le Coin Occasion ♻️</Text>
-        <TouchableOpacity onPress={handleSell}>
+        <TouchableOpacity onPress={() => setShowSellModal(true)}>
            <Text style={styles.sellText}>Vendre</Text>
         </TouchableOpacity>
       </View>
@@ -67,10 +81,57 @@ export default function SecondHandScreen({ navigation }: any) {
         )}
       />
 
-      <TouchableOpacity style={styles.fab} onPress={handleSell}>
+      <TouchableOpacity style={styles.fab} onPress={() => setShowSellModal(true)}>
          <Ionicons name="add" size={30} color={COLORS.white} />
          <Text style={styles.fabText}>Poster une annonce</Text>
       </TouchableOpacity>
+
+      {/* Sell Modal */}
+      <Modal visible={showSellModal} animationType="slide" presentationStyle="pageSheet">
+         <View style={styles.modal}>
+            <View style={styles.modalHeader}>
+               <Text style={styles.modalTitle}>Vendre un article</Text>
+               <TouchableOpacity onPress={() => setShowSellModal(false)}>
+                  <Ionicons name="close" size={24} color={COLORS.text} />
+               </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+               <Text style={styles.label}>Nom de l'article</Text>
+               <TextInput 
+                 style={styles.input} 
+                 placeholder="Ex: Manuel Math 4ème" 
+                 value={newItem.name}
+                 onChangeText={(t) => setNewItem({...newItem, name: t})}
+               />
+               
+               <Text style={styles.label}>Prix (FCFA)</Text>
+               <TextInput 
+                 style={styles.input} 
+                 placeholder="Ex: 2500" 
+                 keyboardType="numeric"
+                 value={newItem.price}
+                 onChangeText={(t) => setNewItem({...newItem, price: t})}
+               />
+
+               <Text style={styles.label}>État</Text>
+               <View style={styles.stateSelector}>
+                  {["Comme neuf", "Bon état", "Usagé"].map(s => (
+                    <TouchableOpacity 
+                      key={s} 
+                      style={[styles.stateOpt, newItem.state === s && styles.stateOptActive]}
+                      onPress={() => setNewItem({...newItem, state: s})}
+                    >
+                       <Text style={[styles.stateOptText, newItem.state === s && {color: COLORS.white}]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+               </View>
+
+               <TouchableOpacity style={styles.submitBtn} onPress={handleSell} disabled={isSubmitting}>
+                  {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.submitBtnText}>Publier l'annonce</Text>}
+               </TouchableOpacity>
+            </ScrollView>
+         </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -119,4 +180,16 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.secondary, shadowOpacity: 0.4, shadowRadius: 10, elevation: 5
   },
   fabText: { color: COLORS.white, fontWeight: "800", marginLeft: 8 },
+  modal: { flex: 1, backgroundColor: COLORS.white },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.grayLight },
+  modalTitle: { fontSize: 18, fontWeight: "800" },
+  modalBody: { padding: 20 },
+  label: { fontSize: 14, fontWeight: "700", marginBottom: 8, color: COLORS.text, marginTop: 15 },
+  input: { backgroundColor: COLORS.grayLight, borderRadius: 8, padding: 12, fontSize: 16 },
+  stateSelector: { flexDirection: "row", gap: 8, marginTop: 5 },
+  stateOpt: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 8, borderWidth: 1, borderColor: COLORS.grayMedium },
+  stateOptActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  stateOptText: { fontSize: 12, fontWeight: "600", color: COLORS.text },
+  submitBtn: { backgroundColor: COLORS.secondary, paddingVertical: 16, borderRadius: 12, alignItems: "center", marginTop: 30 },
+  submitBtnText: { color: COLORS.white, fontWeight: "800", fontSize: 16 },
 })

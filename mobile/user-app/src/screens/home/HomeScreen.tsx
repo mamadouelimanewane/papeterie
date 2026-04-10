@@ -163,8 +163,13 @@ export default function HomeScreen({ navigation }: any) {
              onPress={() => navigation.navigate("AIScanner")}
            >
               <View style={styles.aiScanContent}>
-                 <View style={styles.aiBadge}>
-                    <Text style={styles.aiBadgeText}>NOUVEAU · IA</Text>
+                 <View style={styles.aiBadgeRow}>
+                    <View style={styles.aiBadge}>
+                       <Text style={styles.aiBadgeText}>INTELLIGENCE ARTIFICIELLE</Text>
+                    </View>
+                    <View style={styles.newFlag}>
+                       <Text style={styles.newFlagText}>NOUVEAU</Text>
+                    </View>
                  </View>
                  <Text style={styles.aiTitle}>Scanner ma liste scolaire</Text>
                  <Text style={styles.aiDesc}>Prenez en photo votre liste de fournitures, l'IA s'occupe du reste !</Text>
@@ -354,9 +359,11 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 15, elevation: 8,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.2)"
   },
-  aiScanContent: { flex: 1 },
-  aiBadge: { backgroundColor: COLORS.secondary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, alignSelf: "flex-start", marginBottom: 8 },
+  aiBadgeRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  aiBadge: { backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, alignSelf: "flex-start" },
   aiBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: "900" },
+  newFlag: { backgroundColor: COLORS.secondary, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  newFlagText: { color: COLORS.white, fontSize: 8, fontWeight: "900" },
   aiTitle: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
   aiDesc: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 4 },
   aiIconContainer: { marginLeft: 10 },
