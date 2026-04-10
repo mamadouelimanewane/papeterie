@@ -1,67 +1,69 @@
-name: Build Papeterie APKs (EAS Cloud)
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/**'
-  workflow_dispatch:
-
-jobs:
-  build-user-app:
-    name: 📦 APK Client (User App)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile/user-app/package-lock.json
-
-      - name: Setup EAS CLI
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        working-directory: ./mobile/user-app
-        run: npm install --legacy-peer-deps
-
-      - name: Build User App APK (EAS Cloud)
-        working-directory: ./mobile/user-app
-        run: eas build --platform android --profile preview --non-interactive --no-wait
-
-  build-driver-app:
-    name: 🚴 APK Livreur (Driver App)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile/driver-app/package-lock.json
-
-      - name: Setup EAS CLI
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        working-directory: ./mobile/driver-app
-        run: npm install --legacy-peer-deps
-
-      - name: Build Driver App APK (EAS Cloud)
-        working-directory: ./mobile/driver-app
-        run: eas build --platform android --profile preview --non-interactive --no-wait
+﻿# DESACTIVE - Utiliser build-apks.yml a la place (Gradle local, pas d'EXPO_TOKEN requis)
+# name: Build Papeterie APKs (EAS Cloud)
+# 
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'mobile/**'
+#       - '.github/workflows/**'
+#   workflow_dispatch:
+# 
+# jobs:
+#   build-user-app:
+#     name: ðŸ“¦ APK Client (User App)
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+# 
+#       - name: Setup Node.js 20
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: mobile/user-app/package-lock.json
+# 
+#       - name: Setup EAS CLI
+#         uses: expo/expo-github-action@v8
+#         with:
+#           eas-version: latest
+#           token: ${{ secrets.EXPO_TOKEN }}
+# 
+#       - name: Install dependencies
+#         working-directory: ./mobile/user-app
+#         run: npm install --legacy-peer-deps
+# 
+#       - name: Build User App APK (EAS Cloud)
+#         working-directory: ./mobile/user-app
+#         run: eas build --platform android --profile preview --non-interactive --no-wait
+# 
+#   build-driver-app:
+#     name: ðŸš´ APK Livreur (Driver App)
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+# 
+#       - name: Setup Node.js 20
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: mobile/driver-app/package-lock.json
+# 
+#       - name: Setup EAS CLI
+#         uses: expo/expo-github-action@v8
+#         with:
+#           eas-version: latest
+#           token: ${{ secrets.EXPO_TOKEN }}
+# 
+#       - name: Install dependencies
+#         working-directory: ./mobile/driver-app
+#         run: npm install --legacy-peer-deps
+# 
+#       - name: Build Driver App APK (EAS Cloud)
+#         working-directory: ./mobile/driver-app
+#         run: eas build --platform android --profile preview --non-interactive --no-wait
+# 
