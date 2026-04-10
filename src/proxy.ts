@@ -1,4 +1,4 @@
-import { withAuth } from "next-auth/middleware"
+﻿import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 function hasBearerToken(req: { headers: Headers }): boolean {
@@ -7,8 +7,8 @@ function hasBearerToken(req: { headers: Headers }): boolean {
 }
 
 /**
- * Accès sans cookie NextAuth : inscription, catalogue, commande invité, etc.
- * Les apps mobiles envoient un JWT (`Authorization: Bearer`) — géré ici.
+ * AccÃ¨s sans cookie NextAuth : inscription, catalogue, commande invitÃ©, etc.
+ * Les apps mobiles envoient un JWT (`Authorization: Bearer`) â€” gÃ©rÃ© ici.
  */
 function isPublicApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith("/api/auth")) return true
@@ -17,11 +17,13 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (
       pathname === "/api/user/register" ||
       pathname === "/api/user/login" ||
-      pathname === "/api/driver/login"
+      pathname === "/api/driver/login" ||
+      pathname === "/api/driver/register"
     ) {
       return true
     }
     if (pathname === "/api/orders") return true
+    if (pathname === "/api/admin/seed") return true
   }
 
   if (method === "GET") {
@@ -66,7 +68,7 @@ export default withAuth(
     if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
       if (!apiAllowed(req, pathname, req.method)) {
         return NextResponse.json(
-          { error: "Non authentifié" },
+          { error: "Non authentifiÃ©" },
           {
             status: 401,
             headers: {
@@ -122,3 +124,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|public).*)",
   ],
 }
+
