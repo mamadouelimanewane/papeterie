@@ -24,6 +24,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     }
     if (pathname === "/api/orders") return true
     if (pathname === "/api/admin/seed") return true
+    if (pathname === "/api/admin/fix-images") return true
   }
 
   if (method === "GET") {
