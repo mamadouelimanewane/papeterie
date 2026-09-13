@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image, Modal, ScrollView
+  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image, Modal, ScrollView, Linking
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
@@ -63,6 +63,20 @@ export default function CartScreen({ navigation }: any) {
       }
 
       const res = await ordersAPI.create(orderData)
+
+      if (res.data.paymentData?.success && res.data.paymentData.data?.link) {
+        try {
+          await Linking.openURL(res.data.paymentData.data.link)
+        } catch (e) {
+          console.error("Impossible d'ouvrir le lien de paiement", e)
+        }
+      } else if (res.data.paymentData?.success && res.data.paymentData.data?.payment_links) {
+         // Si c'est dans payment_links
+         const links = Object.values(res.data.paymentData.data.payment_links);
+         if (links.length > 0) {
+            await Linking.openURL(links[0] as string);
+         }
+      }
 
       Alert.alert(
         "Commande confirmee !",

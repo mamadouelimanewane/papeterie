@@ -96,7 +96,36 @@ export async function POST(req: Request) {
         deliveryOtp,
       },
     })
-    return NextResponse.json(order, { status: 201 })
+
+    let paymentData = null;
+    const versusMethods = ["Versus", "Wave", "Orange", "Orange Money"];
+    if (versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod)) {
+      try {
+        const { createVersusPayment } = await import("@/lib/versus");
+        
+        // Option 1 : on initie le paiement sans service spécifique, pour récupérer le lien de paiement
+        paymentData = await createVersusPayment({
+          name: "Commande Papeterie " + order.orderId,
+          first_name: data.firstName ?? "Client",
+          last_name: data.lastName ?? "Papeterie",
+          external_reference: order.id, // Utilisé dans le webhook pour retrouver la commande
+          order_reference: order.orderId,
+          amount: order.total,
+          currency: "XOF",
+          phone_number: data.phone_number, // Optionnel
+          success_url: `https://${req.headers.get("host")}/checkout/success?orderId=${order.orderId}`,
+          failure_url: `https://${req.headers.get("host")}/checkout/failure?orderId=${order.orderId}`,
+          ...(data.service_id && data.payment_account_number ? { 
+            service_id: data.service_id, 
+            payment_account_number: data.payment_account_number 
+          } : {}) // Option 2 (Mobile Money Direct)
+        });
+      } catch (err) {
+        console.error("Erreur création paiement Versus:", err);
+      }
+    }
+
+    return NextResponse.json({ ...order, paymentData }, { status: 201 })
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"
     return NextResponse.json({ error: msg }, { status: 500 })
