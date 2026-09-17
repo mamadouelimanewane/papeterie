@@ -26,8 +26,8 @@ export interface VersusPaymentResponse {
 }
 
 const VERSUS_BASE_URL = process.env.VERSUS_BASE_URL || "https://business-staging.versusfintech.com";
-const VERSUS_LOGIN = process.env.VERSUS_LOGIN || "filrouge";
-const VERSUS_PASSWORD = process.env.VERSUS_PASSWORD || "@gUJ3BkCb7eesSYn";
+const VERSUS_LOGIN = process.env.VERSUS_LOGIN || "";
+const VERSUS_PASSWORD = process.env.VERSUS_PASSWORD || "";
 
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;

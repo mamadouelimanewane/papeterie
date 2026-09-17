@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verify } from "jsonwebtoken"
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET ?? "papeterie-secret-2024-neon-pg"
+const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
 
 export async function POST(req: Request) {
   try {

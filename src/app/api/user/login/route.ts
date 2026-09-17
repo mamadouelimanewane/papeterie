@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { sign } from "jsonwebtoken"
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET ?? "papeterie-secret-2024-neon-pg"
+const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
 
 export async function POST(req: Request) {
   try {

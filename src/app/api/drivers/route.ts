@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
 
     const [drivers, total] = await Promise.all([
       prisma.driver.findMany({
+        omit: { password: true },
         where,
         include: { documents: true },
         orderBy: { createdAt: "desc" },
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
     const driverId = (last?.driverId ?? 0) + 1
 
     const driver = await prisma.driver.create({
+      omit: { password: true },
       data: {
         driverId,
         name: data.name,

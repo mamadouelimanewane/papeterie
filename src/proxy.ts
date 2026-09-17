@@ -1,5 +1,11 @@
-﻿import { withAuth } from "next-auth/middleware"
+import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+}
 
 function hasBearerToken(req: { headers: Headers }): boolean {
   const a = req.headers.get("authorization")
@@ -7,8 +13,8 @@ function hasBearerToken(req: { headers: Headers }): boolean {
 }
 
 /**
- * AccÃ¨s sans cookie NextAuth : inscription, catalogue, commande invitÃ©, etc.
- * Les apps mobiles envoient un JWT (`Authorization: Bearer`) â€” gÃ©rÃ© ici.
+ * Routes 100% publiques : inscription, connexion, catalogue, commande invite,
+ * webhook (signature verifiee cote route) et seed (cle secrete cote route).
  */
 function isPublicApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith("/api/auth")) return true
@@ -22,9 +28,10 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     ) {
       return true
     }
-    if (pathname === "/api/orders") return true
-    if (pathname === "/api/admin/seed") return true
-    if (pathname === "/api/admin/fix-images") return true
+    if (pathname === "/api/orders") return true // commande invite
+    if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
+    if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
+    if (pathname === "/api/admin/fix-images") return true // protege par SEED_SECRET
   }
 
   if (method === "GET") {
@@ -33,16 +40,44 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true
     if (pathname.startsWith("/api/promo-codes")) return true
-    if (pathname === "/api/driver/orders/available") return true
   }
 
   return false
 }
 
-function apiAllowed(req: { headers: Headers; nextauth: { token: unknown } }, pathname: string, method: string) {
-  if (req.nextauth.token) return true
-  if (hasBearerToken(req)) return true
+/**
+ * Routes accessibles aux apps mobiles avec un JWT `Authorization: Bearer`.
+ * Le JWT est *reellement* verifie dans chaque route (runtime Node) ; le
+ * middleware ne fait ici qu'autoriser le passage vers ces routes.
+ */
+function isMobileApiRoute(pathname: string, method: string): boolean {
+  if (pathname.startsWith("/api/user/")) return true // profil...
+  if (pathname.startsWith("/api/wallet/")) return true
+  if (pathname.startsWith("/api/driver/")) return true // earnings, location, orders, status...
+  if (pathname === "/api/orders/my") return true
+  if (pathname === "/api/orders/update") return true // livreur : mise a jour statut
+  if (method === "GET" && /^\/api\/orders\/[^/]+$/.test(pathname)) return true // detail commande
+  return false
+}
+
+/**
+ * Decide si une requete API peut passer le middleware.
+ * - route publique -> oui
+ * - route mobile   -> oui si un Bearer est present (verifie ensuite dans la route)
+ * - tout le reste (administration) -> UNIQUEMENT session NextAuth (cookie admin)
+ *
+ * Important : un simple en-tete `Bearer` n'ouvre plus les routes d'administration.
+ */
+function apiAllowed(
+  req: { headers: Headers; nextauth: { token: unknown } },
+  pathname: string,
+  method: string
+) {
   if (isPublicApiRoute(pathname, method)) return true
+  // Session admin (cookie NextAuth) : acces complet a l'API.
+  if (req.nextauth.token) return true
+  // Routes mobiles : necessitent un Bearer, dont la validite est controlee par la route.
+  if (isMobileApiRoute(pathname, method) && hasBearerToken(req)) return true
   return false
 }
 
@@ -50,46 +85,32 @@ export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl
 
-    // 1) CORS Preflight Handling (OPTIONS)
+    // 1) Preflight CORS
     if (req.method === "OPTIONS") {
       return new NextResponse(null, {
         status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-          "Access-Control-Max-Age": "86400",
-        },
+        headers: { ...CORS_HEADERS, "Access-Control-Max-Age": "86400" },
       })
     }
 
     const token = req.nextauth.token
 
-    // API : session admin (web) OU JWT Bearer (mobile) OU route publique
+    // 2) API : session admin OU JWT mobile (route mobile) OU route publique
     if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
       if (!apiAllowed(req, pathname, req.method)) {
         return NextResponse.json(
-          { error: "Non authentifiÃ©" },
-          {
-            status: 401,
-            headers: {
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-              "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-            },
-          }
+          { error: "Non authentifie" },
+          { status: 401, headers: CORS_HEADERS }
         )
       }
     }
 
-    // Protect merchant routes
+    // 3) Espace marchand
     if (pathname.startsWith("/merchant/") && !pathname.startsWith("/merchant/login")) {
-      if (!token) {
-        return NextResponse.redirect(new URL("/merchant/login", req.url))
-      }
+      if (!token) return NextResponse.redirect(new URL("/merchant/login", req.url))
     }
 
-    // Protect dashboard routes
+    // 4) Dashboard admin
     if (
       !pathname.startsWith("/login") &&
       !pathname.startsWith("/merchant/login") &&
@@ -97,32 +118,22 @@ export default withAuth(
       !pathname.startsWith("/_next") &&
       !pathname.startsWith("/favicon")
     ) {
-      if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url))
-      }
+      if (!token) return NextResponse.redirect(new URL("/login", req.url))
     }
 
     const response = NextResponse.next()
-
-    // Apply CORS headers for all API requests
     if (pathname.startsWith("/api/")) {
-      response.headers.set("Access-Control-Allow-Origin", "*")
-      response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+      for (const [k, v] of Object.entries(CORS_HEADERS)) response.headers.set(k, v)
     }
-
     return response
   },
   {
     callbacks: {
-      authorized: () => true, // Let custom middleware handle authorization logic
+      authorized: () => true, // la logique d'autorisation est geree ci-dessus
     },
   }
 )
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|public).*)"],
 }
-

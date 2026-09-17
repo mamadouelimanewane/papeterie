@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
+        omit: { password: true },
         where,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * perPage,
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
     const userId = (last?.userId ?? 0) + 1
 
     const user = await prisma.user.create({
+      omit: { password: true },
       data: {
         userId,
         name: data.name,

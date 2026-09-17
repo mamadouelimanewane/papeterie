@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
-const SEED_KEY = process.env.SEED_SECRET ?? "papeterie-seed-2024"
+const SEED_KEY = (process.env.SEED_SECRET as string)
 
 const PRODUCT_IMAGES: Record<string, string> = {
   "Cahier 100 pages grands carreaux": "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400",
@@ -36,7 +36,7 @@ const PRODUCT_IMAGES: Record<string, string> = {
 export async function POST(req: Request) {
   try {
     const { key } = await req.json()
-    if (key !== SEED_KEY) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
+    if (!SEED_KEY || key !== SEED_KEY) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
 
     const results: Record<string, unknown> = {}
 

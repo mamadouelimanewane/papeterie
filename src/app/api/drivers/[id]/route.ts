@@ -5,6 +5,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const { id } = await params
     const driver = await prisma.driver.findUnique({
+      omit: { password: true },
       where: { id },
       include: { documents: true, orders: { orderBy: { createdAt: "desc" }, take: 10 } },
     })
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     for (const key of allowed) {
       if (key in data) update[key] = data[key]
     }
-    const driver = await prisma.driver.update({ where: { id }, data: update })
+    const driver = await prisma.driver.update({ where: { id }, data: update, omit: { password: true } })
     return NextResponse.json(driver)
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"

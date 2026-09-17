@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (authHeader?.startsWith("Bearer ")) {
       try {
         const { verify } = await import("jsonwebtoken")
-        const JWT_SECRET = process.env.NEXTAUTH_SECRET ?? "papeterie-secret-2024-neon-pg"
+        const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
         const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
         userId = decoded.id
       } catch {}

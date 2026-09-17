@@ -33,7 +33,7 @@ const IMAGES: Record<string, string> = {
 export async function POST(req: Request) {
   try {
     const { key } = await req.json()
-    if (key !== (process.env.SEED_SECRET ?? "papeterie-seed-2024")) {
+    if (!process.env.SEED_SECRET || key !== process.env.SEED_SECRET) {
       return NextResponse.json({ error: "Non autorise" }, { status: 401 })
     }
     let updated = 0
