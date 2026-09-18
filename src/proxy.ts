@@ -36,6 +36,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
 
   if (method === "GET") {
     if (pathname === "/api/slider") return true
+    if (pathname === "/api/store") return true // boutique active (vitrine mono-boutique)
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true

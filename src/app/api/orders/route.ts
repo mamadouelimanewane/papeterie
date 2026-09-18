@@ -56,8 +56,12 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.storeId || !data.total || !data.items) {
-      return NextResponse.json({ error: "storeId, total et items sont requis" }, { status: 400 })
+    // Mode mono-boutique : si aucune boutique n'est precisee, on utilise la boutique active.
+    const { getActiveStoreId } = await import("@/lib/store")
+    const storeId: string | null = data.storeId ?? (await getActiveStoreId())
+
+    if (!storeId || !data.total || !data.items) {
+      return NextResponse.json({ error: "storeId (ou boutique active), total et items sont requis" }, { status: 400 })
     }
 
     // Extraire userId depuis le token JWT si présent
@@ -81,7 +85,7 @@ export async function POST(req: Request) {
       data: {
         orderId,
         invoiceId,
-        storeId: data.storeId,
+        storeId,
         userId: userId ?? data.userId ?? null,
         total: Number(data.total),
         subtotal: Number(data.subtotal ?? data.total),
