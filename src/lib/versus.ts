@@ -40,6 +40,13 @@ export async function getVersusToken(): Promise<string | null> {
     return cachedToken;
   }
 
+  if (!VERSUS_LOGIN || !VERSUS_PASSWORD) {
+    console.error(
+      "[versus] VERSUS_LOGIN / VERSUS_PASSWORD non configures - paiement Versus indisponible"
+    );
+    return null;
+  }
+
   try {
     const res = await fetch(`${VERSUS_BASE_URL}/api/auth/login`, {
       method: "POST",

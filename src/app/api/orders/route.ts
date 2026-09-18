@@ -97,14 +97,17 @@ export async function POST(req: Request) {
       },
     })
 
-    let paymentData = null;
+    let paymentData: unknown = null;
+    let paymentError: string | null = null;
     const versusMethods = ["Versus", "Wave", "Orange", "Orange Money"];
-    if (versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod)) {
+    const wantsVersus =
+      versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod);
+    if (wantsVersus) {
       try {
         const { createVersusPayment } = await import("@/lib/versus");
-        
+
         // Option 1 : on initie le paiement sans service spécifique, pour récupérer le lien de paiement
-        paymentData = await createVersusPayment({
+        const paymentResult = await createVersusPayment({
           name: "Commande Papeterie " + order.orderId,
           first_name: data.firstName ?? "Client",
           last_name: data.lastName ?? "Papeterie",
@@ -115,17 +118,30 @@ export async function POST(req: Request) {
           phone_number: data.phone_number, // Optionnel
           success_url: `https://${req.headers.get("host")}/checkout/success?orderId=${order.orderId}`,
           failure_url: `https://${req.headers.get("host")}/checkout/failure?orderId=${order.orderId}`,
-          ...(data.service_id && data.payment_account_number ? { 
-            service_id: data.service_id, 
-            payment_account_number: data.payment_account_number 
+          ...(data.service_id && data.payment_account_number ? {
+            service_id: data.service_id,
+            payment_account_number: data.payment_account_number
           } : {}) // Option 2 (Mobile Money Direct)
         });
+
+        if (paymentResult.success) {
+          paymentData = paymentResult;
+        } else {
+          paymentError = paymentResult.message ?? "Echec de l'initialisation du paiement Versus";
+        }
       } catch (err) {
         console.error("Erreur création paiement Versus:", err);
+        paymentError = err instanceof Error ? err.message : "Erreur d'initialisation du paiement Versus";
       }
     }
 
-    return NextResponse.json({ ...order, paymentData }, { status: 201 })
+    // paymentInitiated = false si un paiement Versus était demandé mais n'a pas pu être initié.
+    const paymentInitiated = !wantsVersus || paymentData !== null;
+
+    return NextResponse.json(
+      { ...order, paymentData, paymentInitiated, paymentError },
+      { status: 201 }
+    )
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"
     return NextResponse.json({ error: msg }, { status: 500 })
