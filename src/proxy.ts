@@ -115,6 +115,9 @@ export default withAuth(
     if (
       !pathname.startsWith("/login") &&
       !pathname.startsWith("/merchant/login") &&
+      !pathname.startsWith("/shop") &&      // interface client de test (publique)
+      !pathname.startsWith("/livreur") &&   // interface livreur de test (publique)
+      !pathname.startsWith("/checkout") &&  // retours de paiement Versus
       !pathname.startsWith("/api/") &&
       !pathname.startsWith("/_next") &&
       !pathname.startsWith("/favicon")
