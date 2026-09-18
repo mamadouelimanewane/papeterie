@@ -64,11 +64,6 @@ function MainTabs() {
         options={{ tabBarIcon: ({ focused }) => <TabIcon icon="home" label="Accueil" focused={focused} /> }}
       />
       <Tab.Screen
-        name="Stores"
-        component={StoresScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="business" label="Rayons" focused={focused} /> }}
-      />
-      <Tab.Screen
         name="Cart"
         component={CartScreen}
         options={{

@@ -30,17 +30,19 @@ export default function HomeScreen({ navigation }: any) {
     loadData()
   }, [])
 
+  const openShop = () => { if (stores[0]) navigation.navigate("StoreDetail", { store: stores[0] }) }
+
   async function loadData() {
     try {
       setIsLoading(true)
       const [b, c, s] = await Promise.all([
         sliderAPI.getBanners(),
         categoriesAPI.getAll(),
-        storesAPI.getAll(),
+        storesAPI.getActive(),
       ])
       setBanners(b.data.banners || b.data)
       setCategories(c.data.categories || c.data)
-      setStores((s.data.stores || s.data).filter((x: any) => x.segment === "PAPETERIE"))
+      setStores(s.data && s.data.id ? [s.data] : [])
     } catch (err) {
       console.error("[HomeData]", err)
     } finally {
@@ -137,7 +139,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.bannerContent}>
                 <Text style={styles.bannerTitle}>{item.title}</Text>
                 <Text style={styles.bannerSubtitle}>{item.subtitle || "Offre exclusive Papeterie"}</Text>
-                <TouchableOpacity style={styles.bannerBtn} onPress={() => navigation.navigate("Stores")}>
+                <TouchableOpacity style={styles.bannerBtn} onPress={() => openShop()}>
                   <Text style={styles.bannerBtnText}>Commander →</Text>
                 </TouchableOpacity>
               </View>
@@ -184,7 +186,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Catégories Premium</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Stores")}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => openShop()}><Text style={styles.seeAll}>Voir tout</Text></TouchableOpacity>
           </View>
           <FlatList
             data={categories}
@@ -195,7 +197,7 @@ export default function HomeScreen({ navigation }: any) {
             renderItem={({ item, index }) => (
               <TouchableOpacity 
                 style={[styles.categoryCard, { backgroundColor: index % 2 === 0 ? "#E8EAF6" : "#F1F8E9" }]} 
-                onPress={() => navigation.navigate("Stores")}
+                onPress={() => openShop()}
               >
                 {item.image ? (
                   <Image source={{ uri: item.image }} style={styles.categoryImg} />
@@ -249,7 +251,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Marchés à proximité</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Stores")}>
+            <TouchableOpacity onPress={() => openShop()}>
               <Text style={styles.seeAll}>Voir tout</Text>
             </TouchableOpacity>
           </View>

@@ -44,6 +44,7 @@ export const authAPI = {
 // ── Stores ────────────────────────────────────────────────────────
 export const storesAPI = {
   getAll: (params?: any) => api.get("/stores", { params }),
+  getActive: () => api.get("/store", { params: { products: 1 } }),
   getById: (id: string) => api.get(`/stores/${id}`),
   getProducts: (id: string) => api.get(`/stores/${id}/products`),
 }
