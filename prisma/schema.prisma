@@ -291,6 +291,7 @@ model Kit {
   description String?
   image       String?
   price       Float
+  discountPct Float    @default(0)
   items       Json
   sequence    Int      @default(0)
   status      String   @default("Active")

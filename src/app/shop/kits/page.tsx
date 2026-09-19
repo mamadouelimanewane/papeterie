@@ -6,7 +6,7 @@ import { useCart, fmt } from "../useCart"
 import CartDrawer from "../CartDrawer"
 
 type KitItem = { name: string; price: number; qty: number }
-type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; items: KitItem[] }
+type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; discountPct?: number; items: KitItem[] }
 const CYCLES = ["Primaire", "College", "Lycee"]
 const CYCLE_LABEL: Record<string, string> = { Primaire: "Primaire", College: "College", Lycee: "Lycee" }
 
@@ -34,8 +34,13 @@ export default function KitsPage() {
   const chosen = selectedKit
     ? selectedKit.items.map((it, i) => ({ ...it, included: config[i]?.included ?? true, qty: config[i]?.qty ?? it.qty }))
     : []
-  const kitTotal = chosen.filter((x) => x.included).reduce((s, x) => s + x.price * x.qty, 0)
+  const itemsSubtotal = chosen.filter((x) => x.included).reduce((s, x) => s + x.price * x.qty, 0)
+  const kitPct = selectedKit?.discountPct ?? 0
+  const kitDiscount = Math.round((itemsSubtotal * kitPct) / 100)
+  const kitTotal = itemsSubtotal - kitDiscount
   const chosenCount = chosen.filter((x) => x.included).length
+
+  const packPrice = (k: Kit) => Math.round(k.price * (1 - (k.discountPct ?? 0) / 100))
 
   const addKitConfigured = () => {
     if (!selectedKit) return
@@ -96,12 +101,16 @@ export default function KitsPage() {
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
                       {k.image && <img src={k.image} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />}
                       <span className="absolute left-2 top-2 rounded-lg bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{clsOf(k)}</span>
+                      {(k.discountPct ?? 0) > 0 && <span className="absolute right-2 top-2 rounded-lg bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">-{k.discountPct}%</span>}
                     </div>
                     <div className="flex flex-1 flex-col p-3">
                       <div className="text-sm font-semibold">Kit {clsOf(k)}</div>
                       <div className="text-xs text-slate-400">{k.items.length} articles</div>
-                      <div className="mt-auto flex items-center justify-between pt-2">
-                        <span className="font-extrabold text-indigo-700">{fmt(k.price)}</span>
+                      <div className="mt-auto flex items-end justify-between pt-2">
+                        <div className="leading-tight">
+                          {(k.discountPct ?? 0) > 0 && <div className="text-[11px] text-slate-400 line-through">{fmt(k.price)}</div>}
+                          <div className="font-extrabold text-indigo-700">{fmt(packPrice(k))}</div>
+                        </div>
                         <span className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white">+</span>
                       </div>
                     </div>
@@ -146,9 +155,17 @@ export default function KitsPage() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-3">
-                <span className="font-semibold text-slate-600">Total du kit</span>
-                <span className="text-xl font-extrabold text-indigo-700">{fmt(kitTotal)}</span>
+              <div className="mt-3 space-y-1 rounded-xl bg-indigo-50 px-4 py-3">
+                {kitDiscount > 0 && (
+                  <>
+                    <div className="flex items-center justify-between text-sm text-slate-500"><span>Sous-total articles</span><span>{fmt(itemsSubtotal)}</span></div>
+                    <div className="flex items-center justify-between text-sm font-medium text-amber-600"><span>Remise pack -{kitPct}%</span><span>-{fmt(kitDiscount)}</span></div>
+                  </>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-600">Total du kit</span>
+                  <span className="text-xl font-extrabold text-indigo-700">{fmt(kitTotal)}</span>
+                </div>
               </div>
               <button onClick={addKitConfigured} disabled={chosenCount === 0} className="mt-3 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
                 Ajouter au panier ({chosenCount} article{chosenCount > 1 ? "s" : ""})
