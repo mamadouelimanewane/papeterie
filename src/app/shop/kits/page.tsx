@@ -120,7 +120,7 @@ export default function KitsPage() {
                           {(k.discountPct ?? 0) > 0 && <div className="text-[11px] text-slate-400 line-through">{fmt(k.price)}</div>}
                           <div className="font-extrabold text-indigo-700">{fmt(packPrice(k))}</div>
                         </div>
-                        <span className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white">+</span>
+                        <span className="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition group-hover:bg-indigo-700">Personnaliser</span>
                       </div>
                     </div>
                   </button>
