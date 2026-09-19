@@ -123,7 +123,8 @@ export default withAuth(
       !pathname.startsWith("/checkout") &&  // retours de paiement Versus
       !pathname.startsWith("/api/") &&
       !pathname.startsWith("/_next") &&
-      !pathname.startsWith("/favicon")
+      !pathname.startsWith("/favicon") &&
+      !/\.(png|jpg|jpeg|svg|gif|webp|ico|txt|xml|json|woff2?|ttf)$/i.test(pathname) // fichiers statiques
     ) {
       if (!token) return NextResponse.redirect(new URL("/login", req.url))
     }
