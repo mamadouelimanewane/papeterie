@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from "react"
 type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null }
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
 type CartItem = Product & { qty: number }
+type KitItem = { name: string; price: number; qty: number }
+type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; items: KitItem[] }
+const CYCLES = ["Primaire", "College", "Lycee"]
 
 const CAT_EMOJI: Record<string, string> = {
   Livres: "📚", Cahiers: "📓", Fournitures: "✏️", Geometrie: "📐", "Art & Creativite": "🎨",
@@ -23,10 +26,22 @@ export default function ShopPage() {
   const [method, setMethod] = useState("Cash")
   const [result, setResult] = useState<any>(null)
   const [placing, setPlacing] = useState(false)
+  const [kits, setKits] = useState<Kit[]>([])
+  const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
 
   useEffect(() => {
     fetch("/api/store?products=1").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
+    fetch("/api/kits").then((r) => r.json()).then((d) => setKits(Array.isArray(d) ? d : [])).catch(() => setKits([]))
   }, [])
+
+  const addKit = (k: Kit) => {
+    setCart((c) => {
+      const f = c.find((x) => x.id === k.id)
+      return f ? c.map((x) => (x.id === k.id ? { ...x, qty: x.qty + 1 } : x)) : [...c, { id: k.id, name: k.name, price: k.price, image: k.image, qty: 1 }]
+    })
+    setSelectedKit(null)
+    setCartOpen(true)
+  }
 
   const products = store?.products ?? []
   const categories = useMemo(
@@ -112,6 +127,45 @@ export default function ShopPage() {
           <p className="mt-1 max-w-xl text-sm text-indigo-100">Cahiers, manuels, kits de geometrie, sacs... Commandez en ligne et payez par Wave, Orange Money ou a la livraison.</p>
         </div>
       </section>
+
+      {/* Kits par classe */}
+      {kits.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-6">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-extrabold">{"🎒"} Kits scolaires par classe</h2>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Tout en 1 clic</span>
+          </div>
+          {CYCLES.map((cy) => {
+            const list = kits.filter((k) => k.cycle === cy)
+            if (!list.length) return null
+            const label = cy === "College" ? "College" : cy === "Lycee" ? "Lycee" : cy
+            return (
+              <div key={cy} className="mb-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</div>
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {list.map((k) => {
+                    const cls = k.series ? `${k.level} ${k.series}` : k.level
+                    return (
+                      <button key={k.id} onClick={() => setSelectedKit(k)}
+                        className="flex w-40 shrink-0 flex-col overflow-hidden rounded-2xl bg-white text-left ring-1 ring-slate-100 transition hover:shadow-lg">
+                        <div className="relative h-24 w-full bg-slate-100">
+                          {k.image && <img src={k.image} alt="" className="h-full w-full object-cover" />}
+                          <span className="absolute left-2 top-2 rounded-lg bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{cls}</span>
+                        </div>
+                        <div className="p-3">
+                          <div className="text-sm font-semibold">Kit {cls}</div>
+                          <div className="text-xs text-slate-400">{k.items.length} articles</div>
+                          <div className="mt-1 font-extrabold text-indigo-700">{fmt(k.price)}</div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </section>
+      )}
 
       {/* Categories */}
       <div className="mx-auto max-w-6xl px-4 pt-5">
@@ -205,6 +259,40 @@ export default function ShopPage() {
           </div>
         )}
       </aside>
+
+      {/* Kit detail modal */}
+      {selectedKit && (
+        <div className="fixed inset-0 z-[55] grid place-items-end sm:place-items-center bg-black/40 p-0 sm:p-4" onClick={() => setSelectedKit(null)}>
+          <div className="max-h-[85vh] w-full max-w-md overflow-auto rounded-t-2xl sm:rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
+            <div className="relative h-32 w-full bg-slate-100">
+              {selectedKit.image && <img src={selectedKit.image} alt="" className="h-full w-full object-cover" />}
+              <button onClick={() => setSelectedKit(null)} className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-slate-600">X</button>
+              <span className="absolute bottom-3 left-3 rounded-lg bg-indigo-600 px-3 py-1 text-sm font-bold text-white">
+                Kit {selectedKit.series ? `${selectedKit.level} ${selectedKit.series}` : selectedKit.level}
+              </span>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-slate-500">{selectedKit.description}</p>
+              <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Contenu ({selectedKit.items.length} articles)</div>
+              <ul className="mt-1 divide-y">
+                {selectedKit.items.map((it, i) => (
+                  <li key={i} className="flex items-center justify-between py-1.5 text-sm">
+                    <span>{it.qty > 1 && <b className="mr-1 text-indigo-600">{it.qty}x</b>}{it.name}</span>
+                    <span className="text-slate-400">{fmt(it.price * it.qty)}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-3">
+                <span className="font-semibold text-slate-600">Prix du kit</span>
+                <span className="text-xl font-extrabold text-indigo-700">{fmt(selectedKit.price)}</span>
+              </div>
+              <button onClick={() => addKit(selectedKit)} className="mt-3 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700">
+                Ajouter le kit au panier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Result modal */}
       {result && (

@@ -280,3 +280,20 @@ model MapMarker {
   status      String   @default("Active")
   createdAt   DateTime @default(now())
 }
+
+model Kit {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  level       String
+  series      String?
+  cycle       String
+  description String?
+  image       String?
+  price       Float
+  items       Json
+  sequence    Int      @default(0)
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
