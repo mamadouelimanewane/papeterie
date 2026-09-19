@@ -83,6 +83,20 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <option>Cash</option><option>Wave</option><option>Orange Money</option><option>Versus</option>
               </select>
             </div>
+            {method !== "Cash" && (
+              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700">
+                  <span>{"🔒"}</span> Paiement securise via
+                  <span className="rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white">VERSUS</span>
+                  <span className="text-slate-500">Fintech</span>
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500">
+                  {["Wave", "Orange Money", "Carte bancaire", "Mixx"].map((m) => (
+                    <span key={m} className="rounded bg-white px-1.5 py-0.5 ring-1 ring-slate-200">{m}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison</span><span>500 F</span></div>
             <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(total + 500)}</span></div>
             <button onClick={placeOrder} disabled={placing} className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
@@ -103,7 +117,15 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <p className="mt-2 font-bold text-emerald-700">Commande confirmee !</p>
                 <p className="text-sm text-slate-500">N {result.orderId}</p>
                 {result.paymentError && <p className="mt-1 text-xs text-amber-600">Paiement : {result.paymentError}</p>}
-                {link && <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>}
+                {link && (
+                  <>
+                    <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
+                    <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
+                      <span>{"🔒"}</span> Securise par
+                      <span className="rounded bg-indigo-600 px-1 py-0.5 font-bold text-white">VERSUS</span> Fintech
+                    </div>
+                  </>
+                )}
               </>
             )}
             <button onClick={() => { setResult(null); onClose() }} className="mt-4 block w-full text-sm text-slate-400">Fermer</button>

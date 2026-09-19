@@ -29,6 +29,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
       return true
     }
     if (pathname === "/api/orders") return true // commande invite
+    if (pathname === "/api/gestion") return true // protege par MERCHANT_CODE dans la route
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
     if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
     if (pathname === "/api/admin/fix-images") return true // protege par SEED_SECRET
@@ -117,6 +118,7 @@ export default withAuth(
       !pathname.startsWith("/login") &&
       !pathname.startsWith("/merchant/login") &&
       !pathname.startsWith("/shop") &&      // interface client de test (publique)
+      !pathname.startsWith("/gestion") &&   // interface marchande (protegee par code cote page)
       !pathname.startsWith("/livreur") &&   // interface livreur de test (publique)
       !pathname.startsWith("/checkout") &&  // retours de paiement Versus
       !pathname.startsWith("/api/") &&
