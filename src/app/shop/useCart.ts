@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 
-export type CartItem = { id: string; name: string; price: number; image?: string | null; qty: number }
+export type KitComponent = { name: string; price: number; qty: number }
+export type CartItem = { id: string; name: string; price: number; image?: string | null; qty: number; components?: KitComponent[] }
 const KEY = "schoolmatik_cart"
 
 export const fmt = (n: number) => n.toLocaleString("fr-FR") + " F"
@@ -25,12 +26,12 @@ export function useCart() {
     }
   }, [cart, ready])
 
-  const add = (p: { id: string; name: string; price: number; image?: string | null }) =>
+  const add = (p: { id: string; name: string; price: number; image?: string | null; components?: KitComponent[] }) =>
     setCart((c) => {
       const f = c.find((x) => x.id === p.id)
       return f
         ? c.map((x) => (x.id === p.id ? { ...x, qty: x.qty + 1 } : x))
-        : [...c, { id: p.id, name: p.name, price: p.price, image: p.image ?? null, qty: 1 }]
+        : [...c, { id: p.id, name: p.name, price: p.price, image: p.image ?? null, qty: 1, components: p.components }]
     })
   const dec = (id: string) => setCart((c) => c.flatMap((x) => (x.id === id ? (x.qty > 1 ? [{ ...x, qty: x.qty - 1 }] : []) : [x])))
   const inc = (id: string) => setCart((c) => c.map((x) => (x.id === id ? { ...x, qty: x.qty + 1 } : x)))

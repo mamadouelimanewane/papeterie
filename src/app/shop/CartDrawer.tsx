@@ -58,6 +58,9 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               </div>
               <div className="flex-1">
                 <div className="line-clamp-1 text-sm font-medium">{x.name}</div>
+                {x.components && x.components.length > 0 && (
+                  <div className="line-clamp-2 text-[11px] text-slate-400">{x.components.map((k) => (k.qty > 1 ? `${k.qty}x ` : "") + k.name).join(", ")}</div>
+                )}
                 <div className="text-xs text-indigo-700">{fmt(x.price)}</div>
                 <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
                   <button onClick={() => dec(x.id)} className="text-slate-500">-</button>
