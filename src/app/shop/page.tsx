@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useCart, fmt } from "./useCart"
 import CartDrawer from "./CartDrawer"
 
-type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null }
+type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null }
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
 
 const CAT_EMOJI: Record<string, string> = {
@@ -19,6 +19,7 @@ export default function ShopPage() {
   const [query, setQuery] = useState("")
   const [activeCat, setActiveCat] = useState<string>("Tout")
   const [cartOpen, setCartOpen] = useState(false)
+  const [detail, setDetail] = useState<Product | null>(null)
   const { cart, add, dec, inc, clear, count, total } = useCart()
 
   useEffect(() => {
@@ -118,7 +119,7 @@ export default function ShopPage() {
         <h2 className="mb-3 text-sm font-semibold text-slate-500">{filtered.length} article{filtered.length > 1 ? "s" : ""}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => (
-            <div key={p.id} className="group flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100 transition hover:shadow-lg">
+            <div key={p.id} onClick={() => setDetail(p)} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100 transition hover:shadow-lg">
               <div className="relative aspect-square overflow-hidden bg-slate-100">
                 {p.image
                   ? <img src={p.image} alt={p.name} className="h-full w-full object-cover transition group-hover:scale-105" />
@@ -129,7 +130,7 @@ export default function ShopPage() {
                 <div className="line-clamp-2 text-sm font-medium leading-tight">{p.name}</div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="font-extrabold text-indigo-700">{fmt(p.price)}</span>
-                  <button onClick={() => addProduct(p)} className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700" aria-label="Ajouter">+</button>
+                  <button onClick={(e) => { e.stopPropagation(); addProduct(p) }} className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700" aria-label="Ajouter">+</button>
                 </div>
               </div>
             </div>
@@ -153,6 +154,29 @@ export default function ShopPage() {
       <footer className="border-t bg-white py-6 text-center text-xs text-slate-400">
         {store.name} - {store.address} - {store.phone}
       </footer>
+
+      {/* Detail produit */}
+      {detail && (
+        <div className="fixed inset-0 z-[55] grid place-items-end bg-black/40 p-0 sm:place-items-center sm:p-4" onClick={() => setDetail(null)}>
+          <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-t-2xl bg-white sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="relative aspect-square w-full bg-slate-100">
+              {detail.image
+                ? <img src={detail.image} alt={detail.name} className="h-full w-full object-cover" />
+                : <div className="flex h-full items-center justify-center bg-gradient-to-br from-indigo-100 to-violet-100 text-7xl">{CAT_EMOJI[detail.category ?? ""] ?? "📦"}</div>}
+              <button onClick={() => setDetail(null)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-600 shadow">✕</button>
+              {detail.category && <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-600">{detail.category}</span>}
+            </div>
+            <div className="p-5">
+              <h3 className="text-lg font-bold leading-tight">{detail.name}</h3>
+              {detail.description && <p className="mt-1 text-sm text-slate-500">{detail.description}</p>}
+              <div className="mt-3 text-2xl font-extrabold text-indigo-700">{fmt(detail.price)}</div>
+              <button onClick={() => { addProduct(detail); setDetail(null) }} className="mt-4 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700">
+                Ajouter au panier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} clear={clear} />
     </div>
