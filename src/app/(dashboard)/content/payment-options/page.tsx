@@ -14,10 +14,11 @@ type PaymentOption = {
 
 const initialOptions: PaymentOption[] = [
   { id: 1, name: "Espèces", icon: "💵", code: "cash", enabled: true, order: 1 },
-  { id: 2, name: "Orange Money", icon: "🟠", code: "orange_money", enabled: true, order: 2 },
-  { id: 3, name: "Wave", icon: "🔵", code: "wave", enabled: true, order: 3 },
-  { id: 4, name: "Free Money", icon: "🟣", code: "free_money", enabled: false, order: 4 },
-  { id: 5, name: "Stripe", icon: "💳", code: "stripe", enabled: false, order: 5 },
+  { id: 2, name: "Orange Money", icon: "🟠", code: "orange_money", enabled: false, order: 2 },
+  { id: 3, name: "Wave", icon: "🔵", code: "wave", enabled: false, order: 3 },
+  { id: 4, name: "Versus Fintech", icon: "💳", code: "versus", enabled: true, order: 4 },
+  { id: 5, name: "Free Money", icon: "🟣", code: "free_money", enabled: false, order: 5 },
+  { id: 6, name: "Stripe", icon: "💳", code: "stripe", enabled: false, order: 6 },
 ]
 
 export default function PaymentOptionsPage() {

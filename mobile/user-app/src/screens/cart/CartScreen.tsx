@@ -10,8 +10,9 @@ import { ordersAPI } from "../../services/api"
 const PAYMENT_OPTIONS = [
   { id: "Cash", label: "Especes", subtitle: "Payer a la livraison", icon: "cash", color: "#27AE60" },
   { id: "Wallet", label: "Portefeuille", subtitle: "Paiement instantane", icon: "wallet", color: "#8B5CF6" },
-  { id: "Wave", label: "Wave", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#1B74E4" },
-  { id: "Orange", label: "Orange Money", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#FF6600" },
+  { id: "Versus", label: "Paiement Mobile (Versus)", subtitle: "Wave, Orange Money...", icon: "phone-portrait", color: "#1B74E4" },
+  // { id: "Wave", label: "Wave", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#1B74E4" },
+  // { id: "Orange", label: "Orange Money", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#FF6600" },
 ]
 
 export default function CartScreen({ navigation }: any) {
