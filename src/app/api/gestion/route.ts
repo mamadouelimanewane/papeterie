@@ -38,7 +38,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, product: p }, { status: 201 })
     }
 
-    return NextResponse.json({ error: "kind invalide (category|product)" }, { status: 400 })
+    if (body.kind === "promo") {
+      if (!body.promoCode || body.discount == null) return NextResponse.json({ error: "Code et remise requis" }, { status: 400 })
+      const promo = await prisma.promoCode.create({
+        data: {
+          code: String(body.promoCode).trim().toUpperCase(),
+          discount: Number(body.discount),
+          type: body.type === "Fixed" ? "Fixed" : "Percentage",
+          maxUses: body.maxUses ? Number(body.maxUses) : null,
+          expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+          status: "Active",
+        },
+      })
+      return NextResponse.json({ ok: true, promo }, { status: 201 })
+    }
+
+    return NextResponse.json({ error: "kind invalide (category|product|promo)" }, { status: 400 })
   } catch (error) {
     console.error("[api/gestion]", error)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

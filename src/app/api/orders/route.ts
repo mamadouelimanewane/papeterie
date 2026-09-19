@@ -96,10 +96,20 @@ export async function POST(req: Request) {
         paymentStatus: "En attente",
         items: data.items,
         address: data.address ?? null,
-        notes: data.notes ?? null,
+        notes: [data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null].filter(Boolean).join(" ") || null,
         deliveryOtp,
       },
     })
+
+    // Code promo : incremente le compteur d'utilisation (best-effort)
+    if (data.promoCode) {
+      try {
+        await prisma.promoCode.update({
+          where: { code: String(data.promoCode).trim().toUpperCase() },
+          data: { usedCount: { increment: 1 } },
+        })
+      } catch {}
+    }
 
     let paymentData: unknown = null;
     let paymentError: string | null = null;

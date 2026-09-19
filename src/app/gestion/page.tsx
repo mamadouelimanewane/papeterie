@@ -7,7 +7,7 @@ type Category = { id: string; name: string }
 
 export default function GestionPage() {
   const [code, setCode] = useState("")
-  const [tab, setTab] = useState<"product" | "category">("product")
+  const [tab, setTab] = useState<"product" | "category" | "promo">("product")
   const [cats, setCats] = useState<Category[]>([])
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
@@ -20,6 +20,12 @@ export default function GestionPage() {
   const [pCat, setPCat] = useState("")
   const [pImage, setPImage] = useState("")
   const [pStock, setPStock] = useState("")
+  // Promo
+  const [prCode, setPrCode] = useState("")
+  const [prDiscount, setPrDiscount] = useState("")
+  const [prType, setPrType] = useState("Percentage")
+  const [prMax, setPrMax] = useState("")
+  const [prExp, setPrExp] = useState("")
 
   const loadCats = () => fetch("/api/categories").then((r) => r.json()).then((d) => setCats(Array.isArray(d) ? d : [])).catch(() => {})
   useEffect(() => { loadCats() }, [])
@@ -52,6 +58,12 @@ export default function GestionPage() {
     if (r.ok) { setMsg({ ok: true, text: `Produit "${pName}" ajoute.` }); setPName(""); setPPrice(""); setPImage(""); setPStock("") }
     else setMsg({ ok: false, text: r.text })
   }
+  async function addPromo() {
+    if (!prCode.trim() || !prDiscount) return
+    const r = await send({ kind: "promo", promoCode: prCode, discount: prDiscount, type: prType, maxUses: prMax || null, expiresAt: prExp || null })
+    if (r.ok) { setMsg({ ok: true, text: `Code promo "${prCode.toUpperCase()}" cree.` }); setPrCode(""); setPrDiscount(""); setPrMax(""); setPrExp("") }
+    else setMsg({ ok: false, text: r.text })
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -75,13 +87,14 @@ export default function GestionPage() {
         <div className="mb-4 inline-flex rounded-full bg-white p-1 ring-1 ring-slate-200">
           <button onClick={() => setTab("product")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "product" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouveau produit</button>
           <button onClick={() => setTab("category")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "category" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouvelle categorie</button>
+          <button onClick={() => setTab("promo")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "promo" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Promotion</button>
         </div>
 
         {msg && (
           <div className={`mb-4 rounded-lg p-3 text-sm ${msg.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>{msg.text}</div>
         )}
 
-        {tab === "category" ? (
+        {tab === "category" && (
           <div className="space-y-3 rounded-xl bg-white p-4 ring-1 ring-slate-100">
             <div>
               <label className="text-sm font-medium">Nom de la categorie</label>
@@ -97,7 +110,9 @@ export default function GestionPage() {
               </div>
             </div>
           </div>
-        ) : (
+        )}
+
+        {tab === "product" && (
           <div className="space-y-3 rounded-xl bg-white p-4 ring-1 ring-slate-100">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
@@ -126,6 +141,39 @@ export default function GestionPage() {
             </div>
             <button onClick={addProduct} disabled={busy || !code} className="w-full rounded-xl bg-emerald-600 py-2.5 font-semibold text-white disabled:opacity-50">
               {busy ? "..." : "Ajouter le produit"}
+            </button>
+          </div>
+        )}
+
+        {tab === "promo" && (
+          <div className="space-y-3 rounded-xl bg-white p-4 ring-1 ring-slate-100">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Code promo</label>
+                <input value={prCode} onChange={(e) => setPrCode(e.target.value.toUpperCase())} placeholder="RENTREE2026" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm uppercase" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Remise</label>
+                <input value={prDiscount} onChange={(e) => setPrDiscount(e.target.value)} type="number" placeholder="10" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Type</label>
+                <select value={prType} onChange={(e) => setPrType(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm">
+                  <option value="Percentage">Pourcentage (%)</option>
+                  <option value="Fixed">Montant fixe (F)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Utilisations max</label>
+                <input value={prMax} onChange={(e) => setPrMax(e.target.value)} type="number" placeholder="100" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Expiration</label>
+                <input value={prExp} onChange={(e) => setPrExp(e.target.value)} type="date" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <button onClick={addPromo} disabled={busy || !code} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white disabled:opacity-50">
+              {busy ? "..." : "Creer le code promo"}
             </button>
           </div>
         )}

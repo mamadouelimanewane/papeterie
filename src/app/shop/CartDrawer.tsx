@@ -21,6 +21,24 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [method, setMethod] = useState("Cash")
   const [result, setResult] = useState<any>(null)
   const [placing, setPlacing] = useState(false)
+  const [promoInput, setPromoInput] = useState("")
+  const [promo, setPromo] = useState<{ code: string; discount: number; type: string } | null>(null)
+  const [promoMsg, setPromoMsg] = useState<string | null>(null)
+
+  const discountAmount = promo ? Math.min(total, promo.type === "Percentage" ? Math.round((total * promo.discount) / 100) : promo.discount) : 0
+  const goods = total - discountAmount
+  const grandTotal = goods + 500
+
+  async function applyPromo() {
+    if (!promoInput.trim()) return
+    setPromoMsg(null)
+    try {
+      const res = await fetch("/api/promo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: promoInput }) })
+      const d = await res.json()
+      if (d.valid) { setPromo({ code: d.code, discount: d.discount, type: d.type }); setPromoMsg(null) }
+      else { setPromo(null); setPromoMsg(d.error ?? "Code invalide") }
+    } catch { setPromoMsg("Erreur reseau") }
+  }
 
   async function placeOrder() {
     if (cart.length === 0) return
@@ -30,9 +48,11 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          total, subtotal: total, deliveryFee: 500, paymentMethod: method,
+          total: goods, subtotal: total, deliveryFee: 500, paymentMethod: method,
           items: cart.map((x) => ({ name: x.name, price: x.price, qty: x.qty })),
-          address, firstName: name || "Client", phone_number: phone, notes: "Commande web (/shop)",
+          address, firstName: name || "Client", phone_number: phone,
+          promoCode: promo?.code ?? null,
+          notes: "Commande web (/shop)",
         }),
       })
       setResult(await res.json()); clear()
@@ -97,8 +117,20 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 </div>
               </div>
             )}
+            <div>
+              <div className="flex gap-2">
+                <input value={promoInput} onChange={(e) => setPromoInput(e.target.value.toUpperCase())} placeholder="Code promo" className="flex-1 rounded-lg border px-3 py-2 text-sm uppercase" />
+                {promo
+                  ? <button onClick={() => { setPromo(null); setPromoInput(""); setPromoMsg(null) }} className="rounded-lg bg-slate-200 px-3 text-sm font-medium">Retirer</button>
+                  : <button onClick={applyPromo} className="rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white">Appliquer</button>}
+              </div>
+              {promoMsg && <p className="mt-1 text-xs text-red-500">{promoMsg}</p>}
+              {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} applique : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
+            </div>
+            <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total</span><span>{fmt(total)}</span></div>
+            {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison</span><span>500 F</span></div>
-            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(total + 500)}</span></div>
+            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(grandTotal)}</span></div>
             <button onClick={placeOrder} disabled={placing} className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
               {placing ? "Envoi..." : "Valider la commande"}
             </button>
