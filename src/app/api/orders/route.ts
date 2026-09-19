@@ -76,30 +76,58 @@ export async function POST(req: Request) {
       } catch {}
     }
 
-    const orderId = "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 1000)
-    const invoiceId = "INV-" + orderId.split("-")[1]
+    const items = Array.isArray(data.items) ? data.items : [];
 
-    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString()
+    const order = await prisma.$transaction(async (tx) => {
+      // 1. Verifier et decrementer le stock
+      const productIds = items.map((i: any) => i.productId).filter(Boolean);
+      if (productIds.length > 0) {
+        const productsInDb = await tx.product.findMany({ where: { id: { in: productIds } } });
+        
+        for (const item of items) {
+           if (!item.productId) continue;
+           const prod = productsInDb.find(p => p.id === item.productId);
+           if (!prod) {
+             throw new Error(`Produit introuvable : ${item.name}`);
+           }
+           if (typeof prod.stock === "number" && prod.stock < item.quantity) {
+             throw new Error(`Stock insuffisant pour : ${item.name} (Reste : ${prod.stock})`);
+           }
+        }
+        
+        for (const item of items) {
+           if (!item.productId) continue;
+           await tx.product.update({
+              where: { id: item.productId },
+              data: { stock: { decrement: item.quantity } }
+           });
+        }
+      }
 
-    const order = await prisma.order.create({
-      data: {
-        orderId,
-        invoiceId,
-        storeId,
-        userId: userId ?? data.userId ?? null,
-        total: Number(data.total),
-        subtotal: Number(data.subtotal ?? data.total),
-        deliveryFee: Number(data.deliveryFee ?? 500),
-        earning: Number(data.total) * 0.1,
-        status: "Pending",
-        paymentMethod: data.paymentMethod ?? "Cash",
-        paymentStatus: "En attente",
-        items: data.items,
-        address: data.address ?? null,
-        notes: [data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null].filter(Boolean).join(" ") || null,
-        deliveryOtp,
-      },
-    })
+      const orderId = "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 1000)
+      const invoiceId = "INV-" + orderId.split("-")[1]
+      const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString()
+
+      return tx.order.create({
+        data: {
+          orderId,
+          invoiceId,
+          storeId,
+          userId: userId ?? data.userId ?? null,
+          total: Number(data.total),
+          subtotal: Number(data.subtotal ?? data.total),
+          deliveryFee: Number(data.deliveryFee ?? 500),
+          earning: Number(data.total) * 0.1,
+          status: "Pending",
+          paymentMethod: data.paymentMethod ?? "Cash",
+          paymentStatus: "En attente",
+          items: data.items,
+          address: data.address ?? null,
+          notes: [data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null].filter(Boolean).join(" ") || null,
+          deliveryOtp,
+        },
+      });
+    });
 
     // Code promo : incremente le compteur d'utilisation (best-effort)
     if (data.promoCode) {
