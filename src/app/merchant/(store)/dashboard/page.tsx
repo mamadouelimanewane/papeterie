@@ -44,7 +44,7 @@ function DashboardContent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Tableau de bord — Mon École</h1>
+          <h1 className="text-xl font-bold text-gray-800">Tableau de bord — Schoolmatik Librairie</h1>
           <p className="text-sm text-gray-500 mt-0.5">Papeterie scolaire en ligne · PAPETERIE · Lundi 16 mars 2026</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100">
@@ -181,7 +181,7 @@ function DashboardContent() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50">
             <h2 className="font-semibold text-gray-800">Top produits</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Ce mois-ci · Mon École</p>
+            <p className="text-xs text-gray-400 mt-0.5">Ce mois-ci · Schoolmatik Librairie</p>
           </div>
           <div className="divide-y divide-gray-50">
             {topProducts.map((p, i) => (

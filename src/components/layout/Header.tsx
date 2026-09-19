@@ -27,7 +27,7 @@ export default function Header() {
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow">
             <span className="text-indigo-900 text-sm font-bold">P</span>
           </div>
-          <span className="text-white font-bold text-base md:text-lg tracking-wide">PAPETERIE</span>
+          <span className="text-white font-bold text-base md:text-lg tracking-wide">SCHOOLMATIK</span>
           <span className="hidden lg:inline-block px-1.5 py-0.5 bg-yellow-400 text-indigo-900 text-[10px] font-black rounded uppercase ml-1">Admin</span>
         </div>
         <div className="hidden md:flex items-center gap-1 ml-4 border-l border-white/20 pl-4">

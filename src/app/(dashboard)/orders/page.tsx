@@ -119,7 +119,7 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <span>🛒</span>
-          <h1 className="text-lg font-semibold text-gray-700">Commandes — Mon École</h1>
+          <h1 className="text-lg font-semibold text-gray-700">Commandes — Schoolmatik Librairie</h1>
           {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">

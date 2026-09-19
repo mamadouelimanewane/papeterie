@@ -140,7 +140,7 @@ const navigation: { section: string; items: NavItem[] }[] = [
     section: "PARAMÈTRES",
     items: [
       {
-        label: "Sous-admins", icon: <UserCog size={16} />,
+        label: "Utilisateurs & rôles", icon: <UserCog size={16} />,
         children: [
           { label: "Tous les admins", href: "/settings/sub-admin" },
           { label: "Ajouter un admin", href: "/settings/sub-admin/new" },

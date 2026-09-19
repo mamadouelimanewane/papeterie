@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Loader2, Store, CheckCircle, AlertCircle, Eye, EyeOff, BookOpen } from "lucide-react"
 
 const mockStores: Record<string, { name: string; email: string; id: number }> = {
-  "1": { id: 1, name: "Mon École", email: "contact@monecole.sn" },
+  "1": { id: 1, name: "Schoolmatik Librairie", email: "contact@monecole.sn" },
 }
 
 function generateToken(storeId: number, email: string): string {
@@ -69,7 +69,7 @@ function LoginContent() {
             <BookOpen size={32} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">PAPETERIE</h1>
-          <p className="text-gray-500 text-sm mt-1">Espace Marchand — Mon École</p>
+          <p className="text-gray-500 text-sm mt-1">Espace Marchand — Schoolmatik Librairie</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">

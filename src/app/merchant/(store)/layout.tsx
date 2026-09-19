@@ -11,7 +11,7 @@ import {
 import { Loader2 } from "lucide-react"
 
 const mockStores: Record<string, { name: string; email: string; slug: string }> = {
-  "1": { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" },
+  "1": { name: "Schoolmatik Librairie", email: "contact@monecole.sn", slug: "mon-ecole" },
 }
 
 const navItems = [
@@ -26,7 +26,7 @@ const navItems = [
 
 function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname()
-  const store = mockStores[storeId] ?? { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" }
+  const store = mockStores[storeId] ?? { name: "Schoolmatik Librairie", email: "contact@monecole.sn", slug: "mon-ecole" }
 
   return (
     <aside className={`${mobile ? "w-full" : "w-64"} bg-[#1e2d4a] text-white flex flex-col h-full`}>
@@ -102,7 +102,7 @@ function MerchantSidebar({ storeId, mobile, onClose }: { storeId: string; mobile
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
   const storeId = searchParams.get("store") ?? "1"
-  const store = mockStores[storeId] ?? { name: "Mon École", email: "contact@monecole.sn", slug: "mon-ecole" }
+  const store = mockStores[storeId] ?? { name: "Schoolmatik Librairie", email: "contact@monecole.sn", slug: "mon-ecole" }
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (

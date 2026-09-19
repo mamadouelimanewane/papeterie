@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
   const monEcoleStats = stats
     ? [
-        { label: "Mon École (boutique)", value: fmt(stats.store.totalStores), iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
+        { label: "Ma boutique", value: fmt(stats.store.totalStores), iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
         { label: "Catégories actives", value: fmt(stats.store.totalCategories), iconBg: "bg-cyan-500", icon: <FolderOpen size={20} />, href: "/categories" },
         { label: "Total produits", value: fmt(stats.store.totalProducts), iconBg: "bg-teal-500", icon: <Package size={20} />, href: "/stores" },
         { label: "Total commandes", value: fmt(stats.store.totalOrders), iconBg: "bg-orange-500", icon: <ShoppingCart size={20} />, href: "/orders" },
@@ -78,7 +78,7 @@ export default function DashboardPage() {
         { label: "Livres scolaires", value: "—", iconBg: "bg-blue-500", icon: <BookOpen size={20} />, href: "/categories" },
       ]
     : [
-        { label: "Mon École (boutique)", value: "—", iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
+        { label: "Ma boutique", value: "—", iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
         { label: "Catégories actives", value: "—", iconBg: "bg-cyan-500", icon: <FolderOpen size={20} />, href: "/categories" },
         { label: "Total produits", value: "—", iconBg: "bg-teal-500", icon: <Package size={20} />, href: "/stores" },
         { label: "Total commandes", value: "—", iconBg: "bg-orange-500", icon: <ShoppingCart size={20} />, href: "/orders" },
@@ -94,7 +94,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-xl md:text-2xl font-bold">Bienvenue sur Papeterie</h1>
             <p className="text-indigo-100 text-xs md:text-sm mt-1 max-w-2xl opacity-90">
-              Plateforme multi-boutiques — Boutique active : <strong>Mon École</strong> · Papeterie & fournitures scolaires au Sénégal
+              Plateforme multi-boutiques — Boutique active : <strong>Schoolmatik Librairie</strong> · Papeterie & fournitures scolaires au Sénégal
             </p>
           </div>
           {loading && (
@@ -129,7 +129,7 @@ export default function DashboardPage() {
           <section>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
               <span className="text-lg">🏫</span>
-              <h2 className="text-sm font-bold text-gray-700 uppercase">Mon École — Digital Store</h2>
+              <h2 className="text-sm font-bold text-gray-700 uppercase">Schoolmatik — Espace boutique</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {monEcoleStats.map((stat) => (

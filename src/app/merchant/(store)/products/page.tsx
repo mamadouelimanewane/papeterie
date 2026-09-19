@@ -123,7 +123,7 @@ function ProductsContent() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Catalogue — Mon École</h1>
+          <h1 className="text-xl font-bold text-gray-800">Catalogue — Schoolmatik Librairie</h1>
           <p className="text-sm text-gray-500">{allProducts.length} produits · {categories.length} catégories · Papeterie scolaire CI → Terminale</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">

@@ -107,7 +107,7 @@ export default function StoresPage() {
             <div key={field} className="w-full md:w-48">
               <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block capitalize">{field === "name" ? "Nom" : field === "email" ? "Email" : "Téléphone"}</label>
               <input
-                placeholder={field === "name" ? "Ex: Mon École" : field === "email" ? "contact@..." : "77..."}
+                placeholder={field === "name" ? "Ex: Schoolmatik Librairie" : field === "email" ? "contact@..." : "77..."}
                 value={search[field]}
                 onChange={(e) => setSearch({ ...search, [field]: e.target.value })}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
