@@ -1,13 +1,12 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import { useCart, fmt } from "./useCart"
+import CartDrawer from "./CartDrawer"
 
-type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null }
+type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null }
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
-type CartItem = Product & { qty: number }
-type KitItem = { name: string; price: number; qty: number }
-type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; items: KitItem[] }
-const CYCLES = ["Primaire", "College", "Lycee"]
 
 const CAT_EMOJI: Record<string, string> = {
   Livres: "📚", Cahiers: "📓", Fournitures: "✏️", Geometrie: "📐", "Art & Creativite": "🎨",
@@ -16,32 +15,14 @@ const CAT_EMOJI: Record<string, string> = {
 export default function ShopPage() {
   const [store, setStore] = useState<Store | null>(null)
   const [loading, setLoading] = useState(true)
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [cartOpen, setCartOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [activeCat, setActiveCat] = useState<string>("Tout")
-  const [name, setName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [address, setAddress] = useState("")
-  const [method, setMethod] = useState("Cash")
-  const [result, setResult] = useState<any>(null)
-  const [placing, setPlacing] = useState(false)
-  const [kits, setKits] = useState<Kit[]>([])
-  const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
+  const [cartOpen, setCartOpen] = useState(false)
+  const { cart, add, dec, inc, clear, count, total } = useCart()
 
   useEffect(() => {
     fetch("/api/store?products=1").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
-    fetch("/api/kits").then((r) => r.json()).then((d) => setKits(Array.isArray(d) ? d : [])).catch(() => setKits([]))
   }, [])
-
-  const addKit = (k: Kit) => {
-    setCart((c) => {
-      const f = c.find((x) => x.id === k.id)
-      return f ? c.map((x) => (x.id === k.id ? { ...x, qty: x.qty + 1 } : x)) : [...c, { id: k.id, name: k.name, price: k.price, image: k.image, qty: 1 }]
-    })
-    setSelectedKit(null)
-    setCartOpen(true)
-  }
 
   const products = store?.products ?? []
   const categories = useMemo(
@@ -52,42 +33,7 @@ export default function ShopPage() {
     (p) => (activeCat === "Tout" || p.category === activeCat) && p.name.toLowerCase().includes(query.toLowerCase())
   )
 
-  const add = (p: Product) => {
-    setCart((c) => {
-      const f = c.find((x) => x.id === p.id)
-      return f ? c.map((x) => (x.id === p.id ? { ...x, qty: x.qty + 1 } : x)) : [...c, { ...p, qty: 1 }]
-    })
-    setCartOpen(true)
-  }
-  const dec = (id: string) => setCart((c) => c.flatMap((x) => (x.id === id ? (x.qty > 1 ? [{ ...x, qty: x.qty - 1 }] : []) : [x])))
-  const inc = (id: string) => setCart((c) => c.map((x) => (x.id === id ? { ...x, qty: x.qty + 1 } : x)))
-  const count = cart.reduce((s, x) => s + x.qty, 0)
-  const total = cart.reduce((s, x) => s + x.price * x.qty, 0)
-  const fmt = (n: number) => n.toLocaleString("fr-FR") + " F"
-
-  async function placeOrder() {
-    if (cart.length === 0) return
-    setPlacing(true)
-    setResult(null)
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          total, subtotal: total, deliveryFee: 500, paymentMethod: method,
-          items: cart.map((x) => ({ name: x.name, price: x.price, qty: x.qty })),
-          address, firstName: name || "Client", phone_number: phone, notes: "Commande web (/shop)",
-        }),
-      })
-      setResult(await res.json())
-      setCart([])
-    } catch (e: any) {
-      setResult({ error: e?.message ?? "Erreur" })
-    } finally {
-      setPlacing(false)
-    }
-  }
-  const link = result?.paymentData?.data?.data?.link ?? result?.paymentData?.data?.link
+  const addProduct = (p: Product) => { add(p); setCartOpen(true) }
 
   if (loading) return <main className="grid min-h-screen place-items-center text-slate-500">Chargement de la boutique...</main>
   if (!store) return <main className="grid min-h-screen place-items-center text-red-600">Aucune boutique active.</main>
@@ -125,47 +71,11 @@ export default function ShopPage() {
           <p className="text-xs font-semibold uppercase tracking-wider text-indigo-200">Rentree scolaire</p>
           <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tous les livres &amp; fournitures, livres a Dakar</h1>
           <p className="mt-1 max-w-xl text-sm text-indigo-100">Cahiers, manuels, kits de geometrie, sacs... Commandez en ligne et payez par Wave, Orange Money ou a la livraison.</p>
+          <Link href="/shop/kits" className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-indigo-700">
+            {"🎒"} Voir les kits par classe
+          </Link>
         </div>
       </section>
-
-      {/* Kits par classe */}
-      {kits.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-6">
-          <div className="mb-3 flex items-center gap-2">
-            <h2 className="text-lg font-extrabold">{"🎒"} Kits scolaires par classe</h2>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Tout en 1 clic</span>
-          </div>
-          {CYCLES.map((cy) => {
-            const list = kits.filter((k) => k.cycle === cy)
-            if (!list.length) return null
-            const label = cy === "College" ? "College" : cy === "Lycee" ? "Lycee" : cy
-            return (
-              <div key={cy} className="mb-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</div>
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {list.map((k) => {
-                    const cls = k.series ? `${k.level} ${k.series}` : k.level
-                    return (
-                      <button key={k.id} onClick={() => setSelectedKit(k)}
-                        className="flex w-40 shrink-0 flex-col overflow-hidden rounded-2xl bg-white text-left ring-1 ring-slate-100 transition hover:shadow-lg">
-                        <div className="relative h-24 w-full bg-slate-100">
-                          {k.image && <img src={k.image} alt="" className="h-full w-full object-cover" />}
-                          <span className="absolute left-2 top-2 rounded-lg bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{cls}</span>
-                        </div>
-                        <div className="p-3">
-                          <div className="text-sm font-semibold">Kit {cls}</div>
-                          <div className="text-xs text-slate-400">{k.items.length} articles</div>
-                          <div className="mt-1 font-extrabold text-indigo-700">{fmt(k.price)}</div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </section>
-      )}
 
       {/* Categories */}
       <div className="mx-auto max-w-6xl px-4 pt-5">
@@ -195,7 +105,7 @@ export default function ShopPage() {
                 <div className="line-clamp-2 text-sm font-medium leading-tight">{p.name}</div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="font-extrabold text-indigo-700">{fmt(p.price)}</span>
-                  <button onClick={() => add(p)} className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700" aria-label="Ajouter">+</button>
+                  <button onClick={() => addProduct(p)} className="grid h-8 w-8 place-items-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700" aria-label="Ajouter">+</button>
                 </div>
               </div>
             </div>
@@ -204,115 +114,23 @@ export default function ShopPage() {
         {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouve.</p>}
       </main>
 
+      {/* Banniere Kits par classe (bas de page) */}
+      <section className="mx-auto max-w-6xl px-4 pb-8">
+        <Link href="/shop/kits" className="flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-5 text-white transition hover:brightness-105">
+          <span className="text-4xl">{"🎒"}</span>
+          <div className="flex-1">
+            <div className="text-lg font-extrabold">Kits scolaires par classe</div>
+            <div className="text-sm text-amber-50">Toute la liste de fournitures, de la CI a la Terminale (L, S1, S2) - prete en 1 clic.</div>
+          </div>
+          <span className="hidden shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-orange-600 sm:block">Voir les kits</span>
+        </Link>
+      </section>
+
       <footer className="border-t bg-white py-6 text-center text-xs text-slate-400">
         {store.name} - {store.address} - {store.phone}
       </footer>
 
-      {/* Cart overlay */}
-      {cartOpen && <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setCartOpen(false)} />}
-      <aside className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl transition-transform ${cartOpen ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="flex items-center justify-between border-b p-4">
-          <h3 className="font-bold">Mon panier ({count})</h3>
-          <button onClick={() => setCartOpen(false)} className="text-slate-400">X</button>
-        </div>
-
-        <div className="flex-1 overflow-auto p-4">
-          {cart.length === 0 && <p className="mt-10 text-center text-slate-400">Votre panier est vide.</p>}
-          {cart.map((x) => (
-            <div key={x.id} className="mb-3 flex gap-3">
-              <div className="h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
-                {x.image ? <img src={x.image} className="h-full w-full object-cover" alt="" /> : <div className="grid h-full place-items-center">{"📦"}</div>}
-              </div>
-              <div className="flex-1">
-                <div className="line-clamp-1 text-sm font-medium">{x.name}</div>
-                <div className="text-xs text-indigo-700">{fmt(x.price)}</div>
-                <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
-                  <button onClick={() => dec(x.id)} className="text-slate-500">-</button>
-                  <span className="min-w-4 text-center">{x.qty}</span>
-                  <button onClick={() => inc(x.id)} className="text-slate-500">+</button>
-                </div>
-              </div>
-              <div className="text-sm font-semibold">{fmt(x.price * x.qty)}</div>
-            </div>
-          ))}
-        </div>
-
-        {cart.length > 0 && (
-          <div className="space-y-2 border-t p-4">
-            <div className="grid grid-cols-2 gap-2">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telephone" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
-              <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
-                <option>Cash</option><option>Wave</option><option>Orange Money</option><option>Versus</option>
-              </select>
-            </div>
-            <div className="flex items-center justify-between py-1 text-sm text-slate-500">
-              <span>Livraison</span><span>500 F</span>
-            </div>
-            <div className="flex items-center justify-between text-lg font-extrabold">
-              <span>Total</span><span className="text-indigo-700">{fmt(total + 500)}</span>
-            </div>
-            <button onClick={placeOrder} disabled={placing} className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
-              {placing ? "Envoi..." : "Valider la commande"}
-            </button>
-          </div>
-        )}
-      </aside>
-
-      {/* Kit detail modal */}
-      {selectedKit && (
-        <div className="fixed inset-0 z-[55] grid place-items-end sm:place-items-center bg-black/40 p-0 sm:p-4" onClick={() => setSelectedKit(null)}>
-          <div className="max-h-[85vh] w-full max-w-md overflow-auto rounded-t-2xl sm:rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
-            <div className="relative h-32 w-full bg-slate-100">
-              {selectedKit.image && <img src={selectedKit.image} alt="" className="h-full w-full object-cover" />}
-              <button onClick={() => setSelectedKit(null)} className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-slate-600">X</button>
-              <span className="absolute bottom-3 left-3 rounded-lg bg-indigo-600 px-3 py-1 text-sm font-bold text-white">
-                Kit {selectedKit.series ? `${selectedKit.level} ${selectedKit.series}` : selectedKit.level}
-              </span>
-            </div>
-            <div className="p-4">
-              <p className="text-sm text-slate-500">{selectedKit.description}</p>
-              <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Contenu ({selectedKit.items.length} articles)</div>
-              <ul className="mt-1 divide-y">
-                {selectedKit.items.map((it, i) => (
-                  <li key={i} className="flex items-center justify-between py-1.5 text-sm">
-                    <span>{it.qty > 1 && <b className="mr-1 text-indigo-600">{it.qty}x</b>}{it.name}</span>
-                    <span className="text-slate-400">{fmt(it.price * it.qty)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-3">
-                <span className="font-semibold text-slate-600">Prix du kit</span>
-                <span className="text-xl font-extrabold text-indigo-700">{fmt(selectedKit.price)}</span>
-              </div>
-              <button onClick={() => addKit(selectedKit)} className="mt-3 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700">
-                Ajouter le kit au panier
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Result modal */}
-      {result && (
-        <div className="fixed inset-0 z-[60] grid place-items-center bg-black/40 p-4" onClick={() => setResult(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
-            {result.error ? (
-              <><div className="text-4xl">{"⚠️"}</div><p className="mt-2 font-semibold text-red-600">Erreur</p><p className="text-sm text-slate-500">{result.error}</p></>
-            ) : (
-              <>
-                <div className="text-4xl">{"✅"}</div>
-                <p className="mt-2 font-bold text-emerald-700">Commande confirmee !</p>
-                <p className="text-sm text-slate-500">N {result.orderId}</p>
-                {result.paymentError && <p className="mt-1 text-xs text-amber-600">Paiement : {result.paymentError}</p>}
-                {link && <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>}
-              </>
-            )}
-            <button onClick={() => { setResult(null); setCartOpen(false) }} className="mt-4 block w-full text-sm text-slate-400">Fermer</button>
-          </div>
-        </div>
-      )}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} clear={clear} />
     </div>
   )
 }
