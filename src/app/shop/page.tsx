@@ -36,7 +36,30 @@ export default function ShopPage() {
 
   const addProduct = (p: Product) => { add(p); setCartOpen(true) }
 
-  if (loading) return <main className="grid min-h-screen place-items-center text-slate-500">Chargement de la boutique...</main>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <header className="border-b bg-white px-4 py-3">
+          <div className="mx-auto flex max-w-6xl items-center gap-3">
+            <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
+            <div className="space-y-1"><div className="h-3 w-40 animate-pulse rounded bg-slate-200" /><div className="h-2 w-28 animate-pulse rounded bg-slate-100" /></div>
+          </div>
+        </header>
+        <div className="mx-auto max-w-6xl px-4 pt-5">
+          <div className="h-40 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="mt-5 flex gap-2">{[0, 1, 2].map((i) => <div key={i} className="h-8 w-24 animate-pulse rounded-full bg-slate-200" />)}</div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100">
+                <div className="aspect-square animate-pulse bg-slate-200" />
+                <div className="space-y-2 p-3"><div className="h-3 w-full animate-pulse rounded bg-slate-200" /><div className="h-4 w-16 animate-pulse rounded bg-slate-200" /></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
   if (!store) return <main className="grid min-h-screen place-items-center text-red-600">Aucune boutique active.</main>
 
   return (
@@ -45,7 +68,7 @@ export default function ShopPage() {
       <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 text-lg">{"📚"}</span>
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-xl font-black text-white shadow-sm">S</span>
             <div className="leading-tight">
               <div className="font-extrabold tracking-tight text-indigo-700">{store.name}</div>
               <div className="text-[11px] text-slate-400">Fournitures &amp; livres scolaires - Dakar</div>

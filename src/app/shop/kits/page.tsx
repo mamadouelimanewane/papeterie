@@ -85,7 +85,16 @@ export default function KitsPage() {
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {loading && <p className="py-10 text-center text-slate-400">Chargement des kits...</p>}
+        {loading && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100">
+                <div className="aspect-[4/3] animate-pulse bg-slate-200" />
+                <div className="space-y-2 p-3"><div className="h-3 w-20 animate-pulse rounded bg-slate-200" /><div className="h-4 w-16 animate-pulse rounded bg-slate-200" /></div>
+              </div>
+            ))}
+          </div>
+        )}
         {!loading && kits.length === 0 && <p className="py-10 text-center text-slate-400">Aucun kit disponible.</p>}
 
         {CYCLES.map((cy) => {

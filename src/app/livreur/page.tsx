@@ -9,6 +9,7 @@ type AvailOrder = {
 }
 
 const STEPS = ["Accepted", "PickedUp", "OnTheWay", "Delivered"]
+const STEP_LABEL: Record<string, string> = { Accepted: "Accepté", PickedUp: "Récupéré", OnTheWay: "En route", Delivered: "Livré" }
 
 export default function LivreurPage() {
   const [token, setToken] = useState<string | null>(null)
@@ -86,54 +87,67 @@ export default function LivreurPage() {
 
   if (!token) {
     return (
-      <main className="mx-auto max-w-sm p-6">
-        <h1 className="mb-1 text-xl font-bold">Espace livreur (test)</h1>
-        <p className="mb-4 text-sm text-gray-500">Connexion livreur — parcours web sans app mobile.</p>
-        <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="Email / téléphone" className="mb-2 w-full rounded border px-3 py-2" />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Mot de passe" className="mb-2 w-full rounded border px-3 py-2" />
-        <button onClick={doLogin} disabled={busy} className="w-full rounded bg-indigo-600 py-2 font-semibold text-white disabled:opacity-50">
-          {busy ? "…" : "Se connecter"}
-        </button>
-        {msg && <p className="mt-2 text-sm text-red-600">{msg}</p>}
-        <p className="mt-3 text-xs text-gray-400">Démo : livreur@papeterie.sn / Demo2024!</p>
-      </main>
+      <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
+        <main className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-2xl">🛵</span>
+            <div>
+              <h1 className="text-lg font-extrabold text-indigo-700">Espace livreur</h1>
+              <p className="text-xs text-slate-400">Schoolmatik Librairie</p>
+            </div>
+          </div>
+          <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="Email / téléphone" className="mb-2 w-full rounded-lg border px-3 py-2.5 text-sm" />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Mot de passe" className="mb-3 w-full rounded-lg border px-3 py-2.5 text-sm" />
+          <button onClick={doLogin} disabled={busy} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+            {busy ? "…" : "Se connecter"}
+          </button>
+          {msg && <p className="mt-2 text-sm text-red-600">{msg}</p>}
+          <p className="mt-3 rounded-lg bg-slate-50 p-2 text-center text-xs text-slate-400">Démo : livreur@papeterie.sn / Demo2024!</p>
+        </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
-      <header className="mb-4 flex items-center justify-between rounded-xl bg-indigo-600 p-4 text-white">
-        <div>
-          <h1 className="font-bold">Livreur : {driver?.name}</h1>
-          <p className="text-xs opacity-80">{driver?.email}</p>
-        </div>
-        <button onClick={logout} className="rounded bg-white/20 px-3 py-1 text-sm">Déconnexion</button>
-      </header>
-
-      <button onClick={loadAvailable} disabled={busy} className="mb-3 w-full rounded bg-emerald-600 py-2 font-semibold text-white disabled:opacity-50">
-        {busy ? "…" : "Rafraîchir les commandes disponibles"}
-      </button>
-      {msg && <p className="mb-3 rounded bg-gray-100 p-2 text-sm">{msg}</p>}
-
-      <div className="space-y-3">
-        {orders.map((o) => (
-          <div key={o._id} className="rounded-lg border p-3">
-            <div className="flex justify-between text-sm">
-              <b>{o.id}</b><span className="text-emerald-600">Gain {o.earnings} F</span>
-            </div>
-            <p className="text-sm">📦 {o.storeName} — {o.storeAddress}</p>
-            <p className="text-sm">📍 {o.deliveryAddress} · {o.customerName} ({o.customerPhone})</p>
-            <p className="text-xs text-gray-500">Total {o.total} F · {o.distance}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <button onClick={() => accept(o)} className="rounded bg-indigo-600 px-3 py-1 text-sm text-white">Accepter</button>
-              {STEPS.map((s) => (
-                <button key={s} onClick={() => setStatus(o, s)} className="rounded bg-gray-200 px-3 py-1 text-sm">{s}</button>
-              ))}
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-2xl p-4">
+        <header className="mb-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-white">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/20 text-2xl">🛵</span>
+            <div>
+              <h1 className="font-bold">{driver?.name}</h1>
+              <p className="text-xs opacity-80">{driver?.email}</p>
             </div>
           </div>
-        ))}
-        {orders.length === 0 && <p className="text-center text-sm text-gray-500">Aucune commande. Clique sur « Rafraîchir ».</p>}
-      </div>
-    </main>
+          <button onClick={logout} className="rounded-lg bg-white/20 px-3 py-1.5 text-sm transition hover:bg-white/30">Déconnexion</button>
+        </header>
+
+        <button onClick={loadAvailable} disabled={busy} className="mb-3 w-full rounded-xl bg-emerald-600 py-2.5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50">
+          {busy ? "…" : "🔄 Rafraîchir les commandes disponibles"}
+        </button>
+        {msg && <p className="mb-3 rounded-lg bg-indigo-50 p-2.5 text-sm text-indigo-700">{msg}</p>}
+
+        <div className="space-y-3">
+          {orders.map((o) => (
+            <div key={o._id} className="rounded-2xl bg-white p-4 ring-1 ring-slate-100 transition hover:shadow-md">
+              <div className="mb-1 flex items-center justify-between">
+                <b className="text-sm">{o.id}</b>
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-sm font-semibold text-emerald-600">Gain {o.earnings} F</span>
+              </div>
+              <p className="text-sm">📦 {o.storeName} — {o.storeAddress}</p>
+              <p className="text-sm">📍 {o.deliveryAddress} · {o.customerName} ({o.customerPhone})</p>
+              <p className="text-xs text-slate-400">Total {o.total} F · {o.distance}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button onClick={() => accept(o)} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700">Accepter</button>
+                {STEPS.map((s) => (
+                  <button key={s} onClick={() => setStatus(o, s)} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-200">{STEP_LABEL[s] ?? s}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {orders.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-sm text-slate-400 ring-1 ring-slate-100">Aucune commande pour le moment. Clique sur « Rafraîchir ».</p>}
+        </div>
+      </main>
+    </div>
   )
 }
