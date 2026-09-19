@@ -53,13 +53,13 @@ export default function LoginPage() {
             <div className="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center border border-purple-100">
               <div className="text-center">
                 <div className="text-purple-600 text-2xl">📚</div>
-                <div className="text-purple-700 font-bold text-[10px] mt-1 uppercase tracking-wider">PAPETERIE</div>
+                <div className="text-purple-700 font-bold text-[10px] mt-1 uppercase tracking-wider">SCHOOLMATIK</div>
               </div>
             </div>
           </div>
 
           <h2 className="text-center text-gray-700 font-semibold mb-1">Espace Administration</h2>
-          <p className="text-center text-gray-400 text-xs mb-5">Plateforme de Fournitures Scolaires Papeterie</p>
+          <p className="text-center text-gray-400 text-xs mb-5">Schoolmatik Librairie · Fournitures &amp; livres scolaires</p>
 
           {/* Error */}
           {error && (
@@ -98,7 +98,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-white/70 text-xs mt-6">
-          © 2026 Papeterie · Plateforme de Fournitures Scolaires · Tous droits réservés.
+          © 2026 Schoolmatik Librairie · Fournitures scolaires · Tous droits réservés.
         </p>
       </div>
     </div>

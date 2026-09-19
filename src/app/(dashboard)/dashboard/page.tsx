@@ -92,9 +92,9 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
           <div className="text-4xl filter drop-shadow-md">📚</div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold">Bienvenue sur Papeterie</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Bienvenue sur Schoolmatik</h1>
             <p className="text-indigo-100 text-xs md:text-sm mt-1 max-w-2xl opacity-90">
-              Plateforme multi-boutiques — Boutique active : <strong>Schoolmatik Librairie</strong> · Papeterie & fournitures scolaires au Sénégal
+              Boutique active : <strong>Schoolmatik Librairie</strong> · Fournitures &amp; livres scolaires au Sénégal
             </p>
           </div>
           {loading && (

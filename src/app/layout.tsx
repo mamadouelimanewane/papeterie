@@ -3,8 +3,8 @@ import "./globals.css"
 import OneSignalProvider from "@/components/providers/OneSignalProvider"
 
 export const metadata: Metadata = {
-  title: "Papeterie Admin",
-  description: "Plateforme Papeterie — Backoffice Administration",
+  title: "Schoolmatik Admin",
+  description: "Schoolmatik Librairie — Back-office Administration",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
