@@ -20,7 +20,7 @@ export default function BalanceReportPage() {
         <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2">📊 Rapport de solde</h1>
         <button className="flex items-center gap-1.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg"><Download size={14} /> Exporter</button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total crédits", value: `${totalCredits.toLocaleString()} FCFA`, color: "bg-green-500" },
           { label: "Total débits", value: `${totalDebits.toLocaleString()} FCFA`, color: "bg-red-500" },

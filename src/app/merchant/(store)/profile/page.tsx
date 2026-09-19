@@ -71,7 +71,7 @@ function ProfileContent() {
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-none"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1"><Phone size={12} /> Téléphone</label>
               <input
@@ -103,7 +103,7 @@ function ProfileContent() {
       {/* Livraison */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <h2 className="font-semibold text-gray-800 mb-4">Paramètres de livraison</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Commande min. (FCFA)</label>
             <input

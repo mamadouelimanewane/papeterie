@@ -103,7 +103,7 @@ export default function SubAdminRolesPage() {
       {showForm && (
         <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-5">
           <h3 className="font-semibold text-sm text-gray-700 mb-4">Nouveau rôle</h3>
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Nom du rôle</label>
               <input value={newRole.name} onChange={e => setNewRole(p => ({ ...p, name: e.target.value }))}
@@ -117,7 +117,7 @@ export default function SubAdminRolesPage() {
           </div>
           <div className="mb-4">
             <label className="text-xs text-gray-500 mb-2 block">Permissions</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {ALL_PERMISSIONS.map(p => (
                 <label key={p} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
                   <input type="checkbox" checked={newRole.permissions.includes(p)} onChange={() => togglePerm(p, true)}
@@ -157,7 +157,7 @@ export default function SubAdminRolesPage() {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
               {ALL_PERMISSIONS.map(p => {
                 const hasPerm = editId === r.id ? editPerms.includes(p) : r.permissions.includes(p)
                 return (

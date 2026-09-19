@@ -25,7 +25,7 @@ export default function StoresEarningsPage() {
         <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2">🏪 Gains magasins</h1>
         <button className="flex items-center gap-1.5 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg"><Download size={14} /> Exporter</button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total gains magasins", value: "316 180 FCFA", color: "bg-orange-500" },
           { label: "Total commandes", value: "290", color: "bg-green-500" },

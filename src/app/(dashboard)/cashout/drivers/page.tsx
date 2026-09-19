@@ -17,7 +17,7 @@ export default function CashoutDriversPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2"><span>💸</span> Demandes de retrait — Livreurs</h1>
       </div>
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
           { label: "En attente", count: requests.filter(r => r.status === "Pending").length, color: "bg-yellow-500" },
           { label: "Approuvées", count: requests.filter(r => r.status === "Completed").length, color: "bg-green-500" },

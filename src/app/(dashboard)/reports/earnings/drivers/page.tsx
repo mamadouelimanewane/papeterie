@@ -27,7 +27,7 @@ export default function DriversEarningsPage() {
           <Download size={14} /> Exporter
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total gains livreurs", value: "45 000 FCFA", color: "bg-blue-500" },
           { label: "Livraisons effectuées", value: "57", color: "bg-green-500" },

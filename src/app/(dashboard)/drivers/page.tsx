@@ -162,7 +162,7 @@ export default function DriversPage() {
       </div>
 
       {/* Stats rapides */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         {[
           { label: "Total livreurs", value: total, color: "bg-blue-500" },
           { label: "En ligne", value: drivers.filter(d => d.status === "Online").length, color: "bg-green-500" },

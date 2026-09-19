@@ -139,7 +139,7 @@ export default function DashboardPage() {
           </section>
 
           {stats && (
-            <section className="grid grid-cols-4 gap-3">
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { label: "En attente", value: stats.store.pendingOrders, color: "text-yellow-600 bg-yellow-50 border-yellow-100" },
                 { label: "Livrées", value: stats.store.completedOrders, color: "text-green-600 bg-green-50 border-green-100" },

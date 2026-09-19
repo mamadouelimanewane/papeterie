@@ -114,7 +114,7 @@ export default function CategoriesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         {[
           { label: "Total catégories", value: stats.total, color: "bg-indigo-500" },
           { label: "Catégories parentes", value: stats.parents, color: "bg-green-500" },
