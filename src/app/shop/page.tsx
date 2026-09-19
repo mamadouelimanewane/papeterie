@@ -99,7 +99,7 @@ export default function ShopPage() {
               <div className="relative aspect-square overflow-hidden bg-slate-100">
                 {p.image
                   ? <img src={p.image} alt={p.name} className="h-full w-full object-cover transition group-hover:scale-105" />
-                  : <div className="grid h-full place-items-center text-4xl">{CAT_EMOJI[p.category ?? ""] ?? "📦"}</div>}
+                  : <div className="flex h-full items-center justify-center bg-gradient-to-br from-indigo-100 via-violet-100 to-indigo-50 text-6xl transition group-hover:scale-105">{CAT_EMOJI[p.category ?? ""] ?? "📦"}</div>}
                 {p.category && <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{p.category}</span>}
               </div>
               <div className="flex flex-1 flex-col p-3">
