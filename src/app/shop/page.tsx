@@ -9,7 +9,8 @@ type Product = { id: string; name: string; price: number; image?: string | null;
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
 
 const CAT_EMOJI: Record<string, string> = {
-  Livres: "📚", Cahiers: "📓", Fournitures: "✏️", Geometrie: "📐", "Art & Creativite": "🎨",
+  Livres: "📚", Cahiers: "📓", Fournitures: "✏️", Geometrie: "📐",
+  "Art & Creativite": "🎨", Informatique: "💻", Sport: "⚽",
 }
 
 export default function ShopPage() {
@@ -68,9 +69,9 @@ export default function ShopPage() {
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-5">
         <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-200">Rentree scolaire</p>
-          <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tous les livres &amp; fournitures, livres a Dakar</h1>
-          <p className="mt-1 max-w-xl text-sm text-indigo-100">Cahiers, manuels, kits de geometrie, sacs... Commandez en ligne et payez par Wave, Orange Money ou a la livraison.</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-200">Rentrée scolaire</p>
+          <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tous les livres &amp; fournitures, livrés à Dakar</h1>
+          <p className="mt-1 max-w-xl text-sm text-indigo-100">Cahiers, manuels, kits de géométrie, sacs… Commandez en ligne et payez par Wave, Orange Money ou à la livraison.</p>
           <Link href="/shop/kits" className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-indigo-700">
             {"🎒"} Voir les kits par classe
           </Link>
@@ -83,7 +84,7 @@ export default function ShopPage() {
           {categories.map((c) => (
             <button key={c} onClick={() => setActiveCat(c)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition ${activeCat === c ? "bg-indigo-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100"}`}>
-              {c === "Tout" ? "🛍️ Tout" : `${CAT_EMOJI[c] ?? "•"} ${c}`}
+              {c === "Tout" ? "🛍️ Tout" : `${CAT_EMOJI[c] ?? "🏷️"} ${c}`}
             </button>
           ))}
         </div>
@@ -111,7 +112,7 @@ export default function ShopPage() {
             </div>
           ))}
         </div>
-        {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouve.</p>}
+        {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouvé.</p>}
       </main>
 
       {/* Banniere Kits par classe (bas de page) */}
@@ -120,7 +121,7 @@ export default function ShopPage() {
           <span className="text-4xl">{"🎒"}</span>
           <div className="flex-1">
             <div className="text-lg font-extrabold">Kits scolaires par classe</div>
-            <div className="text-sm text-amber-50">Toute la liste de fournitures, de la CI a la Terminale (L, S1, S2) - prete en 1 clic.</div>
+            <div className="text-sm text-amber-50">Toute la liste de fournitures, de la CI à la Terminale (L, S1, S2) — prête en 1 clic.</div>
           </div>
           <span className="hidden shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-orange-600 sm:block">Voir les kits</span>
         </Link>

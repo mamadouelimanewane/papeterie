@@ -8,7 +8,7 @@ import CartDrawer from "../CartDrawer"
 type KitItem = { name: string; price: number; qty: number }
 type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; discountPct?: number; items: KitItem[] }
 const CYCLES = ["Primaire", "College", "Lycee"]
-const CYCLE_LABEL: Record<string, string> = { Primaire: "Primaire", College: "College", Lycee: "Lycee" }
+const CYCLE_LABEL: Record<string, string> = { Primaire: "Primaire", College: "Collège", Lycee: "Lycée" }
 
 export default function KitsPage() {
   const [kits, setKits] = useState<Kit[]>([])
@@ -66,7 +66,7 @@ export default function KitsPage() {
           <Link href="/shop" className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-600" aria-label="Retour">&larr;</Link>
           <div className="leading-tight">
             <div className="font-extrabold tracking-tight text-indigo-700">Kits scolaires par classe</div>
-            <div className="text-[11px] text-slate-400">De la CI a la Terminale (L, S1, S2)</div>
+            <div className="text-[11px] text-slate-400">De la CI à la Terminale (L, S1, S2)</div>
           </div>
           <button onClick={() => setCartOpen(true)} className="relative ml-auto grid h-10 w-10 place-items-center rounded-full bg-slate-100">
             {"🛒"}
@@ -78,9 +78,9 @@ export default function KitsPage() {
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-5">
         <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-100">Rentree facile</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-100">Rentrée facile</p>
           <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">{"🎒"} Kits complets par classe</h1>
-          <p className="mt-1 max-w-xl text-sm text-amber-50">Choisissez la classe de votre enfant : toutes les fournitures et livres recommandes, reunis en un pack pret a commander.</p>
+          <p className="mt-1 max-w-xl text-sm text-amber-50">Choisissez la classe de votre enfant : toutes les fournitures et livres recommandés, réunis en un pack prêt à commander.</p>
         </div>
       </section>
 
@@ -137,14 +137,14 @@ export default function KitsPage() {
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Composition personnalisable</span>
                 <span className="text-xs text-slate-400">{chosenCount}/{selectedKit.items.length} articles</span>
               </div>
-              <p className="mb-1 text-[11px] text-slate-400">Decochez ce que vous avez deja, ajustez les quantites.</p>
+              <p className="mb-1 text-[11px] text-slate-400">Décochez ce que vous avez déjà, ajustez les quantités.</p>
               <ul className="divide-y">
                 {chosen.map((it, i) => (
                   <li key={i} className={`flex items-center gap-3 py-2 ${it.included ? "" : "opacity-40"}`}>
                     <input type="checkbox" checked={it.included} onChange={() => toggle(i)} className="h-4 w-4 shrink-0 accent-indigo-600" />
                     <div className="flex-1">
                       <div className="text-sm font-medium leading-tight">{it.name}</div>
-                      <div className="text-xs text-slate-400">{fmt(it.price)} / unite</div>
+                      <div className="text-xs text-slate-400">{fmt(it.price)} / unité</div>
                     </div>
                     <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
                       <button disabled={!it.included} onClick={() => setQty(i, -1)} className="text-slate-500 disabled:opacity-30">-</button>

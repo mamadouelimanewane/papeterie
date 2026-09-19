@@ -37,7 +37,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
       const d = await res.json()
       if (d.valid) { setPromo({ code: d.code, discount: d.discount, type: d.type }); setPromoMsg(null) }
       else { setPromo(null); setPromoMsg(d.error ?? "Code invalide") }
-    } catch { setPromoMsg("Erreur reseau") }
+    } catch { setPromoMsg("Erreur réseau") }
   }
 
   async function placeOrder() {
@@ -97,7 +97,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
           <div className="space-y-2 border-t p-4">
             <div className="grid grid-cols-2 gap-2">
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telephone" className="rounded-lg border px-3 py-2 text-sm" />
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
                 <option>Cash</option><option>Wave</option><option>Orange Money</option><option>Versus</option>
@@ -106,7 +106,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             {method !== "Cash" && (
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                  <span>{"🔒"}</span> Paiement securise via
+                  <span>{"🔒"}</span> Paiement sécurisé via
                   <img src="/versus-logo.png" alt="Versus" className="h-7 w-7 object-contain" />
                   <span>Versus Fintech</span>
                 </div>
@@ -125,7 +125,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                   : <button onClick={applyPromo} className="rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white">Appliquer</button>}
               </div>
               {promoMsg && <p className="mt-1 text-xs text-red-500">{promoMsg}</p>}
-              {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} applique : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
+              {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} appliqué : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
             </div>
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total</span><span>{fmt(total)}</span></div>
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
@@ -146,14 +146,14 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             ) : (
               <>
                 <div className="text-4xl">{"✅"}</div>
-                <p className="mt-2 font-bold text-emerald-700">Commande confirmee !</p>
+                <p className="mt-2 font-bold text-emerald-700">Commande confirmée !</p>
                 <p className="text-sm text-slate-500">N {result.orderId}</p>
                 {result.paymentError && <p className="mt-1 text-xs text-amber-600">Paiement : {result.paymentError}</p>}
                 {link && (
                   <>
                     <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
                     <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
-                      Securise par <img src="/versus-logo.png" alt="Versus" className="h-6 w-6 object-contain" />
+                      Sécurisé par <img src="/versus-logo.png" alt="Versus" className="h-6 w-6 object-contain" />
                       <span className="font-semibold text-slate-500">Versus Fintech</span>
                     </div>
                   </>
