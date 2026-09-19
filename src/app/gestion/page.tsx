@@ -5,11 +5,20 @@ import { useEffect, useState } from "react"
 
 type Category = { id: string; name: string }
 
+const LOW_STOCK = 10
+
+function StockBadge({ n }: { n: number }) {
+  if (n <= 0) return <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">Rupture</span>
+  if (n <= LOW_STOCK) return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Stock bas</span>
+  return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OK</span>
+}
+
 function StockRow({ p, disabled, onSave }: { p: any; disabled: boolean; onSave: (stock: string, price: string, status: string) => void }) {
   const [stock, setStock] = useState(String(p.stock ?? 0))
   const [price, setPrice] = useState(String(p.price ?? ""))
   const [status, setStatus] = useState(p.status ?? "Active")
   const dirty = stock !== String(p.stock ?? 0) || price !== String(p.price ?? "") || status !== (p.status ?? "Active")
+  const n = Number(stock) || 0
   return (
     <tr className="border-b last:border-0">
       <td className="py-2 pr-2">
@@ -19,7 +28,12 @@ function StockRow({ p, disabled, onSave }: { p: any; disabled: boolean; onSave: 
         </div>
       </td>
       <td className="py-2 pr-2"><input value={price} onChange={e => setPrice(e.target.value)} type="number" className="w-20 rounded border px-2 py-1 text-sm" /></td>
-      <td className="py-2 pr-2"><input value={stock} onChange={e => setStock(e.target.value)} type="number" className="w-16 rounded border px-2 py-1 text-sm" /></td>
+      <td className="py-2 pr-2">
+        <div className="flex items-center gap-2">
+          <input value={stock} onChange={e => setStock(e.target.value)} type="number" className={`w-16 rounded border px-2 py-1 text-sm ${n <= LOW_STOCK ? "border-amber-400 bg-amber-50" : ""}`} />
+          <StockBadge n={n} />
+        </div>
+      </td>
       <td className="py-2 pr-2">
         <select value={status} onChange={e => setStatus(e.target.value)} className="rounded border px-2 py-1 text-xs">
           <option value="Active">Actif</option><option value="Inactive">Inactif</option>
@@ -221,6 +235,16 @@ export default function GestionPage() {
               <span className="text-sm font-medium text-slate-600">Stock des produits ({products.length})</span>
               <button onClick={loadProducts} className="text-xs text-indigo-600">Rafraîchir</button>
             </div>
+            {(() => {
+              const low = products.filter((p) => (p.stock ?? 0) <= LOW_STOCK)
+              const out = products.filter((p) => (p.stock ?? 0) <= 0)
+              if (low.length === 0) return null
+              return (
+                <div className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                  ⚠️ <b>{low.length} produit(s) à réapprovisionner</b> (stock ≤ {LOW_STOCK}{out.length > 0 ? `, dont ${out.length} en rupture` : ""}) : {low.map((p) => p.name).slice(0, 4).join(", ")}{low.length > 4 ? "…" : ""}
+                </div>
+              )
+            })()}
             <table className="w-full text-sm">
               <thead className="border-b"><tr className="text-left text-xs text-slate-400">
                 <th className="py-2">Produit</th><th className="py-2">Prix (F)</th><th className="py-2">Stock</th><th className="py-2">Statut</th><th></th>
