@@ -53,7 +53,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, promo }, { status: 201 })
     }
 
-    return NextResponse.json({ error: "kind invalide (category|product|promo)" }, { status: 400 })
+    if (body.kind === "product-update") {
+      if (!body.id) return NextResponse.json({ error: "id produit requis" }, { status: 400 })
+      const update: Record<string, unknown> = {}
+      if (body.stock !== undefined) update.stock = Number(body.stock)
+      if (body.price !== undefined && body.price !== "") update.price = Number(body.price)
+      if (body.status) update.status = body.status
+      const p = await prisma.product.update({ where: { id: String(body.id) }, data: update })
+      return NextResponse.json({ ok: true, product: p })
+    }
+
+    return NextResponse.json({ error: "kind invalide (category|product|promo|product-update)" }, { status: 400 })
   } catch (error) {
     console.error("[api/gestion]", error)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

@@ -5,9 +5,39 @@ import { useEffect, useState } from "react"
 
 type Category = { id: string; name: string }
 
+function StockRow({ p, disabled, onSave }: { p: any; disabled: boolean; onSave: (stock: string, price: string, status: string) => void }) {
+  const [stock, setStock] = useState(String(p.stock ?? 0))
+  const [price, setPrice] = useState(String(p.price ?? ""))
+  const [status, setStatus] = useState(p.status ?? "Active")
+  const dirty = stock !== String(p.stock ?? 0) || price !== String(p.price ?? "") || status !== (p.status ?? "Active")
+  return (
+    <tr className="border-b last:border-0">
+      <td className="py-2 pr-2">
+        <div className="flex items-center gap-2">
+          {p.image && <img src={p.image} alt="" className="h-8 w-8 rounded object-cover" />}
+          <span className="font-medium">{p.name}</span>
+        </div>
+      </td>
+      <td className="py-2 pr-2"><input value={price} onChange={e => setPrice(e.target.value)} type="number" className="w-20 rounded border px-2 py-1 text-sm" /></td>
+      <td className="py-2 pr-2"><input value={stock} onChange={e => setStock(e.target.value)} type="number" className="w-16 rounded border px-2 py-1 text-sm" /></td>
+      <td className="py-2 pr-2">
+        <select value={status} onChange={e => setStatus(e.target.value)} className="rounded border px-2 py-1 text-xs">
+          <option value="Active">Actif</option><option value="Inactive">Inactif</option>
+        </select>
+      </td>
+      <td className="py-2">
+        <button onClick={() => onSave(stock, price, status)} disabled={disabled || !dirty}
+          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40">Enregistrer</button>
+      </td>
+    </tr>
+  )
+}
+
 export default function GestionPage() {
   const [code, setCode] = useState("")
-  const [tab, setTab] = useState<"product" | "category" | "promo">("product")
+  const [tab, setTab] = useState<"product" | "category" | "promo" | "stock">("product")
+  const [products, setProducts] = useState<any[]>([])
+  const loadProducts = () => fetch("/api/store?products=1").then(r => r.json()).then(d => setProducts(d?.products ?? [])).catch(() => {})
   const [cats, setCats] = useState<Category[]>([])
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
@@ -29,6 +59,13 @@ export default function GestionPage() {
 
   const loadCats = () => fetch("/api/categories").then((r) => r.json()).then((d) => setCats(Array.isArray(d) ? d : [])).catch(() => {})
   useEffect(() => { loadCats() }, [])
+  useEffect(() => { if (tab === "stock") loadProducts() }, [tab])
+
+  async function saveStock(p: any, stock: string, price: string, status: string) {
+    const r = await send({ kind: "product-update", id: p.id, stock, price, status })
+    if (r.ok) { setMsg({ ok: true, text: `"${p.name}" mis à jour` }); loadProducts() }
+    else setMsg({ ok: false, text: r.text })
+  }
 
   async function send(payload: any) {
     setBusy(true); setMsg(null)
@@ -88,6 +125,7 @@ export default function GestionPage() {
           <button onClick={() => setTab("product")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "product" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouveau produit</button>
           <button onClick={() => setTab("category")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "category" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouvelle categorie</button>
           <button onClick={() => setTab("promo")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "promo" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Promotion</button>
+          <button onClick={() => setTab("stock")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "stock" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Stock</button>
         </div>
 
         {msg && (
@@ -175,6 +213,24 @@ export default function GestionPage() {
             <button onClick={addPromo} disabled={busy || !code} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white disabled:opacity-50">
               {busy ? "..." : "Creer le code promo"}
             </button>
+          </div>
+        )}
+        {tab === "stock" && (
+          <div className="overflow-x-auto rounded-xl bg-white p-4 ring-1 ring-slate-100">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-600">Stock des produits ({products.length})</span>
+              <button onClick={loadProducts} className="text-xs text-indigo-600">Rafraîchir</button>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="border-b"><tr className="text-left text-xs text-slate-400">
+                <th className="py-2">Produit</th><th className="py-2">Prix (F)</th><th className="py-2">Stock</th><th className="py-2">Statut</th><th></th>
+              </tr></thead>
+              <tbody>
+                {products.map(p => <StockRow key={p.id} p={p} disabled={!code} onSave={(s, pr, st) => saveStock(p, s, pr, st)} />)}
+                {products.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-slate-400">Aucun produit.</td></tr>}
+              </tbody>
+            </table>
+            {!code && <p className="mt-2 text-xs text-amber-600">Saisis le code marchand en haut pour pouvoir enregistrer.</p>}
           </div>
         )}
       </main>
