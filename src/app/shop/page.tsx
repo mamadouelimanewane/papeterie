@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useCart, fmt } from "./useCart"
 import CartDrawer from "./CartDrawer"
 
-type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null }
+type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null; stock?: number }
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
 
 const CAT_EMOJI: Record<string, string> = {
@@ -125,6 +125,7 @@ export default function ShopPage() {
                   ? <img src={p.image} alt={p.name} className="h-full w-full object-cover transition group-hover:scale-105" />
                   : <div className="flex h-full items-center justify-center bg-gradient-to-br from-indigo-100 via-violet-100 to-indigo-50 text-6xl transition group-hover:scale-105">{CAT_EMOJI[p.category ?? ""] ?? "📦"}</div>}
                 {p.category && <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{p.category}</span>}
+                {typeof p.stock === "number" && p.stock <= 0 && <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">Rupture</span>}
               </div>
               <div className="flex flex-1 flex-col p-3">
                 <div className="line-clamp-2 text-sm font-medium leading-tight">{p.name}</div>
@@ -169,9 +170,15 @@ export default function ShopPage() {
             <div className="p-5">
               <h3 className="text-lg font-bold leading-tight">{detail.name}</h3>
               {detail.description && <p className="mt-1 text-sm text-slate-500">{detail.description}</p>}
-              <div className="mt-3 text-2xl font-extrabold text-indigo-700">{fmt(detail.price)}</div>
-              <button onClick={() => { addProduct(detail); setDetail(null) }} className="mt-4 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700">
-                Ajouter au panier
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-2xl font-extrabold text-indigo-700">{fmt(detail.price)}</span>
+                {typeof detail.stock === "number" && (detail.stock > 0
+                  ? <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">En stock ({detail.stock})</span>
+                  : <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">Rupture de stock</span>)}
+              </div>
+              <button onClick={() => { addProduct(detail); setDetail(null) }} disabled={typeof detail.stock === "number" && detail.stock <= 0}
+                className="mt-4 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
+                {typeof detail.stock === "number" && detail.stock <= 0 ? "Indisponible" : "Ajouter au panier"}
               </button>
             </div>
           </div>
