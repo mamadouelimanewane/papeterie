@@ -10,9 +10,20 @@ import {
   Bookmark, Bell, DollarSign, Receipt, Package, BookOpen,
   GraduationCap, ShoppingBag, FolderOpen,
 } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "@/context/SidebarContext"
+import { hasPerm, permForPath } from "@/lib/permissions"
+
+function itemVisible(item: NavItem, perms: string[]): boolean {
+  if (item.children) return item.children.some((c) => itemVisible(c, perms))
+  if (item.href) return hasPerm(perms, permForPath(item.href))
+  return true
+}
+function filterItem(item: NavItem, perms: string[]): NavItem {
+  if (item.children) return { ...item, children: item.children.filter((c) => itemVisible(c, perms)).map((c) => filterItem(c, perms)) }
+  return item
+}
 
 type NavItem = {
   label: string
@@ -219,8 +230,15 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
 }
 
 export default function Sidebar() {
-  const pathname = usePathname()
   const { open, setOpen } = useSidebar()
+  const { data: session } = useSession()
+  const perms = session?.user?.permissions
+  const filtering = !!perms && !perms.includes("*")
+  const nav = filtering
+    ? navigation
+        .map((g) => ({ ...g, items: g.items.filter((it) => itemVisible(it, perms!)).map((it) => filterItem(it, perms!)) }))
+        .filter((g) => g.items.length > 0)
+    : navigation
 
   // Auto-close sidebar on mobile when navigating
   const handleLinkClick = () => {
@@ -245,7 +263,7 @@ export default function Sidebar() {
       )}>
         {/* Scrollable nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin">
-          {navigation.map((group) => (
+          {nav.map((group) => (
             <div key={group.section} className="mb-2">
               {group.section && (
                 <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">

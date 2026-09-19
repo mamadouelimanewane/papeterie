@@ -5,10 +5,10 @@ import { Plus, Trash2, Key } from "lucide-react"
 import Link from "next/link"
 
 type Admin = { id: string; name: string; email: string; role: string; status: string; createdAt: string }
-const ROLES = ["Super Admin", "Admin", "Operateur", "SubAdmin"]
 
 export default function SubAdminPage() {
   const [admins, setAdmins] = useState<Admin[]>([])
+  const [roleNames, setRoleNames] = useState<string[]>(["Super Admin"])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState<string | null>(null)
 
@@ -21,6 +21,12 @@ export default function SubAdminPage() {
     } catch { setAdmins([]) } finally { setLoading(false) }
   }, [])
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    fetch("/api/admin/roles").then(r => r.json()).then((d) => {
+      if (Array.isArray(d)) setRoleNames(["Super Admin", ...d.map((r: any) => r.name)])
+    }).catch(() => {})
+  }, [])
+  const ROLES = roleNames
 
   async function patch(id: string, body: any, okText: string) {
     setMsg(null)
@@ -67,7 +73,7 @@ export default function SubAdminPage() {
                 <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{a.name}</td>
                 <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{a.email}</td>
                 <td className="px-4 py-3">
-                  <select value={ROLES.includes(a.role) ? a.role : "Admin"} onChange={e => changeRole(a, e.target.value)}
+                  <select value={ROLES.includes(a.role) ? a.role : ROLES[0]} onChange={e => changeRole(a, e.target.value)}
                     className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-300">
                     {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>

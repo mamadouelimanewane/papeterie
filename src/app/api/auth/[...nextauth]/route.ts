@@ -2,6 +2,17 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { SUPER_ROLES } from "@/lib/permissions"
+
+async function resolvePermissions(role: string): Promise<string[]> {
+  if (SUPER_ROLES.includes(role)) return ["*"]
+  try {
+    const r = await prisma.role.findUnique({ where: { name: role } })
+    return Array.isArray(r?.permissions) ? (r!.permissions as string[]) : []
+  } catch {
+    return ["*"] // en cas d'erreur DB, on ne bloque pas
+  }
+}
 
 const handler = NextAuth({
   providers: [
@@ -23,7 +34,7 @@ const handler = NextAuth({
             credentials.email === adminEmail &&
             credentials.password === adminPassword
           ) {
-            return { id: "admin-env", name: "Admin", email: adminEmail, role: "admin" }
+            return { id: "admin-env", name: "Admin", email: adminEmail, role: "admin", permissions: ["*"] }
           }
         }
 
@@ -35,7 +46,8 @@ const handler = NextAuth({
           if (!admin || admin.status !== "Active") return null
           const valid = await bcrypt.compare(credentials.password, admin.password)
           if (!valid) return null
-          return { id: admin.id, name: admin.name, email: admin.email, role: admin.role }
+          const permissions = await resolvePermissions(admin.role)
+          return { id: admin.id, name: admin.name, email: admin.email, role: admin.role, permissions }
         } catch {
           // DB not yet configured — fall through
           return null
@@ -45,11 +57,17 @@ const handler = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = user.role
+      if (user) {
+        token.role = user.role
+        token.permissions = (user as { permissions?: string[] }).permissions ?? []
+      }
       return token
     },
     async session({ session, token }) {
-      if (session.user) session.user.role = token.role
+      if (session.user) {
+        session.user.role = token.role
+        ;(session.user as { permissions?: string[] }).permissions = (token.permissions as string[]) ?? []
+      }
       return session
     },
   },
