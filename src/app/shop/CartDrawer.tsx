@@ -87,7 +87,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                   <span>{"🔒"}</span> Paiement securise via
-                  <img src="/versus-logo.png" alt="Versus" className="h-5 w-5 object-contain" />
+                  <img src="/versus-logo.png" alt="Versus" className="h-7 w-7 object-contain" />
                   <span>Versus Fintech</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500">
@@ -121,7 +121,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                   <>
                     <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
                     <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
-                      Securise par <img src="/versus-logo.png" alt="Versus" className="h-4 w-4 object-contain" />
+                      Securise par <img src="/versus-logo.png" alt="Versus" className="h-6 w-6 object-contain" />
                       <span className="font-semibold text-slate-500">Versus Fintech</span>
                     </div>
                   </>
