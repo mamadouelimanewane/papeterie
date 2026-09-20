@@ -106,7 +106,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
-                <option value="Cash">Cash</option><option value="Versus">Paiement Mobile (Versus)</option>
+                <option value="Cash">Paiement à la livraison (Cash)</option><option value="Versus">Payer par Wave, Orange Money via VERSUS</option>
               </select>
             </div>
             {method !== "Cash" && (
