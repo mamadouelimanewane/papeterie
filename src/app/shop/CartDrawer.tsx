@@ -70,7 +70,13 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         </div>
 
         <div className="flex-1 overflow-auto p-4">
-          {cart.length === 0 && <p className="mt-10 text-center text-slate-400">Votre panier est vide.</p>}
+          {cart.length === 0 && (
+            <div className="mt-16 text-center">
+              <div className="text-5xl">{"🛒"}</div>
+              <p className="mt-3 text-slate-400">Votre panier est vide.</p>
+              <button onClick={onClose} className="mt-4 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Parcourir la boutique</button>
+            </div>
+          )}
           {cart.map((x) => (
             <div key={x.id} className="mb-3 flex gap-3">
               <div className="h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
@@ -131,9 +137,14 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison</span><span>500 F</span></div>
             <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(grandTotal)}</span></div>
-            <button onClick={placeOrder} disabled={placing} className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
-              {placing ? "Envoi..." : "Valider la commande"}
-            </button>
+            <div className="flex gap-2">
+              <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                + Ajouter d'autres articles
+              </button>
+              <button onClick={placeOrder} disabled={placing} className="flex-[1.4] rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
+                {placing ? "Envoi..." : "Valider la commande"}
+              </button>
+            </div>
           </div>
         )}
       </aside>

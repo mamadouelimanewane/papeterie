@@ -20,11 +20,20 @@ export default function ShopPage() {
   const [activeCat, setActiveCat] = useState<string>("Tout")
   const [cartOpen, setCartOpen] = useState(false)
   const [detail, setDetail] = useState<Product | null>(null)
+  const [toast, setToast] = useState<{ msg: string; n: number } | null>(null)
   const { cart, add, dec, inc, clear, count, total } = useCart()
 
   useEffect(() => {
     fetch("/api/store?products=1").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!toast) return
+    const id = setTimeout(() => setToast(null), 2200)
+    return () => clearTimeout(id)
+  }, [toast])
+
+  const showToast = (msg: string) => setToast((t) => ({ msg, n: (t?.n ?? 0) + 1 }))
 
   const products = store?.products ?? []
   const categories = useMemo(
@@ -35,7 +44,7 @@ export default function ShopPage() {
     (p) => (activeCat === "Tout" || p.category === activeCat) && p.name.toLowerCase().includes(query.toLowerCase())
   )
 
-  const addProduct = (p: Product) => { add(p); setCartOpen(true) }
+  const addProduct = (p: Product) => { add(p); showToast(`${p.name} ajouté au panier`) }
 
   if (loading) {
     return (
@@ -155,6 +164,7 @@ export default function ShopPage() {
       <footer className="border-t bg-white py-6 text-center text-xs text-slate-400">
         {store.name} - {store.address} - {store.phone}
       </footer>
+      {count > 0 && <div className="h-20" aria-hidden />}
 
       {/* Detail produit */}
       {detail && (
@@ -182,6 +192,31 @@ export default function ShopPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast confirmation d'ajout */}
+      {toast && (
+        <div key={toast.n} className="fixed left-1/2 top-4 z-[70] flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900/95 px-4 py-2.5 text-sm font-medium text-white shadow-xl">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-[11px]">✓</span>
+          <span className="line-clamp-1">{toast.msg}</span>
+        </div>
+      )}
+
+      {/* Barre panier flottante */}
+      {count > 0 && !cartOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 sm:pb-4">
+          <button onClick={() => setCartOpen(true)}
+            className="mx-auto flex w-full max-w-lg items-center justify-between gap-3 rounded-2xl bg-indigo-600 px-5 py-3.5 text-white shadow-2xl ring-1 ring-black/5 transition hover:bg-indigo-700">
+            <span className="flex items-center gap-2.5 font-semibold">
+              <span className="relative text-lg">
+                {"🛒"}
+                <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-amber-500 px-1 text-[11px] font-bold">{count}</span>
+              </span>
+              Voir mon panier
+            </span>
+            <span className="flex items-center gap-2 font-extrabold">{fmt(total)} <span className="text-lg">›</span></span>
+          </button>
         </div>
       )}
 
