@@ -55,6 +55,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id: order.id }, 
       data: update 
     })
+
+    if ((update.status === "Cancelled" || update.status === "Annule") && (order.status !== "Cancelled" && order.status !== "Annule")) {
+      const items = Array.isArray(order.items) ? order.items : [];
+      for (const item of items as any[]) {
+        if (item.productId && item.quantity) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: Number(item.quantity) } }
+          }).catch(() => {});
+        }
+      }
+    }
+
     return NextResponse.json(updated)
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"

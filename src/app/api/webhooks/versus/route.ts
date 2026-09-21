@@ -51,10 +51,31 @@ export async function POST(req: Request) {
         orderStatus = "Annule"
       }
 
+      const existingOrder = await prisma.order.findUnique({
+        where: { id: external_reference }
+      });
+
+      if (!existingOrder) {
+        return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
+      }
+
       const updatedOrder = await prisma.order.update({
         where: { id: external_reference },
         data: { paymentStatus, status: orderStatus, invoiceId: reference },
       })
+
+      // Restauration du stock si la commande est annulée et ne l'était pas déjà
+      if (orderStatus === "Annule" && existingOrder.status !== "Annule") {
+        const items = Array.isArray(existingOrder.items) ? existingOrder.items : [];
+        for (const item of items as any[]) {
+          if (item.productId && item.quantity) {
+            await prisma.product.update({
+              where: { id: item.productId },
+              data: { stock: { increment: Number(item.quantity) } }
+            }).catch(e => console.error("[versus-webhook] Erreur restauration stock", e));
+          }
+        }
+      }
 
       if (status === "COMPLETED") {
         await prisma.transaction.create({

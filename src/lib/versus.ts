@@ -25,7 +25,7 @@ export interface VersusPaymentResponse {
   data?: any;
 }
 
-const VERSUS_BASE_URL = process.env.VERSUS_BASE_URL || "https://business-staging.versusfintech.com";
+const VERSUS_BASE_URL = process.env.VERSUS_BASE_URL || (process.env.NODE_ENV === "production" ? "https://business.versusfintech.com" : "https://business-staging.versusfintech.com");
 const VERSUS_LOGIN = process.env.VERSUS_LOGIN || "";
 const VERSUS_PASSWORD = process.env.VERSUS_PASSWORD || "";
 
