@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { useCart, fmt } from "./useCart"
 import CartDrawer from "./CartDrawer"
+import RegisterModal from "./RegisterModal"
+import { useClient } from "./useClient"
 
 type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null; stock?: number }
 type Store = { id: string; name: string; address?: string | null; phone?: string | null; products?: Product[] }
@@ -22,6 +24,8 @@ export default function ShopPage() {
   const [detail, setDetail] = useState<Product | null>(null)
   const [toast, setToast] = useState<{ msg: string; n: number } | null>(null)
   const { cart, add, dec, inc, clear, count, total } = useCart()
+  const { client, save: saveClient, logout } = useClient()
+  const [registerOpen, setRegisterOpen] = useState(false)
 
   useEffect(() => {
     fetch("/api/store?products=1").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
@@ -88,7 +92,23 @@ export default function ShopPage() {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un article..."
               className="w-full max-w-md rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-indigo-400" />
           </div>
-          <button onClick={() => setCartOpen(true)} className="relative ml-auto grid h-10 w-10 place-items-center rounded-full bg-slate-100 sm:ml-0">
+          {client ? (
+            <div className="ml-auto flex items-center gap-2 sm:ml-0">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700" title={`${client.firstName} ${client.lastName}`}>
+                {client.firstName.charAt(0).toUpperCase()}{client.lastName.charAt(0).toUpperCase()}
+              </span>
+              <div className="hidden leading-tight md:block">
+                <div className="text-sm font-semibold">{client.firstName}</div>
+                <button onClick={logout} className="text-[11px] text-slate-400 hover:text-slate-600">Se déconnecter</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setRegisterOpen(true)}
+              className="ml-auto whitespace-nowrap rounded-full bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 sm:ml-0">
+              S&apos;inscrire
+            </button>
+          )}
+          <button onClick={() => setCartOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full bg-slate-100">
             {"🛒"}
             {count > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white">{count}</span>}
           </button>
@@ -109,6 +129,18 @@ export default function ShopPage() {
             {"🎒"} Voir les kits par classe
           </Link>
         </div>
+        {!client && (
+          <div className="mt-3 flex flex-col items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-indigo-100 sm:flex-row sm:items-center">
+            <span className="text-3xl">{"👋"}</span>
+            <div className="flex-1">
+              <div className="font-bold text-slate-800">Nouveau client ? Inscrivez-vous en 30 secondes</div>
+              <div className="text-sm text-slate-500">Prénom, nom et téléphone suffisent : vos coordonnées seront pré-remplies à chaque commande.</div>
+            </div>
+            <button onClick={() => setRegisterOpen(true)} className="shrink-0 rounded-full bg-indigo-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-indigo-700">
+              Créer mon compte
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Categories */}
@@ -219,6 +251,12 @@ export default function ShopPage() {
           </button>
         </div>
       )}
+
+      <RegisterModal open={registerOpen} onClose={() => setRegisterOpen(false)}
+        onDone={(p, already) => {
+          saveClient(p); setRegisterOpen(false)
+          showToast(already ? `Bon retour ${p.firstName} ! Ce numéro était déjà inscrit.` : `Bienvenue ${p.firstName}, votre compte est créé !`)
+        }} />
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} clear={clear} />
     </div>

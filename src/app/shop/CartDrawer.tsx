@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { fmt, type CartItem } from "./useCart"
+import { useClient } from "./useClient"
 
 type Props = {
   open: boolean
@@ -24,6 +25,14 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [promoInput, setPromoInput] = useState("")
   const [promo, setPromo] = useState<{ code: string; discount: number; type: string } | null>(null)
   const [promoMsg, setPromoMsg] = useState<string | null>(null)
+  const { client } = useClient()
+
+  // Client inscrit : pré-remplit nom et téléphone (sans écraser une saisie en cours)
+  useEffect(() => {
+    if (!client) return
+    setName((n) => n || `${client.firstName} ${client.lastName}`)
+    setPhone((p) => p || client.phone)
+  }, [client])
 
   const discountAmount = promo ? Math.min(total, promo.type === "Percentage" ? Math.round((total * promo.discount) / 100) : promo.discount) : 0
   const goods = total - discountAmount
