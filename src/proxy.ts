@@ -61,7 +61,8 @@ function isMobileApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith("/api/driver/")) return true // earnings, location, orders, status...
   if (pathname === "/api/orders/my") return true
   if (pathname === "/api/orders/update") return true // livreur : mise a jour statut
-  if (method === "GET" && /^\/api\/orders\/[^/]+$/.test(pathname)) return true // detail commande
+  // detail / statut commande : JWT verifie et proprietaire controle dans la route
+  if ((method === "GET" || method === "PATCH") && /^\/api\/orders\/[^/]+$/.test(pathname)) return true
   return false
 }
 
