@@ -365,7 +365,7 @@ export const EN: Record<string, string> = {
   "Code de ramassage à donner au livreur": "Pickup code to give the rider",
 
   // ── Carte des livreurs ──
-  "Plan": "Map", "position inconnue": "unknown position", "à l'instant": "just now", "Aucun livreur": "No riders",
+  "position inconnue": "unknown position", "à l'instant": "just now", "Aucun livreur": "No riders",
   "Aucune position reçue pour l'instant : la position est transmise par l'application livreur pendant une livraison.": "No position received yet: the rider app sends it during a delivery.",
   "Position inconnue : elle apparaîtra dès que le livreur utilisera l'application en livraison.": "Unknown position: it will appear once the rider uses the app on a delivery.",
 }
