@@ -1,69 +1,37 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { assertSessionActive } from "@/lib/mobileSession"
-import { verify } from "jsonwebtoken"
+import { requireDriver, isDriverError } from "@/lib/driverAuth"
 
-const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
-
-async function getDriverId(req: Request): Promise<string | null> {
-  const authHeader = req.headers.get("authorization")
-  if (authHeader?.startsWith("Bearer ")) {
-    try {
-      const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
-      await assertSessionActive("driver", decoded)
-      return decoded.id
-    } catch {}
-  }
-  return null
-}
-
-// POST /api/driver/orders/[id]/accept → accepter la commande (passe en Accepted)
-export async function POST(req: Request, context: any) {
+/**
+ * POST /api/driver/orders/[id]/accept → un livreur approuvé accepte une commande libre.
+ * Attribution atomique : si deux livreurs acceptent en même temps, un seul l'obtient.
+ * Le code de ramassage est généré ici mais n'est PAS renvoyé au livreur : c'est la boutique qui le lui donne.
+ */
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const driver = await requireDriver(req)
+  if (isDriverError(driver)) return driver
   try {
-    const params = context.params ?? {}
-    const driverDbId = await getDriverId(req)
+    const { id } = await params
+    if (!id) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
 
-    const order = await prisma.order.findFirst({
-      where: { OR: [{ orderId: params.id }, { id: params.id }] },
-    })
-
+    const order = await prisma.order.findFirst({ where: { OR: [{ orderId: id }, { id }] }, select: { id: true } })
     if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
 
     const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
+    const { count } = await prisma.order.updateMany({
+      where: { id: order.id, status: "Pending", driverId: null },
+      data: { status: "Accepted", driverId: driver.id, pickupOtp },
+    })
+    if (count === 0) return NextResponse.json({ error: "Commande déjà prise par un autre livreur ou plus disponible" }, { status: 409 })
 
-    const updated = await prisma.order.update({
+    const updated = await prisma.order.findUnique({
       where: { id: order.id },
-      data: { 
-        status: "Accepted",
-        driverId: driverDbId,
-        pickupOtp
-      },
+      omit: { pickupOtp: true, deliveryOtp: true },
+      include: { store: { select: { name: true, address: true, phone: true } } },
     })
     return NextResponse.json(updated)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-// PUT /api/driver/orders/[id]/accept → mettre a jour le statut (fallback)
-export async function PUT(req: Request, context: any) {
-  try {
-    const params = context.params ?? {}
-    const body = await req.json().catch(() => ({}))
-    const status = body.status ?? "Delivered"
-
-    const order = await prisma.order.findFirst({
-      where: { OR: [{ orderId: params.id }, { id: params.id }] },
-    })
-
-    if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
-
-    const updated = await prisma.order.update({ 
-      where: { id: order.id }, 
-      data: { status } 
-    })
-    return NextResponse.json(updated)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    console.error("[driver-order-accept]", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }

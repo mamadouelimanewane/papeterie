@@ -45,7 +45,9 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
   const phone = d.notes?.match(/Tél:\s*([^|]+)/)?.[1]?.trim()
   const paid = PAID.includes(d.paymentStatus)
   const closed = d.status === "Delivered" || d.status === "Completed" || d.status === "Cancelled"
-  const stepIdx = STEPS.findIndex((s) => s.status === d.status)
+  // Statuts posés par l'application livreur, ramenés aux étapes affichées
+  const ALIAS: Record<string, string> = { Accepted: "Processing", PickedUp: "OnTheWay", Picked: "OnTheWay", Delivering: "OnTheWay", Completed: "Delivered" }
+  const stepIdx = STEPS.findIndex((s) => s.status === (ALIAS[d.status] ?? d.status))
   const next = !closed && stepIdx >= 0 ? STEPS[stepIdx + 1] : undefined
 
   const patch = async (data: Record<string, unknown>, ok: string) => {

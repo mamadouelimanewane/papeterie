@@ -1,49 +1,40 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { assertSessionActive } from "@/lib/mobileSession"
-import { verify } from "jsonwebtoken"
+import { requireDriver, isDriverError } from "@/lib/driverAuth"
 
-const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
+/** Statuts qu'un livreur peut poser sur SA commande. */
+const ALLOWED_STATUSES = new Set(["PickedUp", "Picked", "OnTheWay", "Delivering", "Delivered"])
 
-const ALLOWED_STATUSES = new Set([
-  "Accepted", "Picked", "PickedUp", "OnTheWay", "Delivering", "Delivered", "Completed", "Cancelled",
-])
-
+/**
+ * PUT /api/driver/orders/[id]/status { status, otp? }
+ * - uniquement le livreur à qui la commande est attribuée ;
+ * - « récupérée » exige le code de ramassage (donné par la boutique) ;
+ * - « livrée » exige le code de livraison (donné par le client).
+ */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const driver = await requireDriver(req)
+  if (isDriverError(driver)) return driver
   try {
-    // Auth livreur (JWT Bearer)
-    const authHeader = req.headers.get("authorization")
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 401 })
-    }
-    let driverId: string
-    try {
-      const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
-      await assertSessionActive("driver", decoded)
-      driverId = decoded.id
-    } catch {
-      return NextResponse.json({ error: "Token invalide" }, { status: 401 })
-    }
-
     const { id } = await params
-    const { status } = await req.json()
-    if (!status || !ALLOWED_STATUSES.has(status)) {
-      return NextResponse.json({ error: "Statut invalide" }, { status: 400 })
-    }
+    const { status, otp } = await req.json().catch(() => ({}))
+    if (!status || !ALLOWED_STATUSES.has(status)) return NextResponse.json({ error: "Statut invalide" }, { status: 400 })
 
-    const order = await prisma.order.findFirst({
-      where: { OR: [{ id }, { orderId: id }] },
-    })
+    const order = await prisma.order.findFirst({ where: { OR: [{ id }, { orderId: id }] } })
     if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
+    if (order.driverId !== driver.id) return NextResponse.json({ error: "Commande non attribuée à ce livreur" }, { status: 403 })
+    if (["Delivered", "Completed", "Cancelled"].includes(order.status)) return NextResponse.json({ error: "Commande déjà clôturée" }, { status: 409 })
 
-    // Le livreur ne peut modifier que ses propres commandes
-    if (order.driverId && order.driverId !== driverId) {
-      return NextResponse.json({ error: "Commande non assignee a ce livreur" }, { status: 403 })
+    if ((status === "PickedUp" || status === "Picked") && order.pickupOtp && String(otp ?? "") !== order.pickupOtp) {
+      return NextResponse.json({ error: otp ? "Code de ramassage incorrect" : "Code de ramassage requis (demandez-le à la boutique)" }, { status: 400 })
+    }
+    if (status === "Delivered" && String(otp ?? "") !== order.deliveryOtp) {
+      return NextResponse.json({ error: otp ? "Code de livraison incorrect" : "Code de livraison requis (demandez-le au client)" }, { status: 400 })
     }
 
     const updated = await prisma.order.update({
       where: { id: order.id },
-      data: { status, ...(order.driverId ? {} : { driverId }) },
+      data: { status },
+      omit: { pickupOtp: true, deliveryOtp: true },
     })
     return NextResponse.json(updated)
   } catch (error) {
