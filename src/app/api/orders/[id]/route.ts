@@ -4,6 +4,7 @@ import { verify } from "jsonwebtoken"
 import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
 import { assertSessionActive } from "@/lib/mobileSession"
+import { creditDriverForDelivery, DELIVERED } from "@/lib/delivery"
 
 /**
  * Qui appelle ? Session back-office (cookie NextAuth) ou application mobile (Bearer JWT vérifié).
@@ -113,11 +114,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     for (const key of allowed) {
       if (key in data) update[key] = data[key]
     }
+    // Livreur attribué depuis le back-office : il lui faut aussi un code de ramassage (sinon il resterait bloqué à la boutique)
+    if (caller.kind === "admin" && update.driverId && !order.pickupOtp) {
+      update.pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
+    }
 
     const updated = await prisma.order.update({
       where: { id: order.id },
       data: update,
     })
+
+    // Livraison effectuée : le livreur est crédité de ses frais de livraison (une seule fois)
+    if (update.status === "Delivered" && !DELIVERED.includes(order.status)) {
+      await creditDriverForDelivery(order.id).catch((e) => console.error("[credit-livreur]", e))
+    }
 
     if ((update.status === "Cancelled" || update.status === "Annule") && order.status !== "Cancelled" && order.status !== "Annule") {
       const items = Array.isArray(order.items) ? (order.items as { productId?: string; quantity?: number }[]) : []

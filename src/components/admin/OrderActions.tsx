@@ -7,7 +7,7 @@ import { adminFetch } from "@/lib/adminApi"
 
 type Detail = {
   id: string; orderId: string; status: string; paymentStatus: string; paymentMethod: string
-  driverId: string | null; notes: string | null; address: string | null
+  driverId: string | null; notes: string | null; address: string | null; pickupOtp: string | null
   items: { name?: string; qty?: number; price?: number }[] | null
 }
 type Driver = { id: string; name: string; phone?: string | null; status: string }
@@ -81,6 +81,14 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
           {drivers.map((x) => <option key={x.id} value={x.id}>{x.name}{x.phone ? ` (${x.phone})` : ""}{x.status === "Online" ? " · en ligne" : ""}</option>)}
         </select>
       </div>
+
+      {/* Code de ramassage : à donner au livreur quand il vient chercher la commande */}
+      {d.pickupOtp && d.driverId && !closed && ["Pending", "Accepted"].includes(d.status) && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <span className="text-xs text-amber-800">Code de ramassage à donner au livreur</span>
+          <span className="font-mono text-lg font-bold tracking-widest text-amber-900" data-no-i18n>{d.pickupOtp}</span>
+        </div>
+      )}
 
       {/* Statut */}
       <div>

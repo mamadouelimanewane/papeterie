@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { fmt } from "./useCart"
 import { useMyOrders, payOrder } from "./useMyOrders"
 
-type Status = { orderId: string; status: string; paymentStatus: string; paymentMethod: string; total: number; createdAt: string; paid: boolean }
+type Status = { orderId: string; status: string; paymentStatus: string; paymentMethod: string; total: number; createdAt: string; paid: boolean; deliveryCode?: string | null }
 
 const ORDER_LABEL: Record<string, string> = {
   Pending: "En attente", Accepted: "Acceptée par un livreur", Processing: "En préparation", PickedUp: "Récupérée",
@@ -106,6 +106,12 @@ export default function MyOrders() {
                               <div className={s.paid ? "font-semibold text-emerald-600" : "text-amber-600"}>{s.paid ? "Payée ✓" : "Non payée"}</div>
                             </div>
                           </div>
+                          {s.deliveryCode && (
+                            <div className="mt-2 flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2">
+                              <span className="text-[11px] text-indigo-700">Code à donner au livreur</span>
+                              <span className="font-mono text-base font-extrabold tracking-[0.25em] text-indigo-800">{s.deliveryCode}</span>
+                            </div>
+                          )}
                           {canPay && (
                             <button disabled={paying === s.orderId}
                               onClick={async () => { setMsg(null); setPaying(s.orderId); const e = await payOrder(s.orderId); setPaying(null); if (e) setMsg(e) }}

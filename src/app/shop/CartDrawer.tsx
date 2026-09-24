@@ -184,6 +184,13 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <p className="text-sm text-slate-500">N° {result.orderId}</p>
                 <p className="mt-1 text-lg font-extrabold text-indigo-700">{fmt(Number(result.total ?? 0))}</p>
                 {result.paymentMethod === "Cash" && <p className="mt-2 text-sm text-slate-600">Vous paierez en espèces à la livraison.</p>}
+                {result.deliveryOtp && (
+                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
+                    <div className="text-xs text-indigo-700">Votre code de livraison</div>
+                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-indigo-800">{result.deliveryOtp}</div>
+                    <div className="mt-1 text-[11px] text-indigo-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
+                  </div>
+                )}
                 {result.paymentError && (
                   <div className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
                     Le paiement en ligne n&apos;a pas pu démarrer : {result.paymentError}

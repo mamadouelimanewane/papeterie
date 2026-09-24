@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     const orders = await prisma.order.findMany({
       where: { orderId: { in: ids } },
-      select: { orderId: true, status: true, paymentStatus: true, paymentMethod: true, total: true, createdAt: true, notes: true, userId: true },
+      select: { orderId: true, status: true, paymentStatus: true, paymentMethod: true, total: true, createdAt: true, notes: true, userId: true, deliveryOtp: true },
     })
     const userIds = [...new Set(orders.map((o) => o.userId).filter(Boolean))] as string[]
     const users = userIds.length ? await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, phone: true } }) : []
@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
       orders: mine.map((o) => ({
         orderId: o.orderId, status: o.status, paymentStatus: o.paymentStatus, paymentMethod: o.paymentMethod,
         total: o.total, createdAt: o.createdAt, paid: PAID_STATUSES.includes(o.paymentStatus),
+        // Code à donner au livreur : seulement au titulaire du numéro, et tant que la commande est en cours
+        deliveryCode: ["Delivered", "Completed", "Cancelled"].includes(o.status) ? null : o.deliveryOtp,
       })),
     })
   } catch (e) {

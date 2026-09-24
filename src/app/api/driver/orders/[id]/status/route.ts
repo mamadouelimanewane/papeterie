@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
+import { creditDriverForDelivery } from "@/lib/delivery"
 
 /** Statuts qu'un livreur peut poser sur SA commande. */
 const ALLOWED_STATUSES = new Set(["PickedUp", "Picked", "OnTheWay", "Delivering", "Delivered"])
@@ -36,6 +37,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       data: { status },
       omit: { pickupOtp: true, deliveryOtp: true },
     })
+    // Livraison validée par le code du client : le livreur est crédité de ses frais de livraison
+    if (status === "Delivered") await creditDriverForDelivery(order.id).catch((e) => console.error("[credit-livreur]", e))
     return NextResponse.json(updated)
   } catch (error) {
     console.error("[driver-order-status]", error)
