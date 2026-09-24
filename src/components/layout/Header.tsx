@@ -70,15 +70,16 @@ export default function Header() {
   const panel = "absolute right-0 top-full z-[60] mt-2 rounded-xl bg-white text-gray-700 shadow-xl ring-1 ring-black/5"
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center justify-between bg-[#1A237E] px-4 shadow-md">
+    <header className="sticky top-0 z-50 flex h-14 items-center justify-between gap-2 bg-[#1A237E] px-3 shadow-md sm:px-4">
       {/* Gauche */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <button onClick={toggle} aria-label="Menu" className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white md:hidden">
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
         <Link href="/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow"><span className="text-sm font-bold text-indigo-900">S</span></div>
-          <span className="text-base font-bold tracking-wide text-white md:text-lg" data-no-i18n>SCHOOLMATIK</span>
+          {/* Nom masqué sur très petit écran (sinon l'en-tête déborde et la page défile en largeur) */}
+          <span className="hidden text-base font-bold tracking-wide text-white min-[400px]:inline md:text-lg" data-no-i18n>SCHOOLMATIK</span>
           <span className="ml-1 hidden rounded bg-yellow-400 px-1.5 py-0.5 text-[10px] font-black uppercase text-indigo-900 lg:inline-block">Admin</span>
         </Link>
         <div className="ml-4 hidden items-center gap-1 border-l border-white/20 pl-4 md:flex">
@@ -90,7 +91,7 @@ export default function Header() {
       </div>
 
       {/* Droite */}
-      <div className="flex items-center gap-1.5 md:gap-3">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 md:gap-3">
         {/* Alertes */}
         <div className="relative" ref={bellRef}>
           <button onClick={() => { setBellOpen(!bellOpen); if (!bellOpen) loadAlerts() }} title="Alertes" aria-label="Alertes" className={`${iconBtn} relative`}>
@@ -143,8 +144,8 @@ export default function Header() {
         {/* Profil */}
         <div className="relative" ref={userRef}>
           <button onClick={() => setUserOpen(!userOpen)} aria-label="Mon compte" title={user?.name ?? "Mon compte"}
-            className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/20 bg-green-500 text-xs font-bold text-white shadow-lg" data-no-i18n>
-            {initials(user?.name)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/20 bg-green-500 text-xs font-bold text-white shadow-lg">
+            <span data-no-i18n>{initials(user?.name)}</span>
           </button>
           {userOpen && (
             <div className={`${panel} w-64`}>

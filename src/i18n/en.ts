@@ -342,7 +342,15 @@ export const EN: Record<string, string> = {
   "Photo de profil": "Profile photo", "Marqueur client": "Customer pin", "Marqueur livreur": "Rider pin", "Marqueur boutique": "Store pin",
   "Marqueur destination": "Destination pin", "Livraison standard Dakar": "Standard delivery Dakar", "Livraison Rufisque": "Rufisque delivery",
   "Livraison express": "Express delivery", "À propos": "About", "Conditions d'utilisation": "Terms of use", "Politique de confidentialité": "Privacy policy",
-  "Comment ça marche": "How it works", 
+  "Comment ça marche": "How it works",
+
+  // ── Tableau de bord (titres relevés lors des tests du 24 sept.) ──
+  "Bienvenue sur Schoolmatik": "Welcome to Schoolmatik",
+  "· Fournitures & livres scolaires au Sénégal": "· School supplies & books in Senegal",
+  "Analyses de Performance (7 derniers jours)": "Performance analytics (last 7 days)",
+  "📈 Commandes & Revenus (7 jours)": "📈 Orders & revenue (7 days)",
+  "Schoolmatik — Espace boutique": "Schoolmatik — Store area",
+  "Revenus boutique": "Store revenue", "Priorité : Haute": "Priority: high",
 }
 
 type Tr = (s: string) => string
@@ -393,4 +401,6 @@ export const PATTERNS: [RegExp, (tr: Tr, ...g: string[]) => string][] = [
   [/^N° (.+)$/, (_t, x) => `No. ${x}`],
   [/^Rechercher (.+)$/, (t, x) => `Search ${t(x)}`],
   [/^Quitter$/, () => "Exit"],
+  // Libellés de jours du graphique (toLocaleDateString fr-FR) : « ven. 18 » → « Fri 18 »
+  [/^(lun|mar|mer|jeu|ven|sam|dim)\.? (\d{1,2})$/i, (_t, d, n) => `${{ lun: "Mon", mar: "Tue", mer: "Wed", jeu: "Thu", ven: "Fri", sam: "Sat", dim: "Sun" }[d.toLowerCase()]} ${n}`],
 ]
