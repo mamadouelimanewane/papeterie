@@ -33,6 +33,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/promo") return true // validation code promo (vitrine)
     if (pathname === "/api/shop/register") return true // inscription client vitrine (nom, prenom, tel)
     if (pathname === "/api/shop/pay") return true // relance du paiement en ligne d'une commande non reglee
+    if (pathname === "/api/shop/my-orders") return true // « Mes commandes » verrouille par le numero de telephone
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
     if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
     if (pathname === "/api/admin/fix-images") return true // protege par SEED_SECRET

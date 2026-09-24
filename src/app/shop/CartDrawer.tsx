@@ -54,6 +54,9 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
 
   async function placeOrder() {
     if (cart.length === 0) return
+    // Téléphone obligatoire : indispensable à la livraison et au déverrouillage de « Mes commandes »
+    if (phone.replace(/\D/g, "").length < 9) { setResult({ error: "Indiquez votre numéro de téléphone (9 chiffres) pour la livraison." }); return }
+    if (!address.trim()) { setResult({ error: "Indiquez votre adresse de livraison." }); return }
     setPlacing(true); setResult(null)
     try {
       const res = await fetch("/api/orders", {
@@ -123,8 +126,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
           <div className="space-y-2 border-t p-4">
             <div className="grid grid-cols-2 gap-2">
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone *" type="tel" inputMode="tel" className="rounded-lg border px-3 py-2 text-sm" />
+              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison *" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
                 <option value="Cash">Paiement à la livraison (Cash)</option><option value="Versus">Payer par Wave, Orange Money via VERSUS</option>
               </select>
