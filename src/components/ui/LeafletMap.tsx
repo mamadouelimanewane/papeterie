@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import type * as Leaflet from "leaflet"
 import { getTileUrl, TILE_ATTRIBUTION, LOCATIONIQ_KEY } from "@/lib/locationiq"
 
 export interface MapMarker {
@@ -25,6 +26,8 @@ interface LeafletMapProps {
   style?: "streets" | "satellite" | "hybrid"
   className?: string
   onMarkerClick?: (id: string | number) => void
+  /** Recentre la carte sur les marqueurs à chaque changement de la liste d'identifiants. */
+  fitToMarkers?: boolean
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -36,6 +39,21 @@ const COLOR_MAP: Record<string, string> = {
   purple: "#a855f7",
 }
 
+/**
+ * Tuiles : LocationIQ si une clé est configurée, sinon OpenStreetMap (plan) et Esri (satellite),
+ * utilisables sans clé avec attribution — la carte fonctionne donc toujours.
+ */
+function tileConfig(style: "streets" | "satellite" | "hybrid") {
+  if (LOCATIONIQ_KEY) return { url: getTileUrl(style), attribution: TILE_ATTRIBUTION, subdomains: ["eu1", "eu2"] }
+  if (style === "streets") {
+    return { url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', subdomains: [] as string[] }
+  }
+  return {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Imagerie &copy; Esri", subdomains: [] as string[],
+  }
+}
+
 export default function LeafletMap({
   center = [14.6928, -17.4467],
   zoom = 12,
@@ -44,106 +62,101 @@ export default function LeafletMap({
   style = "streets",
   className = "h-96",
   onMarkerClick,
+  fitToMarkers = false,
 }: LeafletMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<unknown>(null)
+  const libRef = useRef<typeof Leaflet | null>(null)
+  const mapRef = useRef<Leaflet.Map | null>(null)
+  const tilesRef = useRef<Leaflet.TileLayer | null>(null)
+  const markersRef = useRef<Leaflet.LayerGroup | null>(null)
+  const routesRef = useRef<Leaflet.LayerGroup | null>(null)
+  const clickRef = useRef(onMarkerClick)
+  const [ready, setReady] = useState(false)
 
+  useEffect(() => { clickRef.current = onMarkerClick }, [onMarkerClick])
+
+  // Création de la carte (une seule fois)
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
-    if (!LOCATIONIQ_KEY) return
-
-    let L: typeof import("leaflet")
-
-    async function init() {
-      L = (await import("leaflet")).default
-
-      // Fix icônes Leaflet avec Next.js
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      })
-
-      const map = L.map(containerRef.current!, { center, zoom })
+    let cancelled = false
+    import("leaflet").then(({ default: L }) => {
+      if (cancelled || !containerRef.current) return
+      libRef.current = L
+      const map = L.map(containerRef.current, { center, zoom })
       mapRef.current = map
-
-      // Tuiles LocationIQ
-      L.tileLayer(getTileUrl(style), {
-        attribution: TILE_ATTRIBUTION,
-        maxZoom: 19,
-        subdomains: ["eu1", "eu2"],
-      }).addTo(map)
-
-      // Marqueurs
-      markers.forEach(m => {
-        const color = COLOR_MAP[m.color] ?? COLOR_MAP.blue
-        const icon = L.divIcon({
-          html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
-          className: "",
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
-        })
-        const marker = L.marker([m.lat, m.lng], { icon, title: m.title })
-        if (m.popup) marker.bindPopup(m.popup)
-        if (onMarkerClick) marker.on("click", () => onMarkerClick(m.id))
-        marker.addTo(map)
-      })
-
-      // Routes / itinéraires
-      routes.forEach(route => {
-        if (route.coordinates.length < 2) return
-        // coordinates sont [lng, lat] depuis GeoJSON → inverser pour Leaflet [lat, lng]
-        const latlngs = route.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
-        L.polyline(latlngs, {
-          color: route.color ?? "#3b82f6",
-          weight: 4,
-          opacity: 0.8,
-        }).addTo(map)
-      })
-    }
-
-    init().catch(console.error)
-
+      markersRef.current = L.layerGroup().addTo(map)
+      routesRef.current = L.layerGroup().addTo(map)
+      setReady(true)
+    }).catch(console.error)
     return () => {
-      if (mapRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(mapRef.current as any).remove()
-        mapRef.current = null
-      }
+      cancelled = true
+      mapRef.current?.remove()
+      mapRef.current = null
+      tilesRef.current = null
+      setReady(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (!LOCATIONIQ_KEY) {
-    return (
-      <div className={`${className} bg-gray-100 rounded-xl flex flex-col items-center justify-center gap-3 border border-dashed border-gray-300`}>
-        <span className="text-3xl">🗺️</span>
-        <p className="text-sm text-gray-500 font-medium">Clé API LocationIQ manquante</p>
-        <p className="text-xs text-gray-400">
-          Ajoutez <code className="bg-gray-200 px-1 rounded">NEXT_PUBLIC_LOCATIONIQ_KEY</code> dans <code className="bg-gray-200 px-1 rounded">.env.local</code>
-        </p>
-        <a
-          href="https://locationiq.com/register"
-          target="_blank"
-          rel="noreferrer"
-          className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-        >
-          Obtenir une clé gratuite
-        </a>
-      </div>
-    )
-  }
+  // Fond de carte (plan / satellite)
+  useEffect(() => {
+    const L = libRef.current, map = mapRef.current
+    if (!ready || !L || !map) return
+    tilesRef.current?.remove()
+    const t = tileConfig(style)
+    tilesRef.current = L.tileLayer(t.url, { attribution: t.attribution, maxZoom: 19, ...(t.subdomains.length ? { subdomains: t.subdomains } : {}) }).addTo(map)
+  }, [ready, style])
+
+  // Marqueurs : redessinés à chaque mise à jour (positions en temps réel)
+  const markersKey = JSON.stringify(markers)
+  useEffect(() => {
+    const L = libRef.current, layer = markersRef.current, map = mapRef.current
+    if (!ready || !L || !layer || !map) return
+    layer.clearLayers()
+    markers.forEach((m) => {
+      const color = COLOR_MAP[m.color] ?? COLOR_MAP.blue
+      const icon = L.divIcon({
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
+        className: "", iconSize: [16, 16], iconAnchor: [8, 8],
+      })
+      const marker = L.marker([m.lat, m.lng], { icon, title: m.title })
+      if (m.popup) marker.bindPopup(m.popup)
+      marker.on("click", () => clickRef.current?.(m.id))
+      marker.addTo(layer)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, markersKey])
+
+  // Recentrage quand l'ensemble des livreurs affichés change (pas à chaque déplacement)
+  const idsKey = markers.map((m) => m.id).join(",")
+  useEffect(() => {
+    const L = libRef.current, map = mapRef.current
+    if (!fitToMarkers || !ready || !L || !map || markers.length === 0) return
+    if (markers.length === 1) map.setView([markers[0].lat, markers[0].lng], 14)
+    else map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lng] as [number, number])), { padding: [40, 40], maxZoom: 15 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, idsKey, fitToMarkers])
+
+  // Itinéraires ([lng, lat] GeoJSON → [lat, lng] Leaflet)
+  const routesKey = JSON.stringify(routes)
+  useEffect(() => {
+    const L = libRef.current, layer = routesRef.current
+    if (!ready || !L || !layer) return
+    layer.clearLayers()
+    routes.forEach((route) => {
+      if (route.coordinates.length < 2) return
+      L.polyline(route.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]), {
+        color: route.color ?? "#3b82f6", weight: 4, opacity: 0.8,
+      }).addTo(layer)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, routesKey])
 
   return (
     <>
       {/* CSS Leaflet */}
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      />
-      <div ref={containerRef} className={`${className} rounded-xl overflow-hidden z-0`} />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <div ref={containerRef} className={`${className} z-0 overflow-hidden rounded-xl`} />
     </>
   )
 }

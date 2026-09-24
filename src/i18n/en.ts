@@ -362,6 +362,12 @@ export const EN: Record<string, string> = {
   "À utiliser pour un paiement en espèces à la livraison (les paiements en ligne sont confirmés automatiquement).": "Use for cash on delivery (online payments are confirmed automatically).",
   "→ En préparation": "→ Preparing", "→ En livraison": "→ Out for delivery", "→ Livrée": "→ Delivered",
   "Commande : en préparation": "Order: preparing", "Commande : en livraison": "Order: out for delivery", "Commande : livrée": "Order: delivered",
+  "Code de ramassage à donner au livreur": "Pickup code to give the rider",
+
+  // ── Carte des livreurs ──
+  "Plan": "Map", "position inconnue": "unknown position", "à l'instant": "just now", "Aucun livreur": "No riders",
+  "Aucune position reçue pour l'instant : la position est transmise par l'application livreur pendant une livraison.": "No position received yet: the rider app sends it during a delivery.",
+  "Position inconnue : elle apparaîtra dès que le livreur utilisera l'application en livraison.": "Unknown position: it will appear once the rider uses the app on a delivery.",
 }
 
 type Tr = (s: string) => string
@@ -402,6 +408,9 @@ export const PATTERNS: [RegExp, (tr: Tr, ...g: string[]) => string][] = [
   [/^Adresses (de livraison|livrées) — (.+)$/, (_t, k, x) => `${k === "livrées" ? "Delivered addresses" : "Delivery addresses"} — ${x}`],
   [/^Historique portefeuille — (.+)$/, (_t, x) => `Wallet history — ${x}`],
   [/^Motif du rejet : (.+)$/, (t, x) => `Rejection reason: ${t(x)}`],
+  [/^il y a (\d+) (min|h|j)$/, (_t, n, u) => `${n} ${u === "j" ? "d" : u} ago`],
+  [/^Mis à jour (.+) · actualisation toutes les 15 s$/, (t, x) => `Updated ${t(x)} · refreshes every 15 s`],
+  [/^(\d+) livreur\(s\) sans position connue$/, (_t, n) => `${n} rider(s) with no known position`],
   [/^Commission plateforme \((.+) %\)$/, (_t, x) => `Platform commission (${x}%)`],
   [/^(Jan|Fév|Mar|Avr|Mai|Juin|Juil|Août|Sep|Oct|Nov|Déc) (\d{2})$/, (_t, m, y) => `${{ Jan: "Jan", Fév: "Feb", Mar: "Mar", Avr: "Apr", Mai: "May", Juin: "Jun", Juil: "Jul", Août: "Aug", Sep: "Sep", Oct: "Oct", Nov: "Nov", Déc: "Dec" }[m]} ${y}`],
   [/^Serveur joignable : (.+)$/, (_t, x) => `Server reachable: ${x}`],
