@@ -12,10 +12,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Toutes les interfaces sont conçues en thème clair : on ne suit PAS le mode sombre
+   du téléphone (sinon texte clair sur champs blancs = saisie invisible). */
+:root {
+  color-scheme: light;
+}
+
+@layer base {
+  input,
+  textarea,
+  select {
+    color: #171717;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af;
   }
 }
 

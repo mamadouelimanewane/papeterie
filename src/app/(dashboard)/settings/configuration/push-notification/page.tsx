@@ -1,22 +1,30 @@
 "use client"
 
 import { useState } from "react"
+import { useSetting } from "@/hooks/useAdminData"
+import { useAction } from "@/components/admin/Feedback"
 import { Save, Send, Bell, CheckCircle, XCircle, Loader2, Eye, EyeOff } from "lucide-react"
 
 type Segment = "All" | "Subscribed Users" | "Active Users" | "Inactive Users"
 
 export default function PushNotificationPage() {
-  const [appId, setAppId] = useState(process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID ?? "")
-  const [restApiKey, setRestApiKey] = useState("")
+  // Clés et types enregistrés côté serveur (la REST API Key n'est jamais réaffichée)
+  const push = useSetting("push", {
+    appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID ?? "",
+    restApiKey: "",
+    userNotif: true, driverNotif: true, storeNotif: true, orderNotif: true, promoNotif: false,
+  })
+  const run = useAction()
+  const appId = String(push.value.appId ?? "")
+  const restApiKey = String(push.value.restApiKey ?? "")
+  const setAppId = (v: string) => push.set("appId", v)
+  const setRestApiKey = (v: string) => push.set("restApiKey", v)
   const [showKey, setShowKey] = useState(false)
 
-  const [enabledTypes, setEnabledTypes] = useState({
-    userNotif: true,
-    driverNotif: true,
-    storeNotif: true,
-    orderNotif: true,
-    promoNotif: false,
-  })
+  const enabledTypes = {
+    userNotif: Boolean(push.value.userNotif), driverNotif: Boolean(push.value.driverNotif), storeNotif: Boolean(push.value.storeNotif),
+    orderNotif: Boolean(push.value.orderNotif), promoNotif: Boolean(push.value.promoNotif),
+  }
 
   const [sendTitle, setSendTitle] = useState("")
   const [sendMessage, setSendMessage] = useState("")
@@ -25,8 +33,11 @@ export default function PushNotificationPage() {
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
   const [subStatus, setSubStatus] = useState<"idle" | "subscribed" | "unsubscribed" | "loading">("idle")
 
-  const toggleType = (key: keyof typeof enabledTypes) =>
-    setEnabledTypes(p => ({ ...p, [key]: !p[key] }))
+  const toggleType = (key: keyof typeof enabledTypes) => {
+    const next = { ...push.value, [key]: !enabledTypes[key] }
+    push.setValue(next)
+    run(() => push.save(next), "Préférence enregistrée")
+  }
 
   const handleSubscribe = async () => {
     setSubStatus("loading")
@@ -132,8 +143,8 @@ export default function PushNotificationPage() {
               <p className="text-gray-400">Trouver ces clés : <span className="text-blue-500">app.onesignal.com → Settings → Keys &amp; IDs</span></p>
             </div>
 
-            <button className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg w-full justify-center">
-              <Save size={14} /> Enregistrer les clés
+            <button onClick={() => run(() => push.save(), "Clés OneSignal enregistrées")} disabled={push.saving} className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg w-full justify-center disabled:opacity-60">
+              <Save size={14} /> {push.saving ? "Enregistrement…" : "Enregistrer les clés"}
             </button>
           </div>
         </div>

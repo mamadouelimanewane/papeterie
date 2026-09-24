@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from "react"
 import { Plus, Info, Search, RefreshCw, Edit, Eye, BarChart2, Copy, Check, X, ExternalLink } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import Link from "next/link"
+import FormModal from "@/components/admin/FormModal"
+import { useFeedback, useAction } from "@/components/admin/Feedback"
+import { useOptions } from "@/hooks/useAdminData"
+import { adminFetch } from "@/lib/adminApi"
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
@@ -40,6 +44,10 @@ export default function StoresPage() {
   const [search, setSearch] = useState({ name: "", email: "", phone: "" })
   const [urlModal, setUrlModal] = useState<{ open: boolean; store: Store | null }>({ open: false, store: null })
   const [copied, setCopied] = useState(false)
+  const [editing, setEditing] = useState<Store | "new" | null>(null)
+  const zones = useOptions("crud/service-areas")
+  const { toast } = useFeedback()
+  const run = useAction()
 
   const fetchStores = useCallback(async () => {
     setLoading(true)
@@ -81,12 +89,10 @@ export default function StoresPage() {
           {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
-          <Link href="/stores/new">
-            <button className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center">
-              <Plus size={16} />
-            </button>
-          </Link>
-          <button className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center">
+          <button onClick={() => setEditing("new")} title="Ajouter une boutique" className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center">
+            <Plus size={16} />
+          </button>
+          <button onClick={() => toast("Mode mono-boutique : la vitrine /shop affiche la boutique active (variable ACTIVE_STORE_ID, sinon la première boutique active). Le lien de connexion donne accès à l'espace marchand.", "info")} title="Aide" className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center">
             <Info size={16} />
           </button>
         </div>
@@ -164,9 +170,9 @@ export default function StoresPage() {
                   <td className="px-4 py-3"><StatusBadge status={store.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button className="p-1 text-blue-500 hover:bg-blue-50 rounded" title="Modifier"><Edit size={14} /></button>
-                      <button className="p-1 text-green-500 hover:bg-green-50 rounded" title="Voir"><Eye size={14} /></button>
-                      <button className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600"><BarChart2 size={14} /></button>
+                      <button onClick={() => setEditing(store)} className="p-1 text-blue-500 hover:bg-blue-50 rounded" title="Modifier"><Edit size={14} /></button>
+                      <Link href={`/stores/${store.id}`} className="p-1 text-green-500 hover:bg-green-50 rounded" title="Voir"><Eye size={14} /></Link>
+                      <Link href="/reports/earnings/stores" className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600" title="Statistiques"><BarChart2 size={14} /></Link>
                     </div>
                   </td>
                 </tr>
@@ -224,6 +230,28 @@ export default function StoresPage() {
           </div>
         </div>
       )}
+      <FormModal
+        open={editing !== null} title={editing === "new" ? "Ajouter une boutique" : `Modifier ${editing?.name ?? ""}`}
+        initial={editing && editing !== "new"
+          ? { name: editing.name, email: editing.email, phone: editing.phone ?? "", address: editing.address ?? "", serviceArea: editing.serviceArea ?? "", image: editing.image ?? "", status: editing.status }
+          : { status: "Active" }}
+        fields={[
+          { key: "name", label: "Nom", required: true },
+          { key: "email", label: "E-mail", type: "email", required: true },
+          { key: "phone", label: "Téléphone", type: "tel" },
+          { key: "serviceArea", label: "Zone", type: "select", options: zones },
+          { key: "address", label: "Adresse", full: true },
+          { key: "status", label: "Statut", type: "select", required: true, options: [{ value: "Active", label: "Actif" }, { value: "Inactive", label: "Inactif" }] },
+          { key: "image", label: "Logo / photo", type: "image" },
+        ]}
+        onClose={() => setEditing(null)}
+        onSubmit={async (v) => {
+          const ok = editing === "new"
+            ? await run(() => adminFetch("/api/stores", { method: "POST", body: v }), "Boutique ajoutée")
+            : await run(() => adminFetch(`/api/stores/${(editing as Store).id}`, { method: "PATCH", body: v }), "Boutique modifiée")
+          if (ok) { setEditing(null); fetchStores() }
+        }}
+      />
     </div>
   )
 }

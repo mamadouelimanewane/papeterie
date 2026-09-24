@@ -123,7 +123,11 @@ export async function POST(req: Request) {
           paymentStatus: "En attente",
           items: data.items,
           address: data.address ?? null,
-          notes: [data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null].filter(Boolean).join(" ") || null,
+          // Commande invité : on conserve nom et téléphone du client (sinon introuvables pour la facture / la livraison)
+          notes: [
+            data.firstName || data.phone_number ? `Client: ${String(data.firstName ?? "").slice(0, 80)} | Tél: ${String(data.phone_number ?? "").slice(0, 20)} |` : null,
+            data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null,
+          ].filter(Boolean).join(" ") || null,
           deliveryOtp,
         },
       });

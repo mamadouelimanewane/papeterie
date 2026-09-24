@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, Download, Info, Search, RefreshCw, Edit, Trash2 } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
+import { useFeedback } from "@/components/admin/Feedback"
 
 interface Category {
   id: string
@@ -29,6 +30,7 @@ function exportCSV(categories: Category[]) {
 }
 
 export default function CategoriesPage() {
+  const { toast } = useFeedback()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -109,7 +111,7 @@ export default function CategoriesPage() {
         <div className="flex gap-2">
           <button onClick={() => exportCSV(categories)} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Exporter CSV"><Download size={16} /></button>
           <button onClick={() => setShowAdd(true)} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Ajouter"><Plus size={16} /></button>
-          <button className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide"><Info size={16} /></button>
+          <button onClick={() => toast("Les catégories classent les articles de la boutique (filtres de /shop). La séquence fixe l'ordre d'affichage ; une catégorie inactive est masquée aux clients.", "info")} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide"><Info size={16} /></button>
         </div>
       </div>
 

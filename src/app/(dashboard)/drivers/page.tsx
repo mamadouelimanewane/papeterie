@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, Download, Info, Edit, Eye, Trash2, Bell, CreditCard, FileText, MapPin, Smartphone, LogOut, RefreshCw, Search, ToggleLeft, Phone, PhoneOff, Star } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
+import FormModal from "@/components/admin/FormModal"
+import DriverDetailModal from "@/components/admin/DriverDetailModal"
+import { useFeedback, useAction } from "@/components/admin/Feedback"
+import { useOptions } from "@/hooks/useAdminData"
+import { adminFetch, fmtDate } from "@/lib/adminApi"
 
 interface DriverDoc {
   id: string
@@ -62,6 +67,14 @@ export default function DriversPage() {
   const [notif, setNotif] = useState({ title: "", message: "" })
   const [money, setMoney] = useState({ method: "Cash", type: "Crédit", amount: "", description: "" })
   const [submitting, setSubmitting] = useState(false)
+  const [editing, setEditing] = useState<Driver | "new" | null>(null)
+  const [viewId, setViewId] = useState<string | null>(null)
+  const [addrDriver, setAddrDriver] = useState<Driver | null>(null)
+  const [addresses, setAddresses] = useState<{ address: string; count: number; lastUsed: string }[] | null>(null)
+  const zones = useOptions("crud/service-areas")
+  const vehicleTypes = useOptions("records/vehicle-types")
+  const { toast, confirm } = useFeedback()
+  const run = useAction()
 
   const fetchDrivers = useCallback(async () => {
     setLoading(true)
@@ -98,11 +111,14 @@ export default function DriversPage() {
     if (!selectedDriver || !notif.title || !notif.message) return
     setSubmitting(true)
     try {
-      await fetch("/api/notifications/send", {
+      const res = await fetch("/api/notifications/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: notif.title, message: notif.message }),
+        body: JSON.stringify({ title: notif.title, message: notif.message, externalIds: [selectedDriver.id] }),
       })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) toast(d.error ?? "Échec de l'envoi", "error")
+      else toast(d.onesignalConfigured ? `Notification envoyée à ${selectedDriver.name}` : "OneSignal n'est pas configuré : aucune notification envoyée", d.onesignalConfigured ? "success" : "info")
       setModal(null)
     } finally {
       setSubmitting(false)
@@ -113,37 +129,43 @@ export default function DriversPage() {
     if (!selectedDriver || !money.amount) return
     setSubmitting(true)
     try {
-      await fetch("/api/transactions", {
+      const ok = await run(() => adminFetch("/api/admin/wallet", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          driverId: selectedDriver.id,
-          amount: money.amount,
-          type: money.type === "Crédit" ? "Credit" : "Debit",
-          method: money.method,
-          description: money.description,
-        }),
-      })
-      setModal(null)
-      fetchDrivers()
+        body: { party: "driver", id: selectedDriver.id, amount: money.amount, direction: money.type === "Crédit" ? "Crédit" : "Débit", method: money.method, description: money.description },
+      }), "Portefeuille mis à jour")
+      if (ok) { setModal(null); fetchDrivers() }
     } finally {
       setSubmitting(false)
     }
   }
 
   async function deleteDriver(id: string) {
-    if (!confirm("Supprimer ce livreur ?")) return
-    await fetch(`/api/drivers/${id}`, { method: "DELETE" })
-    fetchDrivers()
+    if (!(await confirm({ title: "Supprimer ce livreur ?", message: "Ses documents seront supprimés. Cette action est définitive.", confirmLabel: "Supprimer", danger: true }))) return
+    if (await run(() => adminFetch(`/api/drivers/${id}`, { method: "DELETE" }), "Livreur supprimé")) fetchDrivers()
   }
 
   async function updateApproval(driver: Driver, status: string) {
-    await fetch(`/api/drivers/${driver.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approvalStatus: status }),
-    })
-    fetchDrivers()
+    if (await run(() => adminFetch(`/api/drivers/${driver.id}`, { method: "PATCH", body: { approvalStatus: status } }), status === "Approved" ? "Livreur approuvé" : "Approbation révoquée")) fetchDrivers()
+  }
+
+  async function toggleOnline(driver: Driver) {
+    const next = driver.status === "Online" ? "Offline" : "Online"
+    if (await run(() => adminFetch(`/api/drivers/${driver.id}`, { method: "PATCH", body: { status: next } }), next === "Online" ? "Livreur mis en ligne" : "Livreur mis hors ligne")) fetchDrivers()
+  }
+
+  async function forceLogout(driver: Driver) {
+    if (!(await confirm({ title: `Déconnecter ${driver.name} ?`, message: "Le livreur devra se reconnecter sur l'application et sera mis hors ligne.", confirmLabel: "Déconnecter" }))) return
+    const ok = await run(async () => {
+      await adminFetch("/api/admin/sessions", { method: "POST", body: { party: "driver", id: driver.id } })
+      await adminFetch(`/api/drivers/${driver.id}`, { method: "PATCH", body: { status: "Offline" } })
+    }, "Sessions révoquées")
+    if (ok !== undefined) fetchDrivers()
+  }
+
+  async function openAddresses(driver: Driver) {
+    setAddrDriver(driver); setAddresses(null)
+    const r = await run(() => adminFetch<{ address: string; count: number; lastUsed: string }[]>(`/api/admin/addresses?driverId=${driver.id}`))
+    setAddresses(r ?? [])
   }
 
   return (
@@ -156,8 +178,8 @@ export default function DriversPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => exportCSV(drivers)} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Exporter CSV"><Download size={16} /></button>
-          <button className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Ajouter livreur"><Plus size={16} /></button>
-          <button className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide"><Info size={16} /></button>
+          <button onClick={() => setEditing("new")} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Ajouter livreur"><Plus size={16} /></button>
+          <button onClick={() => toast("Un livreur doit être approuvé (menu En attente) pour recevoir des commandes. Actions par ligne : modifier, fiche, supprimer, notifier, portefeuille, documents, adresses livrées, approbation, en ligne / hors ligne, déconnexion forcée.", "info")} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide"><Info size={16} /></button>
         </div>
       </div>
 
@@ -257,22 +279,22 @@ export default function DriversPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 flex-wrap min-w-[220px]">
-                      <button title="Modifier" className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"><Edit size={12} /></button>
-                      <button title="Voir profil" className="p-1 bg-green-500 text-white rounded hover:bg-green-600"><Eye size={12} /></button>
+                      <button title="Modifier" onClick={() => setEditing(d)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"><Edit size={12} /></button>
+                      <button title="Voir profil" onClick={() => setViewId(d.id)} className="p-1 bg-green-500 text-white rounded hover:bg-green-600"><Eye size={12} /></button>
                       <button title="Supprimer" onClick={() => deleteDriver(d.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600"><Trash2 size={12} /></button>
                       <button title="Envoyer notification" onClick={() => openModal("notification", d)} className="p-1 bg-orange-500 text-white rounded hover:bg-orange-600"><Bell size={12} /></button>
                       <button title="Ajouter de l'argent" onClick={() => openModal("addMoney", d)} className="p-1 bg-cyan-500 text-white rounded hover:bg-cyan-600"><CreditCard size={12} /></button>
                       <button title="Historique portefeuille" onClick={() => openModal("walletHistory", d)} className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600"><FileText size={12} /></button>
                       <button title="Voir documents" onClick={() => openModal("documents", d)} className="p-1 bg-teal-500 text-white rounded hover:bg-teal-600"><FileText size={12} /></button>
-                      <button title="Adresses" className="p-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"><MapPin size={12} /></button>
+                      <button title="Adresses livrées" onClick={() => openAddresses(d)} className="p-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"><MapPin size={12} /></button>
                       <button title="Détails appareil" onClick={() => openModal("deviceDetails", d)} className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"><Smartphone size={12} /></button>
                       <button title={d.approvalStatus === "Approved" ? "Révoquer approbation" : "Approuver"}
                         onClick={() => updateApproval(d, d.approvalStatus === "Approved" ? "Rejected" : "Approved")}
                         className={`p-1 ${d.approvalStatus === "Approved" ? "bg-red-400 hover:bg-red-500" : "bg-green-400 hover:bg-green-500"} text-white rounded`}>
                         {d.approvalStatus === "Approved" ? <PhoneOff size={12} /> : <Phone size={12} />}
                       </button>
-                      <button title="Toggle tracking" className="p-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"><ToggleLeft size={12} /></button>
-                      <button title="Déconnexion forcée" className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"><LogOut size={12} /></button>
+                      <button title={d.status === "Online" ? "Mettre hors ligne" : "Mettre en ligne"} onClick={() => toggleOnline(d)} className="p-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"><ToggleLeft size={12} /></button>
+                      <button title="Déconnexion forcée" onClick={() => forceLogout(d)} className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"><LogOut size={12} /></button>
                     </div>
                   </td>
                 </tr>
@@ -441,6 +463,54 @@ export default function DriversPage() {
           </div>
         </div>
       )}
+
+      <FormModal
+        open={editing !== null} title={editing === "new" ? "Ajouter un livreur" : `Modifier ${editing?.name ?? ""}`}
+        initial={editing && editing !== "new"
+          ? { name: editing.name, email: editing.email, phone: editing.phone ?? "", serviceArea: editing.serviceArea ?? "", vehicleType: editing.vehicleType ?? "", country: editing.country ?? "" }
+          : { country: "Sénégal", approvalStatus: "Pending" }}
+        fields={[
+          { key: "name", label: "Nom complet", required: true },
+          { key: "phone", label: "Téléphone", type: "tel", required: true },
+          { key: "email", label: "E-mail", type: "email", help: "Facultatif : généré à partir du téléphone si vide" },
+          { key: "serviceArea", label: "Zone", type: "select", options: zones },
+          { key: "vehicleType", label: "Véhicule", type: "select", options: vehicleTypes },
+          { key: "country", label: "Pays" },
+          ...(editing === "new" ? [{ key: "approvalStatus", label: "Approbation", type: "select" as const, required: true, options: [{ value: "Pending", label: "En attente" }, { value: "Approved", label: "Approuvé" }] }] : []),
+        ]}
+        onClose={() => setEditing(null)}
+        onSubmit={async (v) => {
+          const phone = String(v.phone ?? "").replace(/\D/g, "")
+          const body = { ...v, email: String(v.email || "") || (phone ? `livreur-${phone}@papeterie.sn` : "") }
+          const ok = editing === "new"
+            ? await run(() => adminFetch("/api/drivers", { method: "POST", body }), "Livreur ajouté")
+            : await run(() => adminFetch(`/api/drivers/${(editing as Driver).id}`, { method: "PATCH", body }), "Livreur modifié")
+          if (ok) { setEditing(null); fetchDrivers() }
+        }}
+      />
+
+      <DriverDetailModal id={viewId} onClose={() => setViewId(null)} />
+
+      {addrDriver && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setAddrDriver(null)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="font-semibold text-gray-800">Adresses livrées — <span data-no-i18n>{addrDriver.name}</span></h2>
+              <button onClick={() => setAddrDriver(null)} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Fermer">×</button>
+            </div>
+            <div className="p-4">
+              {addresses === null ? <p className="text-center text-sm text-gray-400">Chargement...</p>
+                : addresses.length === 0 ? <p className="text-center text-sm text-gray-400">Aucune livraison pour ce livreur.</p>
+                : <ul className="divide-y divide-gray-100">{addresses.map((a) => (
+                  <li key={a.address} className="flex items-start justify-between gap-3 py-2 text-sm">
+                    <a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address)}`} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline" data-no-i18n>{a.address}</a>
+                    <span className="shrink-0 text-xs text-gray-400">{a.count} livraison(s) · {fmtDate(a.lastUsed)}</span>
+                  </li>
+                ))}</ul>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -469,7 +539,7 @@ function DriverWalletHistory({ driverId }: { driverId: string }) {
           {transactions.map((tx) => (
             <tr key={tx.id} className="border-t">
               <td className="px-3 py-2 text-gray-500">{new Date(tx.createdAt).toLocaleDateString("fr-FR")}</td>
-              <td className={`px-3 py-2 ${tx.type === "Credit" ? "text-green-600" : "text-red-600"}`}>{tx.type === "Credit" ? "Crédit" : "Débit"}</td>
+              <td className={`px-3 py-2 ${/^cr/i.test(tx.type) ? "text-green-600" : "text-red-600"}`}>{/^cr/i.test(tx.type) ? "Crédit" : "Débit"}</td>
               <td className="px-3 py-2">{tx.amount.toLocaleString("fr-FR")} FCFA</td>
               <td className="px-3 py-2 text-gray-500">{tx.description ?? "—"}</td>
             </tr>

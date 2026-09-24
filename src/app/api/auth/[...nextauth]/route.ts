@@ -56,7 +56,13 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Profil modifié (page Mon profil) : met à jour nom / e-mail affichés sans reconnexion
+      if (trigger === "update" && session) {
+        const s = session as { name?: string; email?: string }
+        if (typeof s.name === "string") token.name = s.name
+        if (typeof s.email === "string") token.email = s.email
+      }
       if (user) {
         token.role = user.role
         token.permissions = (user as { permissions?: string[] }).permissions ?? []

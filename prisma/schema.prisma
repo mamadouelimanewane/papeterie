@@ -17,6 +17,7 @@ model User {
   userType     String        @default("Retail")
   signupType   String        @default("App/Admin")
   signupFrom   String        @default("Application")
+  sessionsRevokedAt DateTime? // déconnexion forcée : jetons émis avant cette date refusés
   country      String?
   status       String        @default("Active")
   registeredAt DateTime      @default(now())
@@ -40,6 +41,8 @@ model Driver {
   walletMoney    Float            @default(0)
   status         String           @default("Offline")
   approvalStatus String           @default("Approved")
+  rejectionReason String?
+  sessionsRevokedAt DateTime? // déconnexion forcée
   lastLocation   String?
   vehicleType    String?
   deviceToken    String?
@@ -60,6 +63,7 @@ model DriverDocument {
   type      String
   label     String
   fileUrl   String?
+  expiresAt DateTime?
   status    String   @default("Pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -156,14 +160,21 @@ model Country {
   name      String
   code      String   @unique
   flag      String?
+  phoneCode      String?
+  currency       String?
+  currencySymbol String?
   status    String   @default("Active")
   createdAt DateTime @default(now())
 }
 
 model ServiceArea {
-  id        String   @id @default(cuid())
-  name      String
-  country   String
+  id          String   @id @default(cuid())
+  name        String
+  country     String
+  lat         Float?
+  lng         Float?
+  radiusKm    Float?
+  deliveryFee Float?
   status    String   @default("Active")
   createdAt DateTime @default(now())
 }
@@ -217,6 +228,7 @@ model Admin {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
+  phone     String?
   password  String
   role      String   @default("SubAdmin")
   status    String   @default("Active")
@@ -307,4 +319,24 @@ model Role {
   status      String   @default("Active")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Stockage générique des modules du back-office sans table dédiée
+// (FAQ, pages, types de service, unités, modèles d'e-mail...). Une ligne = un élément.
+model AdminRecord {
+  id         String   @id @default(cuid())
+  collection String
+  data       Json
+  sequence   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([collection])
+}
+
+// Paramètres du back-office (formulaires « Enregistrer » de Configuration) : une clé = un formulaire.
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

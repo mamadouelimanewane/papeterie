@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { assertSessionActive } from "@/lib/mobileSession"
 import { verify } from "jsonwebtoken"
 
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
@@ -18,6 +19,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     let driverId: string
     try {
       const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
+      await assertSessionActive("driver", decoded)
       driverId = decoded.id
     } catch {
       return NextResponse.json({ error: "Token invalide" }, { status: 401 })

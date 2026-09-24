@@ -1,45 +1,42 @@
 "use client"
 
-import { Plus, Edit, Trash2 } from "lucide-react"
-import StatusBadge from "@/components/ui/StatusBadge"
+import CrudPage from "@/components/admin/CrudPage"
+import { STATUS_OPTIONS, DAYS } from "@/components/admin/FormModal"
 
-const mockSlots = [
-  { id: 1, name: "Matin", from: "08:00", to: "12:00", zone: "Dakar", status: "Active" },
-  { id: 2, name: "Midi", from: "12:00", to: "14:00", zone: "Dakar", status: "Active" },
-  { id: 3, name: "Après-midi", from: "14:00", to: "18:00", zone: "Dakar", status: "Active" },
-  { id: 4, name: "Soir", from: "18:00", to: "22:00", zone: "Toutes", status: "Active" },
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
+const SEED = [
+  { label: "Matin", startTime: "08:00", endTime: "12:00", daysOfWeek: ALL_DAYS, maxOrders: 30, status: "Active" },
+  { label: "Midi", startTime: "12:00", endTime: "14:00", daysOfWeek: ALL_DAYS, maxOrders: 15, status: "Active" },
+  { label: "Après-midi", startTime: "14:00", endTime: "18:00", daysOfWeek: ALL_DAYS, maxOrders: 30, status: "Active" },
+  { label: "Soir", startTime: "18:00", endTime: "21:00", daysOfWeek: [0, 1, 2, 3, 4, 5], maxOrders: 20, status: "Active" },
 ]
+const days = (v: unknown) => {
+  const d = Array.isArray(v) ? (v as number[]) : []
+  return d.length === 7 ? "Tous les jours" : d.length === 0 ? "—" : d.map((i) => DAYS[i]).join(", ")
+}
 
 export default function ServiceTimeSlotsPage() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2"><span>🕐</span> Créneaux horaires</h1>
-        <button className="flex items-center gap-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg"><Plus size={14} /> Ajouter</button>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>{["N°", "Nom", "Début", "Fin", "Zone", "Statut", "Action"].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{h}</th>)}</tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {mockSlots.map((s, i) => (
-              <tr key={s.id} className="hover:bg-gray-50/80">
-                <td className="px-4 py-3 text-gray-500">{i + 1}</td>
-                <td className="px-4 py-3 font-medium text-gray-800">{s.name}</td>
-                <td className="px-4 py-3 text-gray-600">{s.from}</td>
-                <td className="px-4 py-3 text-gray-600">{s.to}</td>
-                <td className="px-4 py-3 text-gray-600">{s.zone}</td>
-                <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
-                <td className="px-4 py-3 flex gap-1">
-                  <button className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600"><Edit size={12} /></button>
-                  <button className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600"><Trash2 size={12} /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <CrudPage
+      title="Créneaux de livraison" icon="🕐" itemLabel="un créneau" source="crud/time-slots" seed={SEED} exportName="creneaux"
+      description="Plages horaires proposées au client pour la livraison."
+      columns={[
+        { key: "label", label: "Nom", className: "px-4 py-3 font-medium text-gray-800" },
+        { key: "startTime", label: "Début" },
+        { key: "endTime", label: "Fin" },
+        { key: "daysOfWeek", label: "Jours", render: (r) => <span className="text-xs">{days(r.daysOfWeek)}</span>, csv: (r) => days(r.daysOfWeek) },
+        { key: "maxOrders", label: "Commandes max", render: (r) => String(r.maxOrders ?? "Illimité") },
+        { key: "status", label: "Statut" },
+      ]}
+      fields={[
+        { key: "label", label: "Nom", required: true },
+        { key: "maxOrders", label: "Commandes max", type: "number", min: 1, help: "Vide = illimité" },
+        { key: "startTime", label: "Début", type: "time", required: true },
+        { key: "endTime", label: "Fin", type: "time", required: true },
+        { key: "daysOfWeek", label: "Jours", type: "days" },
+        { key: "status", label: "Statut", type: "select", options: STATUS_OPTIONS, required: true },
+      ]}
+      defaults={{ daysOfWeek: ALL_DAYS }}
+    />
   )
 }

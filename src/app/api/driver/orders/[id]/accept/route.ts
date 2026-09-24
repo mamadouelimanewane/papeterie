@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { assertSessionActive } from "@/lib/mobileSession"
 import { verify } from "jsonwebtoken"
 
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
@@ -9,6 +10,7 @@ async function getDriverId(req: Request): Promise<string | null> {
   if (authHeader?.startsWith("Bearer ")) {
     try {
       const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
+      await assertSessionActive("driver", decoded)
       return decoded.id
     } catch {}
   }

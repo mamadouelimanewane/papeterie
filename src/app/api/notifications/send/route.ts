@@ -4,14 +4,16 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, message, segments, playerIds, imageUrl, notificationId } = await req.json()
+    const { title, message, segments, playerIds, externalIds, imageUrl, notificationId } = await req.json()
 
     if (!title || !message) {
       return NextResponse.json({ error: "title et message sont requis" }, { status: 400 })
     }
 
-    const appId = process.env.ONESIGNAL_APP_ID
-    const restApiKey = process.env.ONESIGNAL_REST_API_KEY
+    // Variables d'environnement en priorité, sinon clés enregistrées dans Configuration > Push
+    const saved = (await prisma.appSetting.findUnique({ where: { key: "push" } }))?.value as { appId?: string; restApiKey?: string } | undefined
+    const appId = process.env.ONESIGNAL_APP_ID || saved?.appId
+    const restApiKey = process.env.ONESIGNAL_REST_API_KEY || saved?.restApiKey
 
     let onesignalResult: { id: string; recipients: number } | null = null
 
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
         message,
         segments,
         playerIds,
+        externalIds: Array.isArray(externalIds) ? externalIds.map(String) : undefined,
         data: { imageUrl },
       })
     }
@@ -33,7 +36,7 @@ export async function POST(req: NextRequest) {
         where: { id: notificationId },
         data: { status: "Sent", sentAt: new Date() },
       })
-    } else {
+    } else if (!externalIds?.length) {
       await prisma.notification.create({
         data: {
           title,

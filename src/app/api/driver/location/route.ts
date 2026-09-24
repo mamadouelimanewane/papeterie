@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { assertSessionActive } from "@/lib/mobileSession"
 import { verify } from "jsonwebtoken"
 
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
@@ -13,6 +14,7 @@ export async function PUT(req: Request) {
 
     const token = authHeader.split(" ")[1]
     const decoded = verify(token, JWT_SECRET) as { id: string }
+    await assertSessionActive("driver", decoded)
 
     const { lat, lng } = await req.json()
     const lastLocation = `${lat},${lng}`

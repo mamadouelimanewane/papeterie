@@ -59,7 +59,9 @@ export async function POST(req: Request) {
         phone: data.phone ?? null,
         country: data.country ?? null,
         userType: data.userType ?? "Retail",
-        status: "Active",
+        signupType: typeof data.signupType === "string" ? data.signupType : "App/Admin",
+        signupFrom: typeof data.signupFrom === "string" ? data.signupFrom : "Application",
+        status: data.status === "Inactive" ? "Inactive" : "Active",
       },
     })
     return NextResponse.json(user, { status: 201 })
