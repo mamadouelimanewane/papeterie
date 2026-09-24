@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useCart, fmt } from "./useCart"
 import CartDrawer from "./CartDrawer"
 import RegisterModal from "./RegisterModal"
+import MyOrders from "./MyOrders"
 import { useClient } from "./useClient"
 
 type Product = { id: string; name: string; price: number; image?: string | null; category?: string | null; description?: string | null; stock?: number }
@@ -92,6 +93,7 @@ export default function ShopPage() {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un article..."
               className="w-full max-w-md rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-indigo-400" />
           </div>
+          <MyOrders />
           {client ? (
             <div className="ml-auto flex items-center gap-2 sm:ml-0">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700" title={`${client.firstName} ${client.lastName}`}>

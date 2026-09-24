@@ -150,31 +150,16 @@ export async function POST(req: Request) {
       versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod);
     if (wantsVersus) {
       try {
-        const { createVersusPayment } = await import("@/lib/versus");
-
-        // Option 1 : on initie le paiement sans service spécifique, pour récupérer le lien de paiement
-        const paymentResult = await createVersusPayment({
-          name: "Commande Papeterie " + order.orderId,
-          first_name: data.firstName ?? "Client",
-          last_name: data.lastName ?? "Papeterie",
-          external_reference: order.id, // Utilisé dans le webhook pour retrouver la commande
-          order_reference: order.orderId,
-          amount: order.total,
-          currency: "XOF",
-          phone_number: data.phone_number, // Optionnel
-          success_url: `https://${req.headers.get("host")}/checkout/success?orderId=${order.orderId}`,
-          failure_url: `https://${req.headers.get("host")}/checkout/failure?orderId=${order.orderId}`,
-          ...(data.service_id && data.payment_account_number ? {
-            service_id: data.service_id,
-            payment_account_number: data.payment_account_number
-          } : {}) // Option 2 (Mobile Money Direct)
+        const { startOrderPayment } = await import("@/lib/orderPayment");
+        const r = await startOrderPayment(order, req.headers.get("host") ?? "papeterie.vercel.app", {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone_number,
+          serviceId: data.service_id,
+          accountNumber: data.payment_account_number,
         });
-
-        if (paymentResult.success) {
-          paymentData = paymentResult;
-        } else {
-          paymentError = paymentResult.message ?? "Echec de l'initialisation du paiement Versus";
-        }
+        if (r.ok) paymentData = r.paymentData;
+        else paymentError = r.error;
       } catch (err) {
         console.error("Erreur création paiement Versus:", err);
         paymentError = err instanceof Error ? err.message : "Erreur d'initialisation du paiement Versus";

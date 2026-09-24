@@ -32,6 +32,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/gestion") return true // protege par MERCHANT_CODE dans la route
     if (pathname === "/api/promo") return true // validation code promo (vitrine)
     if (pathname === "/api/shop/register") return true // inscription client vitrine (nom, prenom, tel)
+    if (pathname === "/api/shop/pay") return true // relance du paiement en ligne d'une commande non reglee
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
     if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
     if (pathname === "/api/admin/fix-images") return true // protege par SEED_SECRET
@@ -44,6 +45,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/slider") return true
     if (pathname === "/api/store") return true // boutique active (vitrine mono-boutique)
     if (pathname === "/api/kits") return true // kits par classe (vitrine)
+    if (pathname === "/api/shop/order-status") return true // suivi de commande sans donnees personnelles
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true

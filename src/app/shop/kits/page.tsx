@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useCart, fmt } from "../useCart"
 import CartDrawer from "../CartDrawer"
+import MyOrders from "../MyOrders"
 
 type KitItem = { name: string; price: number; qty: number }
 type Kit = { id: string; name: string; level: string; series?: string | null; cycle: string; description?: string | null; image?: string | null; price: number; discountPct?: number; items: KitItem[] }
@@ -68,7 +69,8 @@ export default function KitsPage() {
             <div className="font-extrabold tracking-tight text-indigo-700">Kits scolaires par classe</div>
             <div className="text-[11px] text-slate-400">De la CI à la Terminale (L, S1, S2)</div>
           </div>
-          <button onClick={() => setCartOpen(true)} className="relative ml-auto grid h-10 w-10 place-items-center rounded-full bg-slate-100">
+          <div className="ml-auto"><MyOrders /></div>
+          <button onClick={() => setCartOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full bg-slate-100">
             {"🛒"}
             {count > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white">{count}</span>}
           </button>
