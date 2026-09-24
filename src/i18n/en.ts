@@ -351,6 +351,17 @@ export const EN: Record<string, string> = {
   "📈 Commandes & Revenus (7 jours)": "📈 Orders & revenue (7 days)",
   "Schoolmatik — Espace boutique": "Schoolmatik — Store area",
   "Revenus boutique": "Store revenue", "Priorité : Haute": "Priority: high",
+
+  // ── Pilotage d'une commande ──
+  "Suivi": "Tracking", "— Non assigné —": "— Unassigned —", "Livreur attribué": "Rider assigned", "Livreur retiré": "Rider removed",
+  "Paiement reçu": "Payment received", "Paiement enregistré": "Payment recorded", "Non payé": "Unpaid", "Payé ✓": "Paid ✓",
+  "Enregistrer le paiement ?": "Record the payment?", "Marquer la commande comme livrée ?": "Mark the order as delivered?",
+  "Annuler cette commande ?": "Cancel this order?", "Annuler la commande": "Cancel order", "Commande annulée": "Order cancelled",
+  "Le stock des articles est restitué.": "Item stock is restored.",
+  "Pensez à enregistrer l'encaissement si le client a payé en espèces.": "Remember to record the payment if the customer paid cash.",
+  "À utiliser pour un paiement en espèces à la livraison (les paiements en ligne sont confirmés automatiquement).": "Use for cash on delivery (online payments are confirmed automatically).",
+  "→ En préparation": "→ Preparing", "→ En livraison": "→ Out for delivery", "→ Livrée": "→ Delivered",
+  "Commande : en préparation": "Order: preparing", "Commande : en livraison": "Order: out for delivery", "Commande : livrée": "Order: delivered",
 }
 
 type Tr = (s: string) => string

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Download, Info, Search, RefreshCw, Eye } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import { useFeedback } from "@/components/admin/Feedback"
+import OrderActions from "@/components/admin/OrderActions"
 
 interface OrderDriver {
   name: string
@@ -286,6 +287,7 @@ export default function OrdersPage() {
                 </div>
               ))}
             </div>
+            <OrderActions key={selectedOrder.id} orderId={selectedOrder.id} onChanged={fetchOrders} />
             <div className="flex justify-end p-4 border-t">
               <button onClick={() => setSelectedOrder(null)} className="px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600">Fermer</button>
             </div>
