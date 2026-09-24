@@ -36,8 +36,10 @@ export default function MyOrders() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="whitespace-nowrap rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200">
-        {"📦"} Mes commandes
+      <button onClick={() => setOpen(true)} aria-label="Mes commandes" title="Mes commandes"
+        className="grid h-10 shrink-0 place-items-center whitespace-nowrap rounded-full bg-slate-100 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-200">
+        {/* Icône seule sur téléphone */}
+        <span>{"📦"}<span className="hidden sm:inline"> Mes commandes</span></span>
       </button>
       {/* Rendu dans <body> : l'en-tête (backdrop-blur) piégerait un élément « fixed » */}
       {open && createPortal(

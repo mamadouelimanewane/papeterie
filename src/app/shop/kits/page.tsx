@@ -63,14 +63,14 @@ export default function KitsPage() {
     <div className="min-h-screen bg-slate-50 text-slate-800">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-          <Link href="/shop" className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-600" aria-label="Retour">&larr;</Link>
-          <div className="leading-tight">
-            <div className="font-extrabold tracking-tight text-indigo-700">Kits scolaires par classe</div>
-            <div className="text-[11px] text-slate-400">De la CI à la Terminale (L, S1, S2)</div>
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-4">
+          <Link href="/shop" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600" aria-label="Retour">&larr;</Link>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="truncate font-extrabold tracking-tight text-indigo-700">Kits scolaires par classe</div>
+            <div className="truncate text-[11px] text-slate-400">De la CI à la Terminale (L, S1, S2)</div>
           </div>
-          <div className="ml-auto"><MyOrders /></div>
-          <button onClick={() => setCartOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full bg-slate-100">
+          <MyOrders />
+          <button onClick={() => setCartOpen(true)} aria-label="Panier" className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100">
             {"🛒"}
             {count > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white">{count}</span>}
           </button>
