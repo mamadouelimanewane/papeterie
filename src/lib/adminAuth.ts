@@ -9,6 +9,7 @@ import { hasPerm } from "@/lib/permissions"
 export async function requireAdmin(req: NextRequest, perm?: string | null): Promise<JWT | NextResponse> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+  if (token.role === "merchant") return NextResponse.json({ error: "Accès non autorisé" }, { status: 403 })
   if (perm && !hasPerm(token.permissions as string[] | undefined, perm)) {
     return NextResponse.json({ error: "Accès non autorisé" }, { status: 403 })
   }

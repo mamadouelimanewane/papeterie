@@ -1,15 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Info, Search, RefreshCw, Edit, Eye, BarChart2, Copy, Check, X, ExternalLink } from "lucide-react"
+import { Plus, Info, Search, RefreshCw, Edit, Eye, BarChart2, Copy, Check, X, KeyRound, Loader2, ShieldOff } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import Link from "next/link"
 import FormModal from "@/components/admin/FormModal"
 import { useFeedback, useAction } from "@/components/admin/Feedback"
 import { useOptions } from "@/hooks/useAdminData"
 import { adminFetch } from "@/lib/adminApi"
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
 interface Store {
   id: string
@@ -28,25 +26,28 @@ interface Store {
   _count: { orders: number; products: number }
 }
 
-function generateToken(storeId: string, email: string): string {
-  return btoa(`store:${storeId}:${email}:papeterie2024`).replace(/=/g, "")
+interface AccessState {
+  hasPassword: boolean
+  invitePending: boolean
+  inviteExpiresAt: string | null
+  lastLoginAt: string | null
 }
 
-function getLoginUrl(store: Store): string {
-  const token = generateToken(store.id, store.email)
-  const base = BASE_URL || (typeof window !== "undefined" ? window.location.origin : "")
-  return `${base}/merchant/login?store=${store.id}&token=${token}`
-}
+const fmtDateTime = (d: string | null) =>
+  d ? new Date(d).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—"
 
 export default function StoresPage() {
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState({ name: "", email: "", phone: "" })
   const [urlModal, setUrlModal] = useState<{ open: boolean; store: Store | null }>({ open: false, store: null })
+  const [access, setAccess] = useState<AccessState | null>(null)
+  const [invite, setInvite] = useState<{ url: string; expiresAt: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [editing, setEditing] = useState<Store | "new" | null>(null)
   const zones = useOptions("crud/service-areas")
-  const { toast } = useFeedback()
+  const { toast, confirm } = useFeedback()
   const run = useAction()
 
   const fetchStores = useCallback(async () => {
@@ -71,11 +72,49 @@ export default function StoresPage() {
       (s.phone ?? "").includes(search.phone)
   )
 
-  const openUrlModal = (store: Store) => { setUrlModal({ open: true, store }); setCopied(false) }
+  const loadAccess = async (store: Store) => {
+    setAccess(null)
+    try { setAccess(await adminFetch<AccessState>(`/api/admin/stores/${store.id}/access`)) }
+    catch (e) { toast(e instanceof Error ? e.message : "Erreur", "error") }
+  }
+
+  const openUrlModal = (store: Store) => {
+    setUrlModal({ open: true, store }); setInvite(null); setCopied(false); loadAccess(store)
+  }
+  const closeUrlModal = () => { setUrlModal({ open: false, store: null }); setInvite(null) }
+
+  // Le lien est généré côté serveur (jeton aléatoire, usage unique, 72 h) et n'est affiché qu'une fois.
+  const generateInvite = async () => {
+    const store = urlModal.store
+    if (!store) return
+    if (access?.hasPassword && !(await confirm({
+      title: "Générer un nouveau lien ?",
+      message: "Le marchand a déjà un mot de passe. Le lien lui permettra d'en définir un nouveau (l'ancien reste valable d'ici là).",
+      confirmLabel: "Générer",
+    }))) return
+    setBusy(true)
+    try {
+      setInvite(await adminFetch<{ url: string; expiresAt: string }>(`/api/admin/stores/${store.id}/access`, { method: "POST" }))
+      setCopied(false)
+      loadAccess(store)
+    } catch (e) { toast(e instanceof Error ? e.message : "Erreur", "error") }
+    finally { setBusy(false) }
+  }
+
+  const revokeAccess = async () => {
+    const store = urlModal.store
+    if (!store || !(await confirm({
+      title: "Révoquer l'accès marchand ?",
+      message: `${store.name} sera déconnecté immédiatement ; mot de passe et lien en cours seront effacés.`,
+      confirmLabel: "Révoquer", danger: true,
+    }))) return
+    const ok = await run(() => adminFetch(`/api/admin/stores/${store.id}/access`, { method: "DELETE" }), "Accès révoqué")
+    if (ok) { setInvite(null); loadAccess(store) }
+  }
 
   const copyUrl = async () => {
-    if (!urlModal.store) return
-    await navigator.clipboard.writeText(getLoginUrl(urlModal.store))
+    if (!invite) return
+    await navigator.clipboard.writeText(invite.url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -92,7 +131,7 @@ export default function StoresPage() {
           <button onClick={() => setEditing("new")} title="Ajouter une boutique" className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center">
             <Plus size={16} />
           </button>
-          <button onClick={() => toast("Mode mono-boutique : la vitrine /shop affiche la boutique active (variable ACTIVE_STORE_ID, sinon la première boutique active). Le lien de connexion donne accès à l'espace marchand.", "info")} title="Aide" className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center">
+          <button onClick={() => toast("Mode mono-boutique : la vitrine /shop affiche la boutique active (variable ACTIVE_STORE_ID, sinon la première boutique active). Le bouton « Accès marchand » génère un lien d'invitation (usage unique, 72 h) pour que le responsable définisse son mot de passe de l'espace marchand.", "info")} title="Aide" className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center">
             <Info size={16} />
           </button>
         </div>
@@ -132,7 +171,7 @@ export default function StoresPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              {["N°", "Coordonnées", "Adresse", "Commandes", "Produits", "URL connexion", "Note", "Solde (FCFA)", "Statut", "Action"].map((h) => (
+              {["N°", "Coordonnées", "Adresse", "Commandes", "Produits", "Accès marchand", "Note", "Solde (FCFA)", "Statut", "Action"].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">{h}</th>
               ))}
             </tr>
@@ -157,7 +196,7 @@ export default function StoresPage() {
                   <td className="px-4 py-3">
                     <button onClick={() => openUrlModal(store)}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white text-xs rounded-lg hover:bg-indigo-600">
-                      <Copy size={12} /> URL connexion
+                      <KeyRound size={12} /> Accès marchand
                     </button>
                   </td>
                   <td className="px-4 py-3">
@@ -185,47 +224,76 @@ export default function StoresPage() {
         </div>
       </div>
 
-      {/* URL Modal */}
+      {/* Accès marchand */}
       {urlModal.open && urlModal.store && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <h2 className="text-base font-semibold text-gray-800">URL de connexion</h2>
-                <p className="text-xs text-gray-500 mt-0.5">{urlModal.store.name}</p>
+                <h2 className="text-base font-semibold text-gray-800">Accès à l&apos;espace marchand</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{urlModal.store.name} · {urlModal.store.email}</p>
               </div>
-              <button onClick={() => setUrlModal({ open: false, store: null })} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button onClick={closeUrlModal} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <X size={18} />
               </button>
             </div>
             <div className="px-6 py-5 space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-xl">🏫</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-gray-400">Mot de passe</div>
+                  <div className="font-medium text-gray-700 mt-0.5">{access ? (access.hasPassword ? "Défini" : "Non défini") : "…"}</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-gray-400">Invitation en cours</div>
+                  <div className="font-medium text-gray-700 mt-0.5">{access ? (access.invitePending ? `jusqu'au ${fmtDateTime(access.inviteExpiresAt)}` : "Aucune") : "…"}</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-gray-400">Dernière connexion</div>
+                  <div className="font-medium text-gray-700 mt-0.5">{access ? fmtDateTime(access.lastLoginAt) : "…"}</div>
+                </div>
+              </div>
+
+              {invite ? (
                 <div>
-                  <div className="font-medium text-gray-800 text-sm">{urlModal.store.name}</div>
-                  <div className="text-xs text-gray-500">{urlModal.store.email}</div>
+                  <label className="text-xs font-semibold text-gray-600 mb-2 block">Lien d&apos;invitation (valable jusqu&apos;au {fmtDateTime(invite.expiresAt)})</label>
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <span data-no-i18n className="text-xs text-gray-600 break-all font-mono">{invite.url}</span>
+                  </div>
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-3 mt-3">
+                    Ce lien ne sera plus affiché : copiez-le maintenant et transmettez-le au seul responsable de la boutique
+                    (il ne fonctionne qu&apos;une fois). Il lui permet de choisir son mot de passe ; il se connectera ensuite
+                    sur /merchant/login avec l&apos;e-mail de la boutique.
+                  </p>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-2 block">Lien de connexion</label>
-                <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                  <span className="text-xs text-gray-600 break-all flex-1 font-mono">{getLoginUrl(urlModal.store)}</span>
+              ) : (
+                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <p className="text-xs text-indigo-700">
+                    Générez un lien d&apos;invitation sécurisé (usage unique, 72 h) pour que le responsable définisse — ou
+                    réinitialise — son mot de passe. Un nouveau lien annule le précédent.
+                  </p>
                 </div>
-              </div>
-              <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                <p className="text-xs text-indigo-700">📧 Envoyez ce lien au responsable pour lui donner accès à son espace de gestion.</p>
-              </div>
+              )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
-              <button onClick={copyUrl}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium ${copied ? "bg-green-500 text-white" : "bg-indigo-500 hover:bg-indigo-600 text-white"}`}>
-                {copied ? <Check size={16} /> : <Copy size={16} />}
-                {copied ? "Copié !" : "Copier le lien"}
-              </button>
-              <a href={getLoginUrl(urlModal.store)} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium">
-                <ExternalLink size={16} /> Ouvrir
-              </a>
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3">
+              {invite ? (
+                <button onClick={copyUrl}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium ${copied ? "bg-green-500 text-white" : "bg-indigo-500 hover:bg-indigo-600 text-white"}`}>
+                  {copied ? <Check size={16} /> : <Copy size={16} />}
+                  {copied ? "Copié !" : "Copier le lien"}
+                </button>
+              ) : (
+                <button onClick={generateInvite} disabled={busy || !access}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white">
+                  {busy ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+                  Générer un lien d&apos;invitation
+                </button>
+              )}
+              {access && (access.hasPassword || access.invitePending) && (
+                <button onClick={revokeAccess}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium">
+                  <ShieldOff size={16} /> Révoquer
+                </button>
+              )}
             </div>
           </div>
         </div>

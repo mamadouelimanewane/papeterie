@@ -76,7 +76,12 @@ model Store {
   email       String    @unique
   address     String?
   image       String?
-  loginUrl    String?
+  loginUrl    String? // obsolète (ancien lien prévisible), conservé pour compatibilité
+  password    String? // espace marchand : hash bcrypt, défini par le marchand via son lien d'invitation
+  inviteTokenHash String? @unique // SHA-256 du jeton d'invitation (le jeton en clair n'est jamais stocké)
+  inviteExpiresAt DateTime?
+  sessionsRevokedAt DateTime? // révocation d'accès : sessions marchand émises avant cette date refusées
+  lastLoginAt DateTime?
   rating      Float     @default(5.0)
   walletMoney Float     @default(0)
   status      String    @default("Active")
