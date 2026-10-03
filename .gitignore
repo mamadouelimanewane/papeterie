@@ -53,3 +53,7 @@ papeterie-release.keystore.b64
 *.jks
 *.b64
 out.txt
+
+# donnees commerciales (stock/prix) : ne pas publier
+/data/
+/tmp/out.json
