@@ -1,0 +1,3 @@
+Deposez ici les photos produits, nommees par code-barres : <code-barres>.jpg (ou .png/.webp).
+Exemple : 9791039565134.jpg
+Le prochain `npm run import:moukat -- --apply` les rattache automatiquement aux produits.

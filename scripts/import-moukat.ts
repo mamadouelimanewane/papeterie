@@ -9,7 +9,7 @@
  *
  * Regenerer data/moukat.json : node scripts/xlsx-to-json.mjs "<fichier.xlsx>"
  */
-import { readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 
@@ -88,6 +88,14 @@ export const CATEGORY_IMAGE: Record<string, string | null> = {
   "Sacs & trousses": U("photo-1588072432836-e10032774350"),
 }
 
+// Photo reelle : public/products/<code-barres>.(jpg|jpeg|png|webp) prime sur l'image de categorie.
+function localPhoto(barcode: string): string | null {
+  for (const ext of ["jpg", "jpeg", "png", "webp"]) {
+    if (existsSync(`public/products/${barcode}.${ext}`)) return `/products/${barcode}.${ext}`
+  }
+  return null
+}
+
 // ---------------------------------------------------------------- niveaux scolaires (livres)
 const LEVEL_RE = /\b(CI|CP|CE1|CE2|CM1|CM2|6EME|5EME|4EME|3EME|2NDE|1ERE|TERMINALE|TLE|PS|MS|GS)\b/
 const LEVEL_LABEL: Record<string, string> = {
@@ -115,7 +123,7 @@ export function buildCatalogue(rows: Row[]): Item[] {
       stock: Math.max(0, Math.round(r.qty)),
       category,
       description: lv ? `Niveau : ${LEVEL_LABEL[lv] ?? lv}` : null,
-      image: CATEGORY_IMAGE[category] ?? null,
+      image: localPhoto(r.code) ?? CATEGORY_IMAGE[category] ?? null,
     }
   })
 }
@@ -127,7 +135,7 @@ function report(items: Item[]) {
   console.log(`\n${items.length} produits`)
   for (const c of CATEGORIES) console.log(`  ${c.padEnd(34)} ${byCat.get(c) ?? 0}`)
   console.log(`Stock : ${items.reduce((s, i) => s + i.stock, 0)} unites, valeur ${items.reduce((s, i) => s + i.stock * i.price, 0).toLocaleString("fr-FR")} F`)
-  console.log(`Sans image : ${items.filter((i) => !i.image).length}`)
+  console.log(`Sans image : ${items.filter((i) => !i.image).length} | photos reelles : ${items.filter((i) => i.image?.startsWith('/products/')).length}`)
   const codes = new Set(items.map((i) => i.barcode))
   if (codes.size !== items.length) console.log(`ATTENTION : ${items.length - codes.size} code(s)-barres en double`)
   console.log("\nExemples :")
@@ -161,7 +169,7 @@ async function apply(items: Item[]) {
       const existing = await prisma.product.findUnique({ where: { barcode: it.barcode } })
       if (existing) {
         // Reimport : prix, stock et categorie suivent le fichier ; nom/image/description retouches a la main sont conserves.
-        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active" } })
+        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active", ...(it.image?.startsWith("/products/") ? { image: it.image } : {}) } })
         updated++
       } else {
         await prisma.product.create({ data: { ...it, storeId: store.id, status: "Active" } })
