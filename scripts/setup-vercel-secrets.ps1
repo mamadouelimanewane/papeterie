@@ -68,8 +68,8 @@ if (-not [string]::IsNullOrEmpty($envMap["CORS_ORIGINS"])) { $names += "CORS_ORI
 function Push-Var([string]$name, [string]$value, [string]$target, [string]$branch) {
   $vargs = @($name, $target)
   if ($branch) { $vargs += $branch }
-  try { vercel env rm @args -y 2>$null | Out-Null } catch {}   # retire l'ancienne valeur si presente
-  $value | vercel env add @args | Out-Null
+  try { vercel env rm @vargs -y 2>$null | Out-Null } catch {}   # retire l'ancienne valeur si presente
+  $value | vercel env add @vargs | Out-Null
   if ($LASTEXITCODE -eq 0) {
     Write-Host "OK $name -> $target$(if ($branch) { " ($branch)" }) (longueur $($value.Length))"
   } else {
