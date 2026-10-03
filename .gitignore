@@ -47,3 +47,9 @@ next-env.d.ts
 
 papeterie-release.keystore
 papeterie-release.keystore.b64
+
+# secrets / artefacts
+*.keystore
+*.jks
+*.b64
+out.txt

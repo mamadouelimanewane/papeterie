@@ -49,7 +49,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           total: goods, subtotal: total, deliveryFee: 500, paymentMethod: method,
-          items: cart.map((x) => ({ name: x.name, price: x.price, qty: x.qty })),
+          items: cart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
           notes: "Commande web (/shop)",

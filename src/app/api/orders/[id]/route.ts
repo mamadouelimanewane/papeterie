@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { hasAdminSession, verifyBearer } from "@/lib/auth"
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const admin = await hasAdminSession()
+    const bearer = verifyBearer(req)
+    if (!admin && !bearer) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
@@ -12,6 +16,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       },
     })
     if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
+    if (!admin) {
+      const isOwner = order.userId === bearer!.id
+      const isDriver = order.driverId === bearer!.id
+      if (!isOwner && !isDriver) return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      // Le livreur ne voit pas l'OTP de livraison : c'est le client qui le lui communique.
+      if (!isOwner) return NextResponse.json({ ...order, deliveryOtp: undefined })
+    }
     return NextResponse.json(order)
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"
@@ -23,6 +34,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params
     const data = await req.json()
+    const admin = await hasAdminSession()
+    const bearer = verifyBearer(req)
+    if (!admin && !bearer) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
 
     // Troubleshooting: Find order first to check OTPs
     const order = await prisma.order.findFirst({
@@ -30,6 +44,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     })
 
     if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
+
+    // Un livreur (JWT) ne peut agir que sur ses commandes et ne modifie que statut/signature.
+    if (!admin && order.driverId !== bearer!.id) {
+      return NextResponse.json({ error: "Commande non assignee" }, { status: 403 })
+    }
 
     const update: Record<string, unknown> = {}
     
@@ -46,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       update.signature = data.signature
     }
 
-    const allowed = ["status", "paymentStatus", "driverId", "notes", "signature"]
+    const allowed = admin ? ["status", "paymentStatus", "driverId", "notes", "signature"] : ["status", "signature"]
     for (const key of allowed) {
       if (key in data) update[key] = data[key]
     }

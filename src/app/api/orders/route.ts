@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { randomInt } from "crypto"
+import { verifyBearer } from "@/lib/auth"
+import { DELIVERY_FEE, PricingError, priceItems, promoDiscount } from "@/lib/pricing"
 
 export async function GET(req: NextRequest) {
   try {
@@ -60,84 +63,59 @@ export async function POST(req: Request) {
     const { getActiveStoreId } = await import("@/lib/store")
     const storeId: string | null = data.storeId ?? (await getActiveStoreId())
 
-    if (!storeId || !data.total || !data.items) {
-      return NextResponse.json({ error: "storeId (ou boutique active), total et items sont requis" }, { status: 400 })
+    if (!storeId || !data.items) {
+      return NextResponse.json({ error: "storeId (ou boutique active) et items sont requis" }, { status: 400 })
     }
 
-    // Extraire userId depuis le token JWT si présent
-    let userId: string | null = null
-    const authHeader = req.headers.get("authorization")
-    if (authHeader?.startsWith("Bearer ")) {
-      try {
-        const { verify } = await import("jsonwebtoken")
-        const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
-        const decoded = verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string }
-        userId = decoded.id
-      } catch {}
-    }
-
-    const items = Array.isArray(data.items) ? data.items : [];
+    // userId uniquement depuis un JWT valide (jamais depuis le corps de la requete)
+    const userId: string | null = verifyBearer(req)?.id ?? null
 
     const order = await prisma.$transaction(async (tx) => {
-      // 1. Verifier et decrementer le stock
-      const productIds = items.map((i: any) => i.productId).filter(Boolean);
-      if (productIds.length > 0) {
-        const productsInDb = await tx.product.findMany({ where: { id: { in: productIds } } });
-        
-        for (const item of items) {
-           if (!item.productId) continue;
-           const prod = productsInDb.find(p => p.id === item.productId);
-           if (!prod) {
-             throw new Error(`Produit introuvable : ${item.name}`);
-           }
-           if (typeof prod.stock === "number" && prod.stock < item.quantity) {
-             throw new Error(`Stock insuffisant pour : ${item.name} (Reste : ${prod.stock})`);
-           }
-        }
-        
-        for (const item of items) {
-           if (!item.productId) continue;
-           await tx.product.update({
-              where: { id: item.productId },
-              data: { stock: { decrement: item.quantity } }
-           });
-        }
+      // 1. Prix recalcules depuis la base (le client ne fixe jamais les montants)
+      const items = await priceItems(tx, storeId, data.items)
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
+      const promo = await promoDiscount(tx, data.promoCode, subtotal)
+      const total = subtotal - promo.amount + DELIVERY_FEE
+      if (!(total > 0)) throw new PricingError("Montant invalide")
+
+      // 2. Verifier et decrementer le stock (decrement conditionnel : pas de stock negatif)
+      for (const item of items) {
+        if (!item.productId) continue
+        const r = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        })
+        if (r.count === 0) throw new PricingError(`Stock insuffisant pour : ${item.name}`)
+      }
+
+      if (promo.code) {
+        await tx.promoCode.update({ where: { code: promo.code }, data: { usedCount: { increment: 1 } } })
       }
 
       const orderId = "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 1000)
       const invoiceId = "INV-" + orderId.split("-")[1]
-      const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString()
+      const deliveryOtp = randomInt(100000, 1000000).toString()
 
       return tx.order.create({
         data: {
           orderId,
           invoiceId,
           storeId,
-          userId: userId ?? data.userId ?? null,
-          total: Number(data.total),
-          subtotal: Number(data.subtotal ?? data.total),
-          deliveryFee: Number(data.deliveryFee ?? 500),
-          earning: Number(data.total) * 0.1,
+          userId,
+          total,
+          subtotal,
+          deliveryFee: DELIVERY_FEE,
+          earning: subtotal * 0.1,
           status: "Pending",
           paymentMethod: data.paymentMethod ?? "Cash",
           paymentStatus: "En attente",
-          items: data.items,
+          items,
           address: data.address ?? null,
-          notes: [data.notes, data.promoCode ? `[Promo: ${data.promoCode}]` : null].filter(Boolean).join(" ") || null,
+          notes: [data.notes, promo.code ? `[Promo: ${promo.code}]` : null].filter(Boolean).join(" ") || null,
           deliveryOtp,
         },
       });
     });
-
-    // Code promo : incremente le compteur d'utilisation (best-effort)
-    if (data.promoCode) {
-      try {
-        await prisma.promoCode.update({
-          where: { code: String(data.promoCode).trim().toUpperCase() },
-          data: { usedCount: { increment: 1 } },
-        })
-      } catch {}
-    }
 
     let paymentData: unknown = null;
     let paymentError: string | null = null;
@@ -185,7 +163,8 @@ export async function POST(req: Request) {
       { status: 201 }
     )
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    if (error instanceof PricingError) return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error("[orders-post]", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }

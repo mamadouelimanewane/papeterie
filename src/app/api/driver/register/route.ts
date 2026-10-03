@@ -1,11 +1,15 @@
 ﻿import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 import bcrypt from "bcryptjs"
 import { sign } from "jsonwebtoken"
 
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
 
 export async function POST(req: Request) {
+  if (!rateLimit("driver-register:" + clientIp(req), 5, 60 * 60_000)) {
+    return NextResponse.json({ error: "Trop de tentatives, reessayez plus tard" }, { status: 429, headers: { "Retry-After": "900" } })
+  }
   try {
     const { name, email, phone, password, vehicleType, serviceArea } = await req.json()
 
@@ -51,7 +55,7 @@ export async function POST(req: Request) {
     const token = sign(
       { id: driver.id, driverId: driver.driverId, name: driver.name, email: driver.email },
       JWT_SECRET,
-      { expiresIn: "30d" }
+      { expiresIn: "7d" }
     )
 
     return NextResponse.json({
