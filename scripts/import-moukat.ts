@@ -3,8 +3,9 @@
  *
  *   npm run import:moukat                      -> DRY-RUN : rapport, aucune ecriture, pas de base requise
  *   npm run import:moukat -- --apply           -> ecrit en base (upsert par code-barres)
- *   npm run import:moukat -- --apply --replace-demo
- *                                              -> masque (status Inactive) les produits sans code-barres
+ *   npm run import:moukat -- --apply --hide data/a-masquer.txt
+ *                                              -> masque (status Inactive) les produits existants dont le nom
+ *                                                 figure dans le fichier (un nom exact par ligne). Rien n'est supprime.
  *   npm run import:moukat -- --json out.json   -> exporte le catalogue normalise
  *
  * Regenerer data/moukat.json : node scripts/xlsx-to-json.mjs "<fichier.xlsx>"
@@ -21,7 +22,7 @@ export type Item = {
 
 const args = process.argv.slice(2)
 const APPLY = args.includes("--apply")
-const REPLACE_DEMO = args.includes("--replace-demo")
+const hideFile = args.includes("--hide") ? args[args.indexOf("--hide") + 1] : null
 const jsonOut = args.includes("--json") ? args[args.indexOf("--json") + 1] : null
 
 // ---------------------------------------------------------------- nettoyage des noms
@@ -178,9 +179,10 @@ async function apply(items: Item[]) {
     }
     console.log(`Produits : ${created} crees, ${updated} mis a jour`)
 
-    if (REPLACE_DEMO) {
-      const r = await prisma.product.updateMany({ where: { storeId: store.id, barcode: null }, data: { status: "Inactive" } })
-      console.log(`Produits de demo masques (Inactive) : ${r.count}`)
+    if (hideFile) {
+      const names = readFileSync(hideFile, "utf8").split(String.fromCharCode(10)).map((l) => l.trim()).filter(Boolean)
+      const r = await prisma.product.updateMany({ where: { storeId: store.id, barcode: null, name: { in: names } }, data: { status: "Inactive" } })
+      console.log(`Produits masques (Inactive) : ${r.count} / ${names.length} noms listes`)
     }
   } finally {
     await prisma.$disconnect()
