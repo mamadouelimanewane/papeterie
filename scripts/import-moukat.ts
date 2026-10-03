@@ -124,7 +124,9 @@ export function buildCatalogue(rows: Row[]): Item[] {
       stock: Math.max(0, Math.round(r.qty)),
       category,
       description: lv ? `Niveau : ${LEVEL_LABEL[lv] ?? lv}` : null,
-      image: localPhoto(r.code) ?? CATEGORY_IMAGE[category] ?? null,
+      // Pas de photo generique par produit : la meme image repetee 270 fois trompe le client.
+      // Sans photo reelle, la vitrine affiche son pictogramme de categorie.
+      image: localPhoto(r.code),
     }
   })
 }
@@ -178,6 +180,9 @@ async function apply(items: Item[]) {
       }
     }
     console.log(`Produits : ${created} crees, ${updated} mis a jour`)
+    // Nettoie les images generiques posees par une version precedente du script
+    const cleaned = await prisma.product.updateMany({ where: { storeId: store.id, barcode: { not: null }, image: { startsWith: "https://images.unsplash.com/" } }, data: { image: null } })
+    if (cleaned.count) console.log(`Images generiques retirees : ${cleaned.count}`)
 
     if (hideFile) {
       const names = readFileSync(hideFile, "utf8").split(String.fromCharCode(10)).map((l) => l.trim()).filter(Boolean)

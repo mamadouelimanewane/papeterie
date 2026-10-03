@@ -11,7 +11,19 @@ type Store = { id: string; name: string; address?: string | null; phone?: string
 const CAT_EMOJI: Record<string, string> = {
   Livres: "📚", Cahiers: "📓", Fournitures: "✏️", Geometrie: "📐",
   "Art & Creativite": "🎨", Informatique: "💻", Sport: "⚽",
+  "Écriture & coloriage": "🖍️", "Colle, ciseaux & petit matériel": "✂️", "Papier & blocs": "🗒️",
+  "Classement & rangement": "🗂️", "Protège & couvre-livres": "📘", "Sacs & trousses": "🎒",
+  "Gourdes & boîtes repas": "🥤", "Art & loisirs créatifs": "🎨", Bureau: "🖥️", Géométrie: "📐",
 }
+
+// Ordre d'affichage des categories (les autres suivent, par ordre alphabetique)
+const CAT_ORDER = [
+  "Livres", "Cahiers", "Écriture & coloriage", "Géométrie", "Geometrie", "Colle, ciseaux & petit matériel",
+  "Papier & blocs", "Classement & rangement", "Protège & couvre-livres", "Sacs & trousses",
+  "Gourdes & boîtes repas", "Art & loisirs créatifs", "Bureau",
+]
+const catRank = (c?: string | null) => { const i = CAT_ORDER.indexOf(c ?? ""); return i === -1 ? CAT_ORDER.length : i }
+const PAGE_SIZE = 60
 
 export default function ShopPage() {
   const [store, setStore] = useState<Store | null>(null)
@@ -35,7 +47,15 @@ export default function ShopPage() {
 
   const showToast = (msg: string) => setToast((t) => ({ msg, n: (t?.n ?? 0) + 1 }))
 
-  const products = store?.products ?? []
+  const products = useMemo(
+    () => [...(store?.products ?? [])].sort(
+      (a, b) =>
+        catRank(a.category) - catRank(b.category) ||
+        Number(!!b.image) - Number(!!a.image) || // produits illustres d'abord
+        a.name.localeCompare(b.name, "fr")
+    ),
+    [store]
+  )
   const categories = useMemo(
     () => ["Tout", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))],
     [products]
@@ -43,6 +63,9 @@ export default function ShopPage() {
   const filtered = products.filter(
     (p) => (activeCat === "Tout" || p.category === activeCat) && p.name.toLowerCase().includes(query.toLowerCase())
   )
+  const [visible, setVisible] = useState(PAGE_SIZE)
+  useEffect(() => { setVisible(PAGE_SIZE) }, [activeCat, query])
+  const shown = filtered.slice(0, visible)
 
   const addProduct = (p: Product) => { add(p); showToast(`${p.name} ajouté au panier`) }
 
@@ -127,7 +150,7 @@ export default function ShopPage() {
       <main className="mx-auto max-w-6xl px-4 py-5">
         <h2 className="mb-3 text-sm font-semibold text-slate-500">{filtered.length} article{filtered.length > 1 ? "s" : ""}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((p) => (
+          {shown.map((p) => (
             <div key={p.id} onClick={() => setDetail(p)} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100 transition hover:shadow-lg">
               <div className="relative aspect-square overflow-hidden bg-slate-100">
                 {p.image
@@ -147,6 +170,13 @@ export default function ShopPage() {
           ))}
         </div>
         {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouvé.</p>}
+        {filtered.length > shown.length && (
+          <div className="mt-6 text-center">
+            <button onClick={() => setVisible((v) => v + PAGE_SIZE)} className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+              Afficher plus ({filtered.length - shown.length} restants)
+            </button>
+          </div>
+        )}
       </main>
 
       {/* Banniere Kits par classe (bas de page) */}
