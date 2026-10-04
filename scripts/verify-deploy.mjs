@@ -16,8 +16,17 @@ const check = (name, ok, detail = "") => {
   results.push({ name, ok })
   console.log(`${ok ? "OK  " : "FAIL"} ${name}${detail ? "  -> " + detail : ""}`)
 }
+// Reessaie sur coupure reseau passagere (timeout de connexion) : evite les faux echecs.
+const fetchRetry = async (url, init, tries = 3) => {
+  for (let i = 1; ; i++) {
+    try { return await fetch(url, init) } catch (e) {
+      if (i >= tries) throw e
+      await new Promise((r) => setTimeout(r, 1500 * i))
+    }
+  }
+}
 const call = async (path, init = {}) => {
-  const res = await fetch(BASE + path, { redirect: "manual", ...init })
+  const res = await fetchRetry(BASE + path, { redirect: "manual", ...init })
   let body = null
   try { body = await res.clone().json() } catch { /* pas du JSON */ }
   return { res, body }
