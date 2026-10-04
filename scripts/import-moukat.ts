@@ -101,12 +101,17 @@ export const CATEGORY_IMAGE: Record<string, string | null> = {
   "Sacs & trousses": U("photo-1588072432836-e10032774350"),
 }
 
-// Photo reelle : public/products/<code-barres>.(jpg|jpeg|png|webp) prime sur l'image de categorie.
+// Couvertures trouvees sur Open Library (scripts/fetch-covers.mjs), par ISBN.
+const COVERS: Record<string, string> = existsSync("scripts/covers-openlibrary.json")
+  ? JSON.parse(readFileSync("scripts/covers-openlibrary.json", "utf8"))
+  : {}
+
+// Photo reelle : public/products/<code-barres>.(jpg|jpeg|png|webp) prime sur la couverture Open Library.
 function localPhoto(barcode: string): string | null {
   for (const ext of ["jpg", "jpeg", "png", "webp"]) {
     if (existsSync(`public/products/${barcode}.${ext}`)) return `/products/${barcode}.${ext}`
   }
-  return null
+  return COVERS[barcode] ?? null
 }
 
 // ---------------------------------------------------------------- niveaux scolaires (livres)
@@ -151,7 +156,7 @@ function report(items: Item[]) {
   console.log(`\n${items.length} produits`)
   for (const c of CATEGORIES) console.log(`  ${c.padEnd(34)} ${byCat.get(c) ?? 0}`)
   console.log(`Stock : ${items.reduce((s, i) => s + i.stock, 0)} unites, valeur ${items.reduce((s, i) => s + i.stock * i.price, 0).toLocaleString("fr-FR")} F`)
-  console.log(`Sans image : ${items.filter((i) => !i.image).length} | photos reelles : ${items.filter((i) => i.image?.startsWith('/products/')).length}`)
+  console.log(`Sans image : ${items.filter((i) => !i.image).length} | photos locales : ${items.filter((i) => i.image?.startsWith('/products/')).length} | couvertures Open Library : ${items.filter((i) => i.image?.startsWith('https://')).length}`)
   const codes = new Set(items.map((i) => i.barcode))
   if (codes.size !== items.length) console.log(`ATTENTION : ${items.length - codes.size} code(s)-barres en double`)
   console.log("\nExemples :")
@@ -185,7 +190,7 @@ async function apply(items: Item[]) {
       const existing = await prisma.product.findUnique({ where: { barcode: it.barcode } })
       if (existing) {
         // Reimport : prix, stock et categorie suivent le fichier ; nom/image/description retouches a la main sont conserves.
-        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active", ...(it.image?.startsWith("/products/") ? { image: it.image } : {}) } })
+        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active", ...(it.image && (!existing.image || existing.image.startsWith("/products/") || existing.image.startsWith("https://covers.openlibrary.org/")) ? { image: it.image } : {}) } })
         updated++
       } else {
         await prisma.product.create({ data: { ...it, storeId: store.id, status: "Active" } })
