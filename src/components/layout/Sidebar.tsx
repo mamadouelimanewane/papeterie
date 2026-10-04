@@ -59,7 +59,7 @@ const navigation: { section: string; items: NavItem[] }[] = [
     items: [
       { label: "Ma boutique", href: "/stores", icon: <Store size={16} /> },
       { label: "Commandes", href: "/orders", icon: <ShoppingCart size={16} /> },
-      { label: "Produits", href: "/stores", icon: <Package size={16} /> },
+      { label: "Produits", href: "/products", icon: <Package size={16} /> },
       { label: "Factures", href: "/invoices", icon: <Receipt size={16} /> },
       { label: "Bannières accueil", href: "/slider", icon: <Image size={16} /> },
     ],

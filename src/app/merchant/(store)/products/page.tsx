@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Search, Plus, Edit, X, Loader2, Package, Eye, EyeOff } from "lucide-react"
 import { merchantFetch, fmtFcfa } from "../MerchantContext"
+import ProductImageEditor from "@/components/ui/ProductImageEditor"
 
 interface Product {
   id: string
@@ -33,6 +34,7 @@ export default function MerchantProducts() {
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState("")
+  const [pendingImage, setPendingImage] = useState<Blob | null>(null) // photo choisie pour un produit pas encore créé
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -73,6 +75,7 @@ export default function MerchantProducts() {
     setEditing(p)
     setDraft(p === "new" ? emptyDraft : toDraft(p))
     setFormError("")
+    setPendingImage(null)
   }
 
   const save = async (e: React.FormEvent) => {
@@ -82,7 +85,13 @@ export default function MerchantProducts() {
     setFormError("")
     try {
       if (editing === "new") {
-        await merchantFetch("/api/merchant/products", { method: "POST", body: draft })
+        const created = await merchantFetch<Product>("/api/merchant/products", { method: "POST", body: draft })
+        if (pendingImage) {
+          const form = new FormData()
+          form.append("file", pendingImage, "photo." + (pendingImage.type === "image/webp" ? "webp" : "jpg"))
+          const res = await fetch(`/api/merchant/products/${created.id}/image`, { method: "POST", body: form })
+          if (!res.ok) window.alert("Produit créé, mais la photo n'a pas pu être envoyée : ajoutez-la depuis la fiche du produit.")
+        }
       } else {
         await merchantFetch(`/api/merchant/products/${editing.id}`, { method: "PATCH", body: draft })
       }
@@ -204,7 +213,19 @@ export default function MerchantProducts() {
                   <option value="Inactive">Masqué</option>
                 </select>
               </div>
-              <div className="sm:col-span-2">{field("image", "URL de l'image", { type: "url", placeholder: "https://…" })}</div>
+              <div className="sm:col-span-2">
+                <label className="text-xs font-semibold text-gray-600 mb-2 block">Photo du produit</label>
+                <ProductImageEditor
+                  src={editing === "new" ? null : draft.image || null}
+                  uploadUrl={editing === "new" ? undefined : `/api/merchant/products/${editing.id}/image`}
+                  onChanged={(url) => {
+                    // garde le brouillon et la liste à jour : sinon « Enregistrer » renverrait l'ancienne URL
+                    setDraft((d) => ({ ...d, image: url ?? "" }))
+                    if (editing !== "new") setProducts((list) => list.map((x) => (x.id === editing.id ? { ...x, image: url } : x)))
+                  }}
+                  onPick={setPendingImage}
+                />
+              </div>
               <div className="sm:col-span-2">
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">Description</label>
                 <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} rows={3}

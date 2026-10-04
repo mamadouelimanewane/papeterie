@@ -16,8 +16,17 @@ const check = (name, ok, detail = "") => {
   results.push({ name, ok })
   console.log(`${ok ? "OK  " : "FAIL"} ${name}${detail ? "  -> " + detail : ""}`)
 }
+// Reessaie sur coupure reseau passagere (timeout de connexion) : evite les faux echecs.
+const fetchRetry = async (url, init, tries = 3) => {
+  for (let i = 1; ; i++) {
+    try { return await fetch(url, init) } catch (e) {
+      if (i >= tries) throw e
+      await new Promise((r) => setTimeout(r, 1500 * i))
+    }
+  }
+}
 const call = async (path, init = {}) => {
-  const res = await fetch(BASE + path, { redirect: "manual", ...init })
+  const res = await fetchRetry(BASE + path, { redirect: "manual", ...init })
   let body = null
   try { body = await res.clone().json() } catch { /* pas du JSON */ }
   return { res, body }
@@ -81,6 +90,16 @@ console.log("\n== Securite")
   // Sans "total" : un ancien build repond 400 "total requis" ; le nouveau, 400 "identifiant produit". Aucune commande creee.
   const ord = await call("/api/orders", json("POST", { items: [{ name: "verification", qty: 1 }] }))
   check("commande : prix calcules par le serveur", ord.res.status === 400 && /identifiant produit/i.test(ord.body?.error ?? ""), `${ord.res.status} ${ord.body?.error ?? ""}`)
+
+  // Photos produits : envoi/suppression reserves a l'admin ou au marchand connecte (refuses avant toute ecriture)
+  const up = await call("/api/admin/products/inexistant/image", { method: "POST", body: new FormData() })
+  check("envoi de photo refuse sans session admin", up.res.status === 401, String(up.res.status))
+  const upM = await call("/api/merchant/products/inexistant/image", { method: "DELETE" })
+  check("suppression de photo refusee sans session marchand", upM.res.status === 401, String(upM.res.status))
+  const lst = await call("/api/admin/products")
+  check("liste admin des produits refusee sans session", lst.res.status === 401, String(lst.res.status))
+  const img = await call("/api/images/inexistant12345")
+  check("photo inconnue : 404 propre", img.res.status === 404, String(img.res.status))
 
   const cors = await call("/api/store", { headers: { origin: "https://evil.example" } })
   check("CORS : origine inconnue non autorisee", cors.res.headers.get("access-control-allow-origin") !== "*" && cors.res.headers.get("access-control-allow-origin") !== "https://evil.example", String(cors.res.headers.get("access-control-allow-origin")))

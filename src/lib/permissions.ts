@@ -25,6 +25,7 @@ const ROUTE_PERMS: [string, string][] = [
   ["/drivers", "drivers.view"],
   ["/vehicles", "drivers.view"],
   ["/stores", "stores.view"],
+  ["/products", "stores.view"],
   ["/categories", "stores.view"],
   ["/slider", "stores.view"],
   ["/reports", "reports.view"],
