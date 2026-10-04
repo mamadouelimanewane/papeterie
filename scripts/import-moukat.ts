@@ -45,6 +45,16 @@ function titleCase(raw: string): string {
     .replace(/\bD'/g, "d'").replace(/\bL'/g, "l'").replace(/\bJ'/g, "J'")
 }
 
+// Fautes de frappe du fichier source (mot entier, en majuscules). A completer au besoin.
+const TYPOS: Record<string, string> = {
+  CALCULATRISE: "CALCULATRICE", ALLMINIUM: "ALUMINIUM", BOUTE: "BOITE", CISEAUS: "CISEAUX",
+  CLLIGRAPHE: "CALLIGRAPHE", CLASSISQUES: "CLASSIQUES", COJUGAISON: "CONJUGAISON", COLORAGE: "COLORIAGE",
+  DIAMAND: "DIAMANT", DICTIONNAIREHACHETTE: "DICTIONNAIRE HACHETTE", DIXNEY: "DISNEY", DUREABLE: "DURABLE",
+  EDHESIVE: "ADHESIVE", POLIPRO: "POLYPRO", POLLYPRO: "POLYPRO", POLYRO: "POLYPRO", TRANSPARANT: "TRANSPARENT",
+  ALBUMDE: "ALBUM DE", SACMATERNELLE: "SAC MATERNELLE", MYNGYO: "MUNGYO", ULMAAM: "ULMANN",
+}
+const fixTypos = (name: string) => name.split(" ").map((t) => TYPOS[t.toUpperCase()] ?? t).join(" ")
+
 // ---------------------------------------------------------------- categories
 export const CATEGORIES = [
   "Livres", "Cahiers", "Écriture & coloriage", "Géométrie", "Colle, ciseaux & petit matériel",
@@ -107,13 +117,14 @@ const LEVEL_LABEL: Record<string, string> = {
 export function buildCatalogue(rows: Row[]): Item[] {
   const counts = new Map<string, number>()
   for (const r of rows) {
-    const k = r.name.toUpperCase().replace(/\s+/g, " ").trim()
+    const k = fixTypos(r.name).toUpperCase().replace(/\s+/g, " ").trim()
     counts.set(k, (counts.get(k) ?? 0) + 1)
   }
   return rows.map((r) => {
-    const upper = r.name.toUpperCase().replace(/\s+/g, " ").trim()
+    const fixed = fixTypos(r.name)
+    const upper = fixed.toUpperCase().replace(/\s+/g, " ").trim()
     const category = categorize(r.sheet, upper)
-    let name = titleCase(r.name)
+    let name = titleCase(fixed)
     // Meme designation avec plusieurs codes (editions differentes) : on distingue par la reference
     if ((counts.get(upper) ?? 0) > 1) name += ` (réf. ${r.code})`
     const lv = r.sheet === "LIVRES" ? upper.match(LEVEL_RE)?.[1] : undefined
