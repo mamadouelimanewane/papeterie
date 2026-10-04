@@ -53,7 +53,9 @@ const TYPOS: Record<string, string> = {
   EDHESIVE: "ADHESIVE", POLIPRO: "POLYPRO", POLLYPRO: "POLYPRO", POLYRO: "POLYPRO", TRANSPARANT: "TRANSPARENT",
   ALBUMDE: "ALBUM DE", SACMATERNELLE: "SAC MATERNELLE", MYNGYO: "MUNGYO", ULMAAM: "ULMANN",
 }
-const fixTypos = (name: string) => name.split(" ").map((t) => TYPOS[t.toUpperCase()] ?? t).join(" ")
+// Le "?" du fichier source remplace un caractere perdu a l'export : "N?7" = "N°7", "G/M?" = "g/m²".
+const fixTypos = (name: string) =>
+  name.split("N?").join("N°").split("G/M?").join("g/m²").split(" ").map((t) => TYPOS[t.toUpperCase()] ?? t).join(" ")
 
 // ---------------------------------------------------------------- categories
 export const CATEGORIES = [
