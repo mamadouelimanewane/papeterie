@@ -73,12 +73,18 @@ export default function LivreurPage() {
   }
 
   async function setStatus(o: AvailOrder, status: string) {
+    // Codes de sécurité : ramassage (donné par la boutique) et livraison (donné par le client)
+    let otp: string | null = null
+    if (status === "PickedUp" || status === "Delivered") {
+      otp = window.prompt(status === "PickedUp" ? "Code de ramassage (donné par la boutique) :" : "Code de livraison (donné par le client) :")
+      if (!otp) return
+    }
     setBusy(true); setMsg("")
     try {
       const res = await fetch(`/api/driver/orders/${o._id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, otp: otp?.trim() }),
       })
       const d = await res.json()
       setMsg(d.error ? `Erreur : ${d.error}` : `Commande ${o.id} → ${status}`)

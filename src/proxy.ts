@@ -41,15 +41,22 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/orders") return true // commande invite
     if (pathname === "/api/gestion") return true // protege par MERCHANT_CODE dans la route
     if (pathname === "/api/promo") return true // validation code promo (vitrine)
+    if (pathname === "/api/shop/register") return true // inscription client vitrine (nom, prenom, tel)
+    if (pathname === "/api/shop/pay") return true // relance du paiement en ligne d'une commande non reglee
+    if (pathname === "/api/shop/my-orders") return true // « Mes commandes » verrouille par le numero de telephone
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
     if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
     if (pathname === "/api/admin/fix-images") return true // protege par SEED_SECRET
   }
 
+  // Validation d'un lien d'invitation marchand (renvoie seulement nom + e-mail de la boutique)
+  if (method === "GET" && pathname === "/api/merchant/invite") return true
+
   if (method === "GET") {
     if (pathname === "/api/slider") return true
     if (pathname === "/api/store") return true // boutique active (vitrine mono-boutique)
     if (pathname === "/api/kits") return true // kits par classe (vitrine)
+    if (pathname === "/api/shop/order-status") return true // suivi de commande sans donnees personnelles
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true
@@ -69,30 +76,39 @@ function isMobileApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith("/api/wallet/")) return true
   if (pathname.startsWith("/api/driver/")) return true // earnings, location, orders, status...
   if (pathname === "/api/orders/my") return true
-  if (pathname === "/api/orders/update") return true // livreur : mise a jour statut
-  // detail / mise a jour de statut : JWT verifie dans la route
+  // detail / statut commande : JWT verifie et proprietaire controle dans la route
   if ((method === "GET" || method === "PATCH") && /^\/api\/orders\/[^/]+$/.test(pathname)) return true
   return false
 }
 
+type SessionToken = { role?: string } | null
+
+/** Session NextAuth d'un marchand (limitee a sa boutique) — tout autre jeton NextAuth est un admin. */
+const isMerchantToken = (t: SessionToken) => t?.role === "merchant"
+const isAdminToken = (t: SessionToken) => !!t && !isMerchantToken(t)
+
 /**
  * Decide si une requete API peut passer le middleware.
  * - route publique -> oui
+ * - /api/merchant/* -> session marchand (la boutique est relue et controlee dans la route)
  * - route mobile   -> oui si un Bearer est present (verifie ensuite dans la route)
- * - tout le reste (administration) -> UNIQUEMENT session NextAuth (cookie admin)
+ * - tout le reste (administration) -> UNIQUEMENT session NextAuth admin
  *
- * Important : un simple en-tete `Bearer` n'ouvre plus les routes d'administration.
+ * Important : ni un simple en-tete `Bearer` ni une session marchand n'ouvrent les routes d'administration.
  */
 function apiAllowed(
-  req: { headers: Headers; nextauth: { token: unknown } },
+  req: { headers: Headers; nextauth: { token: SessionToken } },
   pathname: string,
   method: string
 ): "ok" | "unauthenticated" | "forbidden" {
   if (isPublicApiRoute(pathname, method)) return "ok"
+  const token = req.nextauth.token
+  if (pathname === "/api/merchant" || pathname.startsWith("/api/merchant/")) return isMerchantToken(token) ? "ok" : "unauthenticated"
   // Session admin (cookie NextAuth) : acces selon les permissions RBAC du role.
-  const token = req.nextauth.token as { permissions?: string[] } | null
-  if (token) {
-    return hasPerm(token.permissions, permForApi(pathname, method)) ? "ok" : "forbidden"
+  // (Les routes /api/admin/* verifient leur permission elles-memes via requireAdmin.)
+  if (isAdminToken(token)) {
+    const perms = (token as { permissions?: string[] }).permissions
+    return hasPerm(perms, permForApi(pathname, method)) ? "ok" : "forbidden"
   }
   // Routes mobiles : necessitent un Bearer, dont la validite est controlee par la route.
   if (isMobileApiRoute(pathname, method) && hasBearerToken(req)) return "ok"
@@ -111,7 +127,7 @@ export default withAuth(
       })
     }
 
-    const token = req.nextauth.token
+    const token = req.nextauth.token as SessionToken
 
     // 2) API : session admin OU JWT mobile (route mobile) OU route publique
     if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
@@ -124,15 +140,19 @@ export default withAuth(
       }
     }
 
-    // 3) Espace marchand
-    if (pathname.startsWith("/merchant/") && !pathname.startsWith("/merchant/login")) {
-      if (!token) return NextResponse.redirect(new URL("/merchant/login", req.url))
+    // 3) Espace marchand : session marchand obligatoire (une session admin ne suffit pas)
+    if (
+      (pathname === "/merchant" || pathname.startsWith("/merchant/")) &&
+      !pathname.startsWith("/merchant/login")
+    ) {
+      if (!isMerchantToken(token)) return NextResponse.redirect(new URL("/merchant/login", req.url))
+      if (pathname === "/merchant") return NextResponse.redirect(new URL("/merchant/dashboard", req.url))
     }
 
-    // 4) Dashboard admin
+    // 4) Dashboard admin : session admin obligatoire (un marchand est renvoye vers son espace)
     if (
       !pathname.startsWith("/login") &&
-      !pathname.startsWith("/merchant/login") &&
+      !pathname.startsWith("/merchant") &&
       !pathname.startsWith("/shop") &&      // interface client de test (publique)
       !pathname.startsWith("/gestion") &&   // interface marchande (protegee par code cote page)
       !pathname.startsWith("/livreur") &&   // interface livreur de test (publique)
@@ -142,6 +162,7 @@ export default withAuth(
       !pathname.startsWith("/favicon") &&
       !/\.(png|jpg|jpeg|svg|gif|webp|ico|txt|xml|json|woff2?|ttf)$/i.test(pathname) // fichiers statiques
     ) {
+      if (isMerchantToken(token)) return NextResponse.redirect(new URL("/merchant/dashboard", req.url))
       if (!token) return NextResponse.redirect(new URL("/login", req.url))
     }
 

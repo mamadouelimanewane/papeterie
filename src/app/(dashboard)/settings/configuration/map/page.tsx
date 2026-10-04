@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useSetting } from "@/hooks/useAdminData"
+import { useAction } from "@/components/admin/Feedback"
 import { Save, Map, Navigation, Key, Layers, AlertCircle, ExternalLink } from "lucide-react"
 
 export default function MapConfigPage() {
-  const [config, setConfig] = useState({
+  const { value: config, set: setKey, save, saving } = useSetting("map", {
     provider: "locationiq",
     locationiqKey: process.env.NEXT_PUBLIC_LOCATIONIQ_KEY ?? "",
     googleApiKey: "",
@@ -25,7 +26,8 @@ export default function MapConfigPage() {
   })
 
   const set = (key: string, value: string | boolean) =>
-    setConfig(prev => ({ ...prev, [key]: value }))
+    setKey(key as never, value as never)
+  const run = useAction()
 
   const Toggle = ({ k }: { k: keyof typeof config }) => (
     <button
@@ -333,8 +335,8 @@ export default function MapConfigPage() {
       </div>
 
       <div className="flex justify-end">
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg shadow-sm">
-          <Save size={15} /> Enregistrer la configuration
+        <button onClick={() => run(() => save(), "Configuration de la carte enregistrée")} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg shadow-sm disabled:opacity-60">
+          <Save size={15} /> {saving ? "Enregistrement…" : "Enregistrer la configuration"}
         </button>
       </div>
     </div>

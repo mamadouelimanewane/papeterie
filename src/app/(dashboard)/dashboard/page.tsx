@@ -7,6 +7,9 @@ import {
 } from "lucide-react"
 import StatCard from "@/components/ui/StatCard"
 import DashboardCharts from "@/components/dashboard/DashboardCharts"
+import FormModal from "@/components/admin/FormModal"
+import { useAction } from "@/components/admin/Feedback"
+import { adminFetch } from "@/lib/adminApi"
 
 interface DashboardStats {
   site: {
@@ -37,8 +40,10 @@ interface DashboardStats {
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [restock, setRestock] = useState<{ id: string; name: string; stock: number } | null>(null)
+  const run = useAction()
 
-  useEffect(() => {
+  const loadStats = () =>
     fetch("/api/dashboard/stats")
       .then((r) => r.json())
       .then((data) => {
@@ -46,7 +51,7 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  useEffect(() => { loadStats() }, [])
 
   const fmt = (n: number) => n.toLocaleString("fr-FR")
 
@@ -172,7 +177,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-red-600">Pcs: {item.stock}</p>
-                    <button className="text-[10px] text-indigo-600 font-bold hover:underline">Approvisionner →</button>
+                    <button onClick={() => setRestock(item)} className="text-[10px] text-indigo-600 font-bold hover:underline">Approvisionner →</button>
                   </div>
                 </div>
               ))
@@ -184,6 +189,16 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
+      <FormModal
+        open={!!restock} title={`Approvisionner « ${restock?.name ?? ""} »`} submitLabel="Ajouter au stock"
+        initial={{ addStock: 10 }}
+        fields={[{ key: "addStock", label: `Quantité à ajouter (stock actuel : ${restock?.stock ?? 0})`, type: "number", min: 1, required: true, full: true }]}
+        onClose={() => setRestock(null)}
+        onSubmit={async (v) => {
+          const r = await run(() => adminFetch<{ stock: number }>(`/api/admin/products/${restock!.id}`, { method: "PATCH", body: { addStock: Number(v.addStock) } }), "Stock mis à jour")
+          if (r) { setRestock(null); loadStats() }
+        }}
+      />
     </div>
   )
 }

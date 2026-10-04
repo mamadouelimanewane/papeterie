@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params
     const data = await req.json()
-    const allowed = ["name", "phone", "email", "serviceArea", "country", "status", "approvalStatus", "vehicleType", "walletMoney", "lastLocation", "deviceToken", "appVersion"]
+    const allowed = ["name", "phone", "email", "serviceArea", "country", "status", "approvalStatus", "rejectionReason", "vehicleType", "walletMoney", "lastLocation", "deviceToken", "appVersion"]
     const update: Record<string, unknown> = {}
     for (const key of allowed) {
       if (key in data) update[key] = data[key]

@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { fmt, type CartItem } from "./useCart"
+import { useClient } from "./useClient"
+import { rememberOrder, payOrder } from "./useMyOrders"
 
 type Props = {
   open: boolean
@@ -21,9 +23,19 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [method, setMethod] = useState("Cash")
   const [result, setResult] = useState<any>(null)
   const [placing, setPlacing] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const [retryMsg, setRetryMsg] = useState<string | null>(null)
   const [promoInput, setPromoInput] = useState("")
   const [promo, setPromo] = useState<{ code: string; discount: number; type: string } | null>(null)
   const [promoMsg, setPromoMsg] = useState<string | null>(null)
+  const { client } = useClient()
+
+  // Client inscrit : pré-remplit nom et téléphone (sans écraser une saisie en cours)
+  useEffect(() => {
+    if (!client) return
+    setName((n) => n || `${client.firstName} ${client.lastName}`)
+    setPhone((p) => p || client.phone)
+  }, [client])
 
   const discountAmount = promo ? Math.min(total, promo.type === "Percentage" ? Math.round((total * promo.discount) / 100) : promo.discount) : 0
   const goods = total - discountAmount
@@ -42,20 +54,30 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
 
   async function placeOrder() {
     if (cart.length === 0) return
+    // Téléphone obligatoire : indispensable à la livraison et au déverrouillage de « Mes commandes »
+    if (phone.replace(/\D/g, "").length < 9) { setResult({ error: "Indiquez votre numéro de téléphone (9 chiffres) pour la livraison." }); return }
+    if (!address.trim()) { setResult({ error: "Indiquez votre adresse de livraison." }); return }
     setPlacing(true); setResult(null)
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          total: goods, subtotal: total, deliveryFee: 500, paymentMethod: method,
+          // Le serveur recalcule montant, promo et livraison depuis la base : ces champs ne sont qu'indicatifs.
+          total: grandTotal, subtotal: total, deliveryFee: 500, paymentMethod: method,
           items: cart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
           notes: "Commande web (/shop)",
         }),
       })
-      setResult(await res.json()); clear()
+      const d = await res.json()
+      setResult(d)
+      // Le panier n'est vidé que si la commande a bien été créée
+      if (res.ok && d.orderId) {
+        rememberOrder({ orderId: d.orderId, total: grandTotal, method, date: new Date().toISOString() })
+        clear()
+      }
     } catch (e: any) { setResult({ error: e?.message ?? "Erreur" }) } finally { setPlacing(false) }
   }
   const link = result?.paymentData?.data?.data?.link ?? result?.paymentData?.data?.link
@@ -103,8 +125,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
           <div className="space-y-2 border-t p-4">
             <div className="grid grid-cols-2 gap-2">
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone" className="rounded-lg border px-3 py-2 text-sm" />
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone *" type="tel" inputMode="tel" className="rounded-lg border px-3 py-2 text-sm" />
+              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison *" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
                 <option value="Cash">Paiement à la livraison (Cash)</option><option value="Versus">Payer par Wave, Orange Money via VERSUS</option>
               </select>
@@ -158,11 +180,30 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <>
                 <div className="text-4xl">{"✅"}</div>
                 <p className="mt-2 font-bold text-emerald-700">Commande confirmée !</p>
-                <p className="text-sm text-slate-500">N {result.orderId}</p>
-                {result.paymentError && <p className="mt-1 text-xs text-amber-600">Paiement : {result.paymentError}</p>}
+                <p className="text-sm text-slate-500">N° {result.orderId}</p>
+                <p className="mt-1 text-lg font-extrabold text-indigo-700">{fmt(Number(result.total ?? 0))}</p>
+                {result.paymentMethod === "Cash" && <p className="mt-2 text-sm text-slate-600">Vous paierez en espèces à la livraison.</p>}
+                {result.deliveryOtp && (
+                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
+                    <div className="text-xs text-indigo-700">Votre code de livraison</div>
+                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-indigo-800">{result.deliveryOtp}</div>
+                    <div className="mt-1 text-[11px] text-indigo-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
+                  </div>
+                )}
+                {result.paymentError && (
+                  <div className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
+                    Le paiement en ligne n&apos;a pas pu démarrer : {result.paymentError}
+                    <button disabled={retrying} onClick={async () => { setRetrying(true); setRetryMsg(await payOrder(result.orderId)); setRetrying(false) }}
+                      className="mt-2 block w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white disabled:opacity-60">
+                      {retrying ? "Ouverture du paiement…" : "Réessayer le paiement"}
+                    </button>
+                    {retryMsg && <p className="mt-1 text-red-600">{retryMsg}</p>}
+                    <p className="mt-2">Sinon, vous pourrez régler en espèces à la livraison.</p>
+                  </div>
+                )}
                 {link && (
                   <>
-                    <a href={link} target="_blank" className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
+                    <a href={link} className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
                     <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
                       Sécurisé par <img src="/versus-logo.png" alt="Versus" className="h-6 w-6 object-contain" />
                       <span className="font-semibold text-slate-500">Versus Fintech</span>
@@ -171,6 +212,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 )}
               </>
             )}
+            {!result.error && <p className="mt-3 text-[11px] text-slate-400">Retrouvez cette commande (et son paiement) dans « Mes commandes ».</p>}
             <button onClick={() => { setResult(null); onClose() }} className="mt-4 block w-full text-sm text-slate-400">Fermer</button>
           </div>
         </div>

@@ -1,74 +1,48 @@
 "use client"
 
 import { useState } from "react"
-import { Save } from "lucide-react"
+import { Plug } from "lucide-react"
+import SettingsPage from "@/components/admin/SettingsPage"
+import { useFeedback } from "@/components/admin/Feedback"
+import { adminFetch } from "@/lib/adminApi"
+
+const DEFAULTS = {
+  driver: "smtp", host: "smtp.gmail.com", port: 587, username: "", password: "", encryption: "TLS",
+  fromName: "Schoolmatik Librairie", fromEmail: "contact@schoolmatik.sn",
+}
 
 export default function EmailConfigPage() {
-  const [config, setConfig] = useState({
-    driver: "smtp",
-    host: "smtp.gmail.com",
-    port: "587",
-    username: "noreply@ndugumi.com",
-    password: "••••••••••",
-    encryption: "TLS",
-    fromName: "NDUGUMi",
-    fromEmail: "noreply@ndugumi.com",
-  })
-
+  const { toast } = useFeedback()
+  const [testing, setTesting] = useState(false)
   return (
-    <div>
-      <h1 className="text-lg font-semibold text-gray-700 mb-6">⚙️ Configuration Email</h1>
-
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-2xl">
-        <h2 className="font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-100">Paramètres SMTP</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs text-gray-500 block mb-1">Driver d'envoi</label>
-            <select value={config.driver} onChange={(e) => setConfig({ ...config, driver: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-              <option value="smtp">SMTP</option>
-              <option value="mailgun">Mailgun</option>
-              <option value="sendgrid">SendGrid</option>
-              <option value="ses">Amazon SES</option>
-            </select>
-          </div>
-
-          {[
-            { label: "Hôte SMTP", key: "host", placeholder: "smtp.example.com" },
-            { label: "Port", key: "port", placeholder: "587" },
-            { label: "Nom d'utilisateur", key: "username", placeholder: "user@example.com" },
-            { label: "Mot de passe", key: "password", type: "password" },
-            { label: "Nom de l'expéditeur", key: "fromName", placeholder: "NDUGUMi" },
-            { label: "Email de l'expéditeur", key: "fromEmail", placeholder: "noreply@ndugumi.com" },
-          ].map(({ label, key, placeholder, type }) => (
-            <div key={key}>
-              <label className="text-xs text-gray-500 block mb-1">{label}</label>
-              <input type={type ?? "text"} value={(config as any)[key]} placeholder={placeholder}
-                onChange={(e) => setConfig({ ...config, [key]: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
-            </div>
-          ))}
-
-          <div>
-            <label className="text-xs text-gray-500 block mb-1">Chiffrement</label>
-            <select value={config.encryption} onChange={(e) => setConfig({ ...config, encryption: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-              <option>TLS</option>
-              <option>SSL</option>
-              <option>None</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg">
-            <Save size={16} /> Enregistrer
-          </button>
-          <button className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600">
-            Tester la connexion
-          </button>
-        </div>
-      </div>
-    </div>
+    <SettingsPage
+      settingKey="email" title="Configuration e-mail" defaults={DEFAULTS} columns={1}
+      description="Le mot de passe est stocké côté serveur et n'est jamais réaffiché."
+      sections={[{ title: "Paramètres SMTP", fields: [
+        { key: "driver", label: "Service d'envoi", type: "select", required: true, options: [
+          { value: "smtp", label: "SMTP" }, { value: "sendgrid", label: "SendGrid" }, { value: "mailgun", label: "Mailgun" }, { value: "ses", label: "Amazon SES" },
+        ] },
+        { key: "host", label: "Hôte SMTP", placeholder: "smtp.example.com" },
+        { key: "port", label: "Port", type: "number", min: 1 },
+        { key: "encryption", label: "Chiffrement", type: "select", required: true, options: ["TLS", "SSL", "None"] },
+        { key: "username", label: "Nom d'utilisateur", placeholder: "user@example.com" },
+        { key: "password", label: "Mot de passe", type: "password" },
+        { key: "fromName", label: "Nom de l'expéditeur" },
+        { key: "fromEmail", label: "E-mail de l'expéditeur", type: "email" },
+      ] }]}
+      extraActions={(v) => (
+        <button type="button" disabled={testing}
+          onClick={async () => {
+            setTesting(true)
+            try {
+              const r = await adminFetch<{ ok: boolean; message: string }>("/api/admin/tools/smtp-test", { method: "POST", body: { host: v.host, port: v.port, encryption: v.encryption } })
+              toast(r.ok ? `Serveur joignable : ${r.message}` : `Échec : ${r.message}`, r.ok ? "success" : "error")
+            } catch (e) { toast(e instanceof Error ? e.message : "Erreur", "error") } finally { setTesting(false) }
+          }}
+          className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60">
+          <Plug size={14} /> {testing ? "Test en cours…" : "Tester la connexion"}
+        </button>
+      )}
+    />
   )
 }

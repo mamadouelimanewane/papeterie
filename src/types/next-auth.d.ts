@@ -5,6 +5,7 @@ declare module "next-auth" {
   interface User {
     role?: string
     permissions?: string[]
+    storeId?: string
   }
   interface Session {
     user: {
@@ -13,6 +14,7 @@ declare module "next-auth" {
       image?: string | null
       role?: string
       permissions?: string[]
+      storeId?: string
     }
   }
 }
@@ -21,5 +23,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: string
     permissions?: string[]
+    storeId?: string // session marchand uniquement
+    loginAt?: number // ms, date de connexion (révocation des sessions)
   }
 }

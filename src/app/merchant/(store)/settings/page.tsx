@@ -1,101 +1,80 @@
 "use client"
 
-import { Suspense, useState } from "react"
-import { useSearchParams } from "next/navigation"
-import { Bell, Shield, Smartphone, Globe, Save, Loader2, Key } from "lucide-react"
+import { useState } from "react"
+import { signOut } from "next-auth/react"
+import { Shield, Loader2, Check, LogOut } from "lucide-react"
+import { useMerchant, merchantFetch, fmtWhen } from "../MerchantContext"
 
-function SettingsContent() {
-  const searchParams = useSearchParams()
-  const storeId = searchParams.get("store") ?? "1"
+const MIN_PASSWORD_LENGTH = 8
 
-  const [notifs, setNotifs] = useState({ newOrder: true, orderStatus: true, review: true, payment: true, promo: false })
-  const [lang, setLang] = useState("fr")
+export default function MerchantSettings() {
+  const { store } = useMerchant()
+  const [form, setForm] = useState({ current: "", next: "", confirm: "" })
+  const [saving, setSaving] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState("")
 
-  return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl font-bold text-gray-800">Paramètres</h1>
-        <p className="text-sm text-gray-500">Configuration de votre espace vendeur</p>
-      </div>
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setDone(false)
+    if (form.next.length < MIN_PASSWORD_LENGTH) { setError(`Au moins ${MIN_PASSWORD_LENGTH} caractères`); return }
+    if (form.next !== form.confirm) { setError("Les deux mots de passe ne correspondent pas"); return }
+    setSaving(true)
+    try {
+      await merchantFetch("/api/merchant/password", { method: "PATCH", body: { current: form.current, next: form.next } })
+      setForm({ current: "", next: "", confirm: "" })
+      setDone(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur")
+    } finally {
+      setSaving(false)
+    }
+  }
 
-      {/* Notifications */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <h2 className="font-semibold text-gray-800 mb-1 flex items-center gap-2"><Bell size={16} /> Notifications</h2>
-        <p className="text-xs text-gray-400 mb-4">Choisissez les alertes que vous souhaitez recevoir</p>
-        <div className="space-y-3">
-          {[
-            { key: "newOrder", label: "Nouvelle commande", desc: "Alerte dès qu'une commande arrive" },
-            { key: "orderStatus", label: "Changement de statut", desc: "Livraison en cours, commande annulée..." },
-            { key: "review", label: "Nouvel avis client", desc: "Quand un client laisse une évaluation" },
-            { key: "payment", label: "Paiement reçu", desc: "Confirmation de paiement" },
-            { key: "promo", label: "Promotions plateforme", desc: "Offres spéciales NDUGUMi" },
-          ].map(n => (
-            <div key={n.key} className="flex items-center justify-between py-2">
-              <div>
-                <div className="text-sm font-medium text-gray-700">{n.label}</div>
-                <div className="text-xs text-gray-400">{n.desc}</div>
-              </div>
-              <button
-                onClick={() => setNotifs({...notifs, [n.key]: !notifs[n.key as keyof typeof notifs]})}
-                className={`relative w-10 h-5 rounded-full transition-colors ${notifs[n.key as keyof typeof notifs] ? "bg-cyan-500" : "bg-gray-200"}`}
-              >
-                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${notifs[n.key as keyof typeof notifs] ? "left-5" : "left-0.5"}`} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sécurité */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Shield size={16} /> Sécurité</h2>
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block flex items-center gap-1"><Key size={12} /> Mot de passe actuel</label>
-            <input type="password" placeholder="••••••••" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300" />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Nouveau mot de passe</label>
-            <input type="password" placeholder="••••••••" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300" />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Confirmer le nouveau mot de passe</label>
-            <input type="password" placeholder="••••••••" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300" />
-          </div>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
-            Changer le mot de passe
-          </button>
-        </div>
-      </div>
-
-      {/* Langue */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Globe size={16} /> Langue de l&apos;interface</h2>
-        <div className="flex gap-2">
-          {["fr", "en", "wo"].map(l => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${lang === l ? "bg-cyan-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-            >
-              {l === "fr" ? "🇫🇷 Français" : l === "en" ? "🇬🇧 English" : "🇸🇳 Wolof"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <button className="flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">
-        <Save size={16} />
-        Sauvegarder
-      </button>
+  const input = (key: keyof typeof form, label: string, autoComplete: string) => (
+    <div>
+      <label className="text-xs font-semibold text-gray-600 mb-1 block">{label}</label>
+      <input type="password" value={form[key]} autoComplete={autoComplete} required
+        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
     </div>
   )
-}
 
-export default function MerchantSettingsPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center pt-20"><Loader2 size={28} className="text-cyan-500 animate-spin" /></div>}>
-      <SettingsContent />
-    </Suspense>
+    <div className="space-y-6 max-w-xl">
+      <div>
+        <h1 className="text-xl font-bold text-gray-800">Paramètres</h1>
+        <p className="text-sm text-gray-500">Sécurité du compte marchand · dernière connexion {fmtWhen(store.lastLoginAt)}</p>
+      </div>
+
+      <form onSubmit={changePassword} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+        <h2 className="font-semibold text-gray-800 flex items-center gap-2"><Shield size={16} /> Changer le mot de passe</h2>
+        <input type="email" value={store.email} autoComplete="username" readOnly hidden />
+        {input("current", "Mot de passe actuel", "current-password")}
+        {input("next", `Nouveau mot de passe (${MIN_PASSWORD_LENGTH} caractères minimum)`, "new-password")}
+        {input("confirm", "Confirmer le nouveau mot de passe", "new-password")}
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        <div className="flex items-center gap-3">
+          <button type="submit" disabled={saving}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            {saving && <Loader2 size={14} className="animate-spin" />} Mettre à jour
+          </button>
+          {done && <span className="text-xs text-green-600 flex items-center gap-1"><Check size={14} /> Mot de passe modifié</span>}
+        </div>
+        <p className="text-xs text-gray-400">Mot de passe oublié ? Demandez un nouveau lien d&apos;invitation à l&apos;administrateur.</p>
+      </form>
+
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-medium text-gray-800">Se déconnecter</div>
+          <div className="text-xs text-gray-400">Fermer la session sur cet appareil</div>
+        </div>
+        <button onClick={() => signOut({ callbackUrl: "/merchant/login" })}
+          className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium flex items-center gap-2">
+          <LogOut size={14} /> Déconnexion
+        </button>
+      </div>
+    </div>
   )
 }

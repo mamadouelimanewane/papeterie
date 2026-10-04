@@ -49,6 +49,7 @@ export async function sendPushNotification({
   message,
   segments = ["All"],
   playerIds,
+  externalIds,
   data,
 }: {
   appId: string
@@ -57,6 +58,7 @@ export async function sendPushNotification({
   message: string
   segments?: string[]
   playerIds?: string[]
+  externalIds?: string[] // id passés à OneSignal.login() par les applications
   data?: Record<string, string>
 }) {
   const body: Record<string, unknown> = {
@@ -66,7 +68,11 @@ export async function sendPushNotification({
     data,
   }
 
-  if (playerIds && playerIds.length > 0) {
+  if (externalIds && externalIds.length > 0) {
+    // Envoi ciblé : ne JAMAIS retomber sur un segment global
+    body.include_aliases = { external_id: externalIds }
+    body.target_channel = "push"
+  } else if (playerIds && playerIds.length > 0) {
     body.include_player_ids = playerIds
   } else {
     body.included_segments = segments

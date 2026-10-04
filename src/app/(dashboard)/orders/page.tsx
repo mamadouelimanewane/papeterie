@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { Download, Info, Search, RefreshCw, Eye } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
+import { useFeedback } from "@/components/admin/Feedback"
+import OrderActions from "@/components/admin/OrderActions"
 
 interface OrderDriver {
   name: string
@@ -71,6 +73,7 @@ function exportCSV(orders: Order[]) {
 }
 
 export default function OrdersPage() {
+  const { toast } = useFeedback()
   const [orders, setOrders] = useState<Order[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -130,7 +133,7 @@ export default function OrdersPage() {
           >
             <Download size={16} />
           </button>
-          <button className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide">
+          <button onClick={() => toast("Cycle d'une commande : En attente → En préparation → En livraison → Livrée. Utilisez les filtres pour retrouver une commande et l'export CSV pour la comptabilité.", "info")} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide">
             <Info size={16} />
           </button>
         </div>
@@ -284,6 +287,7 @@ export default function OrdersPage() {
                 </div>
               ))}
             </div>
+            <OrderActions key={selectedOrder.id} orderId={selectedOrder.id} onChanged={fetchOrders} />
             <div className="flex justify-end p-4 border-t">
               <button onClick={() => setSelectedOrder(null)} className="px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600">Fermer</button>
             </div>

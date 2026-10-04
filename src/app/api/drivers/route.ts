@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         serviceArea: data.serviceArea ?? null,
         country: data.country ?? null,
         vehicleType: data.vehicleType ?? null,
-        approvalStatus: "Pending",
+        approvalStatus: data.approvalStatus === "Approved" ? "Approved" : "Pending",
         status: "Offline",
       },
     })

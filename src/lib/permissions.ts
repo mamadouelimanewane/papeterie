@@ -56,9 +56,9 @@ export function hasPerm(perms: string[] | undefined | null, perm: string | null)
   return perms.includes("*") || perms.includes(perm)
 }
 
-// Prefixe d'API -> [permission lecture, permission ecriture] (le premier match gagne)
+// Prefixe d'API -> [permission lecture, permission ecriture] (le premier match gagne).
+// /api/admin/* verifie sa permission dans chaque route (requireAdmin) : absent d'ici.
 const API_PERMS: [string, string, string][] = [
-  ["/api/admin", "settings.manage", "settings.manage"],
   ["/api/orders", "orders.view", "orders.manage"],
   ["/api/users", "users.view", "users.manage"],
   ["/api/drivers", "drivers.view", "drivers.manage"],
@@ -73,7 +73,6 @@ const API_PERMS: [string, string, string][] = [
   ["/api/promo-codes", "settings.view", "settings.manage"],
   ["/api/service-areas", "settings.view", "settings.manage"],
   ["/api/countries", "settings.view", "settings.manage"],
-  ["/api/wallet", "wallet.view", "wallet.manage"],
 ]
 
 export function permForApi(pathname: string, method: string): string | null {
