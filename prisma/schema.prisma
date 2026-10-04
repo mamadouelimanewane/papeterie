@@ -346,3 +346,13 @@ model AppSetting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+/// Photos de produits televersees depuis le back-office / espace marchand (servies par /api/images/[id]).
+model ProductImage {
+  id        String   @id @default(cuid())
+  mime      String
+  data      Bytes
+  size      Int
+  storeId   String?
+  createdAt DateTime @default(now())
+}
