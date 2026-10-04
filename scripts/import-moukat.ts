@@ -124,9 +124,9 @@ const GENERIC_NOTE = "Image illustrative (photo non contractuelle)"
 // Un terme doit commencer un mot (evite "COLLE" dans "COLLEGE" : on exclut explicitement les faux amis).
 const FALSE_FRIENDS = ["COLLEGE", "COLLECTION", "TAILLEUR"]
 // Articles dont le nom contient un mot-cle mais qui sont autre chose (film couvre-livre, classeur a rabat, recharges d'agrafes).
-const NOT_THE_TYPE = ["COUVRE", "RABAT", "CHARGES"]
+const NOT_THE_TYPE = ["COUVRE", "RABAT", "PROTEGE"]
 function genericImage(sheet: string, upperName: string): GenericImage | null {
-  if (sheet !== "PETITS MATERIELS" || NOT_THE_TYPE.some((w) => upperName.includes(w))) return null
+  if ((sheet !== "PETITS MATERIELS" && sheet !== "CAHIER") || NOT_THE_TYPE.some((w) => upperName.includes(w))) return null
   const padded = " " + upperName.replace(/[^A-Z0-9]+/g, " ") + " "
   const cleaned = FALSE_FRIENDS.reduce((s, f) => s.split(" " + f).join(" "), padded)
   return GENERIC.find((g) => g.match.some((t) => cleaned.includes(" " + t))) ?? null
