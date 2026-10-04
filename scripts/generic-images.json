@@ -1,0 +1,254 @@
+[
+ {
+  "key": "gourde",
+  "match": [
+   "GOURDE",
+   "THERMO",
+   "COOLER",
+   "MILTON"
+  ],
+  "image": "/generic/gourde.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Metal_Water_Bottles.jpeg",
+  "title": "File:Metal Water Bottles.jpeg",
+  "license": "CC0"
+ },
+ {
+  "key": "trousse",
+  "match": [
+   "TROUSSE"
+  ],
+  "image": "/generic/trousse.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Pencil_case_014.jpg",
+  "title": "File:Pencil case 014.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "ciseaux",
+  "match": [
+   "CISEAU"
+  ],
+  "image": "/generic/ciseaux.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Scissors_-_PD.jpg",
+  "title": "File:Scissors - PD.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "colle",
+  "match": [
+   "COLLE",
+   "GLUE"
+  ],
+  "image": "/generic/colle.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Glue_Stick.jpg",
+  "title": "File:Glue Stick.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "taille-crayon",
+  "match": [
+   "TAILLE"
+  ],
+  "image": "/generic/taille-crayon.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Red_pencil_sharpener.jpg",
+  "title": "File:Red pencil sharpener.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "gomme",
+  "match": [
+   "GOMME"
+  ],
+  "image": "/generic/gomme.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Pink_Pearl_eraser.jpg",
+  "title": "File:Pink Pearl eraser.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "regle",
+  "match": [
+   "REGLE"
+  ],
+  "image": "/generic/regle.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Ruler_image.jpg",
+  "title": "File:Ruler image.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "compas",
+  "match": [
+   "COMPAS"
+  ],
+  "image": "/generic/compas.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Two_school_compasses_-_9_and_12_cm_-_B.jpg",
+  "title": "File:Two school compasses - 9 and 12 cm - B.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "rapporteur",
+  "match": [
+   "RAPPORTEUR"
+  ],
+  "image": "/generic/rapporteur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Protractor_2_(PSF).png",
+  "title": "File:Protractor 2 (PSF).png",
+  "license": "Public domain"
+ },
+ {
+  "key": "agrafes",
+  "match": [
+   "AGRAF",
+   "DEGRAFEUSE"
+  ],
+  "image": "/generic/agrafes.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:A_green_stapler.jpg",
+  "title": "File:A green stapler.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "trombones",
+  "match": [
+   "TROMBONE"
+  ],
+  "image": "/generic/trombones.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Bueroklammern.jpg",
+  "title": "File:Bueroklammern.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "scotch",
+  "match": [
+   "SCOTCH",
+   "ADHESIF"
+  ],
+  "image": "/generic/scotch.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Adhesive_tapes_clear.JPG",
+  "title": "File:Adhesive tapes clear.JPG",
+  "license": "Public domain"
+ },
+ {
+  "key": "stylo",
+  "match": [
+   "STYLO",
+   "ROLLER"
+  ],
+  "image": "/generic/stylo.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:A_pen_writing_%22Example%22.jpg",
+  "title": "File:A pen writing \"Example\".jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "crayon-couleur",
+  "match": [
+   "CRAYONS DE COULEUR",
+   "CRAYON DE COULEUR",
+   "CRAYON COULEUR"
+  ],
+  "image": "/generic/crayon-couleur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Colored_pencils_lined_up_on_pink_surface.jpg",
+  "title": "File:Colored pencils lined up on pink surface.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "surligneur",
+  "match": [
+   "SURLIGN",
+   "HIGHLIGHTER"
+  ],
+  "image": "/generic/surligneur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:BIC_Brite_Liner_highlighter,_orange.jpg",
+  "title": "File:BIC Brite Liner highlighter, orange.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "correcteur",
+  "match": [
+   "CORRECT",
+   "WHITE PEPS"
+  ],
+  "image": "/generic/correcteur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Correction_tape_by_Jinuo_20230316_191713.jpg",
+  "title": "File:Correction tape by Jinuo 20230316 191713.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "pinceau",
+  "match": [
+   "PINCEAU"
+  ],
+  "image": "/generic/pinceau.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Jar_of_Paint_Brushes_(Unsplash).jpg",
+  "title": "File:Jar of Paint Brushes (Unsplash).jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "pastels",
+  "match": [
+   "PASTEL"
+  ],
+  "image": "/generic/pastels.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Oil_pastels_(33661115116).jpg",
+  "title": "File:Oil pastels (33661115116).jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "classeur",
+  "match": [
+   "CLASSEUR"
+  ],
+  "image": "/generic/classeur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:1976_Campaign_binder.JPG",
+  "title": "File:1976 Campaign binder.JPG",
+  "license": "Public domain"
+ },
+ {
+  "key": "enveloppe",
+  "match": [
+   "ENVELOPPE"
+  ],
+  "image": "/generic/enveloppe.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Envelope_timbrado.JPG",
+  "title": "File:Envelope timbrado.JPG",
+  "license": "Public domain"
+ },
+ {
+  "key": "calculatrice",
+  "match": [
+   "CALCULATRI"
+  ],
+  "image": "/generic/calculatrice.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Calculator-scientific_(24218253912).jpg",
+  "title": "File:Calculator-scientific (24218253912).jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "souris",
+  "match": [
+   "SOURIS"
+  ],
+  "image": "/generic/souris.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:ComputerMouseCloseup3.jpg",
+  "title": "File:ComputerMouseCloseup3.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "perforateur",
+  "match": [
+   "PERFORATEUR"
+  ],
+  "image": "/generic/perforateur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Imej_Hole_Punch_atau_Penebuk_Lubang.jpg",
+  "title": "File:Imej Hole Punch atau Penebuk Lubang.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "elastiques",
+  "match": [
+   "BRACELET",
+   "ELASTIQUE"
+  ],
+  "image": "/generic/elastiques.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Yellow_rubber_band.jpg",
+  "title": "File:Yellow rubber band.jpg",
+  "license": "CC0"
+ }
+]

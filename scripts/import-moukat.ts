@@ -114,6 +114,24 @@ function localPhoto(barcode: string): string | null {
   return COVERS[barcode] ?? null
 }
 
+// Images LIBRES (CC0 / domaine public) par TYPE de petit materiel (scripts/fetch-generic-images.mjs).
+// Elles illustrent un type d'article, pas la marque : la description l'indique au client.
+type GenericImage = { key: string; match: string[]; image: string }
+const GENERIC: GenericImage[] = existsSync("scripts/generic-images.json")
+  ? JSON.parse(readFileSync("scripts/generic-images.json", "utf8"))
+  : []
+const GENERIC_NOTE = "Image illustrative (photo non contractuelle)"
+// Un terme doit commencer un mot (evite "COLLE" dans "COLLEGE" : on exclut explicitement les faux amis).
+const FALSE_FRIENDS = ["COLLEGE", "COLLECTION", "TAILLEUR"]
+// Articles dont le nom contient un mot-cle mais qui sont autre chose (film couvre-livre, classeur a rabat, recharges d'agrafes).
+const NOT_THE_TYPE = ["COUVRE", "RABAT", "CHARGES"]
+function genericImage(sheet: string, upperName: string): GenericImage | null {
+  if (sheet !== "PETITS MATERIELS" || NOT_THE_TYPE.some((w) => upperName.includes(w))) return null
+  const padded = " " + upperName.replace(/[^A-Z0-9]+/g, " ") + " "
+  const cleaned = FALSE_FRIENDS.reduce((s, f) => s.split(" " + f).join(" "), padded)
+  return GENERIC.find((g) => g.match.some((t) => cleaned.includes(" " + t))) ?? null
+}
+
 // ---------------------------------------------------------------- niveaux scolaires (livres)
 const LEVEL_RE = /\b(CI|CP|CE1|CE2|CM1|CM2|6EME|5EME|4EME|3EME|2NDE|1ERE|TERMINALE|TLE|PS|MS|GS)\b/
 const LEVEL_LABEL: Record<string, string> = {
@@ -135,16 +153,19 @@ export function buildCatalogue(rows: Row[]): Item[] {
     // Meme designation avec plusieurs codes (editions differentes) : on distingue par la reference
     if ((counts.get(upper) ?? 0) > 1) name += ` (réf. ${r.code})`
     const lv = r.sheet === "LIVRES" ? upper.match(LEVEL_RE)?.[1] : undefined
+    // Priorite : photo deposee > couverture Open Library > image libre du type d'article > rien
+    // (pas de photo generique pour les livres : la meme image repetee 270 fois trompe le client ; sans image,
+    // la vitrine affiche le pictogramme de la categorie).
+    const own = localPhoto(r.code)
+    const generic = own ? null : genericImage(r.sheet, upper)
     return {
       barcode: r.code,
       name,
       price: r.price,
       stock: Math.max(0, Math.round(r.qty)),
       category,
-      description: lv ? `Niveau : ${LEVEL_LABEL[lv] ?? lv}` : null,
-      // Pas de photo generique par produit : la meme image repetee 270 fois trompe le client.
-      // Sans photo reelle, la vitrine affiche son pictogramme de categorie.
-      image: localPhoto(r.code),
+      description: lv ? `Niveau : ${LEVEL_LABEL[lv] ?? lv}` : generic ? GENERIC_NOTE : null,
+      image: own ?? generic?.image ?? null,
     }
   })
 }
@@ -190,7 +211,7 @@ async function apply(items: Item[]) {
       const existing = await prisma.product.findUnique({ where: { barcode: it.barcode } })
       if (existing) {
         // Reimport : prix, stock et categorie suivent le fichier ; nom/image/description retouches a la main sont conserves.
-        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active", ...(it.image && (!existing.image || existing.image.startsWith("/products/") || existing.image.startsWith("https://covers.openlibrary.org/")) ? { image: it.image } : {}) } })
+        await prisma.product.update({ where: { id: existing.id }, data: { price: it.price, stock: it.stock, category: it.category, status: "Active", ...(it.image && (!existing.image || existing.image.startsWith("/products/") || existing.image.startsWith("/generic/") || existing.image.startsWith("https://covers.openlibrary.org/")) ? { image: it.image } : {}), ...(it.description === GENERIC_NOTE && !existing.description ? { description: it.description } : {}) } })
         updated++
       } else {
         await prisma.product.create({ data: { ...it, storeId: store.id, status: "Active" } })
