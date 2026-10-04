@@ -126,6 +126,63 @@
   "license": "Public domain"
  },
  {
+  "key": "mine",
+  "match": [
+   "MINE CRITERIUM",
+   "MINES"
+  ],
+  "image": "/generic/mine.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Mechanical_pencil_lead_spilling_out_051907.jpg",
+  "title": "File:Mechanical pencil lead spilling out 051907.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "marqueur-tableau",
+  "match": [
+   "WHITE BOARD",
+   "POUR TABLEAU",
+   "TABLEAU BLANC",
+   "MARQUEUR TABLEAU"
+  ],
+  "image": "/generic/marqueur-tableau.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Whiteboard_markers.jpg",
+  "title": "File:Whiteboard markers.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "marqueur",
+  "match": [
+   "MARKER",
+   "MARQUEUR",
+   "POWER LIN"
+  ],
+  "image": "/generic/marqueur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Sharpie-marker-types.jpg",
+  "title": "File:Sharpie-marker-types.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "feutres",
+  "match": [
+   "FEUTRE"
+  ],
+  "image": "/generic/feutres.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Color-Pen_20121001_224914.jpg",
+  "title": "File:Color-Pen 20121001 224914.jpg",
+  "license": "Public domain"
+ },
+ {
+  "key": "craie-couleur",
+  "match": [
+   "CRAIE COULEUR",
+   "CRAIES"
+  ],
+  "image": "/generic/craie-couleur.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Kids-toy-chalk-colored_(24029516180).jpg",
+  "title": "File:Kids-toy-chalk-colored (24029516180).jpg",
+  "license": "CC0"
+ },
+ {
   "key": "stylo",
   "match": [
    "STYLO",
@@ -141,11 +198,28 @@
   "match": [
    "CRAYONS DE COULEUR",
    "CRAYON DE COULEUR",
-   "CRAYON COULEUR"
+   "CRAYON COULEUR",
+   "CRAYONS COULEUR",
+   "CRAYONS DE 12 COULEURS",
+   "CRAYON 12 COULEURS",
+   "12 CRAYONS COULEUR"
   ],
   "image": "/generic/crayon-couleur.jpg",
   "source": "https://commons.wikimedia.org/wiki/File:Colored_pencils_lined_up_on_pink_surface.jpg",
   "title": "File:Colored pencils lined up on pink surface.jpg",
+  "license": "CC0"
+ },
+ {
+  "key": "crayon-noir",
+  "match": [
+   "CRAYON NOIR",
+   "CRAYONS NOIR",
+   "CRAYON HB",
+   "CRAYONS HB"
+  ],
+  "image": "/generic/crayon-noir.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Minimal_pencils_on_yellow_(Unsplash).jpg",
+  "title": "File:Minimal pencils on yellow (Unsplash).jpg",
   "license": "CC0"
  },
  {

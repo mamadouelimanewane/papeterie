@@ -29,8 +29,14 @@ const TYPES = [
   { key: "agrafes", match: ["AGRAF", "DEGRAFEUSE"], query: "stapler" },
   { key: "trombones", match: ["TROMBONE"], query: "paper clips" },
   { key: "scotch", match: ["SCOTCH", "ADHESIF"], query: "adhesive tape roll", pick: "Adhesive tapes clear" },
+  { key: "mine", match: ["MINE CRITERIUM", "MINES"], query: "mechanical pencil", exact: "Mechanical pencil lead spilling out 051907.jpg" },
+  { key: "marqueur-tableau", match: ["WHITE BOARD", "POUR TABLEAU", "TABLEAU BLANC", "MARQUEUR TABLEAU"], query: "whiteboard marker", exact: "Whiteboard markers.jpg" },
+  { key: "marqueur", match: ["MARKER", "MARQUEUR", "POWER LIN"], query: "permanent marker", pick: "Sharpie-marker-types" },
+  { key: "feutres", match: ["FEUTRE"], query: "felt-tip pens", exact: "Color-Pen 20121001 224914.jpg" },
+  { key: "craie-couleur", match: ["CRAIE COULEUR", "CRAIES"], query: "colored chalk", pick: "Kids-toy-chalk-colored" },
   { key: "stylo", match: ["STYLO", "ROLLER"], query: "ballpoint pen" },
-  { key: "crayon-couleur", match: ["CRAYONS DE COULEUR", "CRAYON DE COULEUR", "CRAYON COULEUR"], query: "colored pencils" },
+  { key: "crayon-couleur", match: ["CRAYONS DE COULEUR", "CRAYON DE COULEUR", "CRAYON COULEUR", "CRAYONS COULEUR", "CRAYONS DE 12 COULEURS", "CRAYON 12 COULEURS", "12 CRAYONS COULEUR"], query: "colored pencils" },
+  { key: "crayon-noir", match: ["CRAYON NOIR", "CRAYONS NOIR", "CRAYON HB", "CRAYONS HB"], query: "pencils", pick: "Minimal pencils on yellow" },
   { key: "surligneur", match: ["SURLIGN", "HIGHLIGHTER"], query: "highlighter pen" },
   { key: "correcteur", match: ["CORRECT", "WHITE PEPS"], query: "correction tape" },
   { key: "pinceau", match: ["PINCEAU"], query: "paint brush", pick: "Jar of Paint Brushes" },
@@ -43,7 +49,20 @@ const TYPES = [
   { key: "elastiques", match: ["BRACELET", "ELASTIQUE"], query: "rubber bands" },
 ]
 
-async function candidates(query) {
+// Image choisie par son titre exact (la recherche Commons n'est pas stable d'un appel a l'autre).
+async function byTitle(file) {
+  const url = "https://commons.wikimedia.org/w/api.php?" + new URLSearchParams({
+    action: "query", format: "json", titles: "File:" + file, prop: "imageinfo", iiprop: "url|extmetadata|size|mime", iiurlwidth: "400", origin: "*",
+  })
+  const j = await (await fetch(url, { headers: UA, signal: AbortSignal.timeout(25000) })).json()
+  const p = Object.values(j.query?.pages ?? {})[0]
+  const ii = p?.imageinfo?.[0]
+  if (!ii) return []
+  const license = ii.extmetadata?.LicenseShortName?.value ?? "?"
+  return FREE.test(license) ? [{ title: p.title, ii, license }] : []
+}
+
+async function candidates(query, relaxed = false) {
   const url = "https://commons.wikimedia.org/w/api.php?" + new URLSearchParams({
     action: "query", format: "json", generator: "search", gsrnamespace: "6", gsrlimit: "30",
     gsrsearch: query + " filetype:bitmap", prop: "imageinfo", iiprop: "url|extmetadata|size|mime", iiurlwidth: "400", origin: "*",
@@ -52,7 +71,7 @@ async function candidates(query) {
   return Object.values(j.query?.pages ?? {})
     .sort((a, b) => a.index - b.index)
     .map((p) => ({ title: p.title, ii: p.imageinfo?.[0] }))
-    .filter((c) => c.ii && /image[/](jpeg|png)/.test(c.ii.mime) && c.ii.width >= 600 && c.ii.height >= 600)
+    .filter((c) => c.ii && /image[/](jpeg|png)/.test(c.ii.mime) && c.ii.width >= (relaxed ? 350 : 600) && c.ii.height >= (relaxed ? 250 : 600))
     .map((c) => ({ ...c, license: c.ii.extmetadata?.LicenseShortName?.value ?? "?" }))
     .filter((c) => FREE.test(c.license))
 }
@@ -61,8 +80,8 @@ if (!LIST_ONLY) mkdirSync("public/generic", { recursive: true })
 const manifest = []
 for (const t of TYPES) {
   let list = []
-  try { list = await candidates(t.query) } catch (e) { console.log("ERREUR", t.key, e.message) }
-  const pick = t.pick ? list.find((c) => c.title.includes(t.pick)) : list[0]
+  try { list = t.exact ? await byTitle(t.exact) : await candidates(t.query, !!t.pick) } catch (e) { console.log("ERREUR", t.key, e.message) }
+  const pick = t.exact ? list[0] : t.pick ? list.find((c) => c.title.includes(t.pick)) : list[0]
   if (!pick) { console.log("AUCUNE image libre :", t.key, `(${t.query})`); continue }
   console.log(`${t.key.padEnd(16)} ${pick.license.padEnd(14)} ${pick.title}  (+${list.length - 1} autres)`)
   if (LIST_ONLY) continue
