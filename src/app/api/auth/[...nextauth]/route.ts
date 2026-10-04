@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { SUPER_ROLES } from "@/lib/permissions"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
+import { safeEqual } from "@/lib/auth"
 import { findStoreByInvite, hashInviteToken, MIN_PASSWORD_LENGTH } from "@/lib/merchantAuth"
 
 async function resolvePermissions(role: string): Promise<string[]> {
@@ -11,7 +13,7 @@ async function resolvePermissions(role: string): Promise<string[]> {
     const r = await prisma.role.findUnique({ where: { name: role } })
     return Array.isArray(r?.permissions) ? (r!.permissions as string[]) : []
   } catch {
-    return ["*"] // en cas d'erreur DB, on ne bloque pas
+    return [] // echec ferme : en cas d'erreur DB, aucun droit
   }
 }
 
@@ -76,8 +78,11 @@ const handler = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
+
+        const ip = clientIp({ headers: new Headers(req?.headers as Record<string, string> | undefined) })
+        if (!rateLimit("admin-login:ip:" + ip, 10, 15 * 60_000) || !rateLimit("admin-login:email:" + credentials.email.toLowerCase(), 10, 15 * 60_000)) return null
 
         // Check env-based super admin first (no DB required for initial setup)
         const adminEmail = process.env.ADMIN_EMAIL
@@ -85,8 +90,8 @@ const handler = NextAuth({
 
         if (adminEmail && adminPassword) {
           if (
-            credentials.email === adminEmail &&
-            credentials.password === adminPassword
+            safeEqual(credentials.email, adminEmail) &&
+            safeEqual(credentials.password, adminPassword)
           ) {
             return { id: "admin-env", name: "Admin", email: adminEmail, role: "admin", permissions: ["*"] }
           }

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { safeEqual } from "@/lib/auth"
 import { getActiveStoreId } from "@/lib/store"
 
-// Code marchand simple pour la gestion de contenu (demo). A definir via MERCHANT_CODE.
-const CODE = process.env.MERCHANT_CODE ?? "schoolmatik"
+// Code marchand pour la gestion de contenu : MERCHANT_CODE obligatoire (pas de valeur par defaut).
+const CODE = process.env.MERCHANT_CODE
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    if (!CODE || body.code !== CODE) {
+    if (!CODE || !safeEqual(typeof body.code === "string" ? body.code : null, CODE)) {
       return NextResponse.json({ error: "Code marchand invalide" }, { status: 401 })
     }
 

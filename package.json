@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test:versus": "node --env-file=.env node_modules/tsx/dist/cli.mjs scripts/test-versus.ts"
+    "test:versus": "node --env-file=.env node_modules/tsx/dist/cli.mjs scripts/test-versus.ts",
+    "import:moukat": "node --env-file=.env node_modules/tsx/dist/cli.mjs scripts/import-moukat.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

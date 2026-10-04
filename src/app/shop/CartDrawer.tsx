@@ -63,10 +63,9 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // total = montant réellement dû (articles remisés + livraison), comme l'application mobile :
-          // c'est ce montant que Versus encaisse
+          // Le serveur recalcule montant, promo et livraison depuis la base : ces champs ne sont qu'indicatifs.
           total: grandTotal, subtotal: total, deliveryFee: 500, paymentMethod: method,
-          items: cart.map((x) => ({ name: x.name, price: x.price, qty: x.qty })),
+          items: cart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
           notes: "Commande web (/shop)",

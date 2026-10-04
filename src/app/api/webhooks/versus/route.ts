@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { safeEqual } from "@/lib/auth"
 
 /**
- * Verifie la signature du webhook si VERSUS_WEBHOOK_SECRET est configure.
+ * Verifie le secret du webhook (VERSUS_WEBHOOK_SECRET), obligatoire.
  * Accepte le secret via l'en-tete `x-versus-signature` ou `authorization: Bearer`.
- * Si aucun secret n'est configure, un avertissement est journalise (mode compat).
+ * Sans secret configure, tout est refuse (echec ferme).
  */
 function isSignatureValid(req: Request): boolean {
   const secret = process.env.VERSUS_WEBHOOK_SECRET
   if (!secret) {
-    console.warn("[versus-webhook] VERSUS_WEBHOOK_SECRET non configure - webhook non authentifie")
-    return true
+    console.error("[versus-webhook] VERSUS_WEBHOOK_SECRET non configure - webhook refuse")
+    return false
   }
-  const sig = req.headers.get("x-versus-signature")
   const auth = req.headers.get("authorization")
   const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null
-  return sig === secret || bearer === secret
+  return safeEqual(req.headers.get("x-versus-signature"), secret) || safeEqual(bearer, secret)
 }
 
 export async function POST(req: Request) {

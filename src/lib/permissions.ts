@@ -55,3 +55,31 @@ export function hasPerm(perms: string[] | undefined | null, perm: string | null)
   if (!perms) return false
   return perms.includes("*") || perms.includes(perm)
 }
+
+// Prefixe d'API -> [permission lecture, permission ecriture] (le premier match gagne).
+// /api/admin/* verifie sa permission dans chaque route (requireAdmin) : absent d'ici.
+const API_PERMS: [string, string, string][] = [
+  ["/api/orders", "orders.view", "orders.manage"],
+  ["/api/users", "users.view", "users.manage"],
+  ["/api/drivers", "drivers.view", "drivers.manage"],
+  ["/api/stores", "stores.view", "stores.manage"],
+  ["/api/store", "stores.view", "stores.manage"],
+  ["/api/categories", "stores.view", "stores.manage"],
+  ["/api/slider", "stores.view", "stores.manage"],
+  ["/api/kits", "stores.view", "stores.manage"],
+  ["/api/transactions", "reports.view", "reports.view"],
+  ["/api/dashboard", "dashboard.view", "dashboard.view"],
+  ["/api/notifications", "notifications.send", "notifications.send"],
+  ["/api/promo-codes", "settings.view", "settings.manage"],
+  ["/api/service-areas", "settings.view", "settings.manage"],
+  ["/api/countries", "settings.view", "settings.manage"],
+]
+
+export function permForApi(pathname: string, method: string): string | null {
+  for (const [prefix, read, write] of API_PERMS) {
+    if (pathname === prefix || pathname.startsWith(prefix + "/")) {
+      return method === "GET" || method === "HEAD" ? read : write
+    }
+  }
+  return null
+}

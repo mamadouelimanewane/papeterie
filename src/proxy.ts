@@ -1,10 +1,20 @@
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+import { hasPerm, permForApi } from "@/lib/permissions"
 
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+// CORS : l'admin et la vitrine sont same-origin et les apps mobiles natives n'en ont pas
+// besoin. Seules les origines listees dans CORS_ORIGINS (separees par des virgules) sont autorisees.
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean)
+
+function corsHeaders(req: { headers: Headers }): Record<string, string> {
+  const origin = req.headers.get("origin")
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return {}
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+    Vary: "Origin",
+  }
 }
 
 function hasBearerToken(req: { headers: Headers }): boolean {
@@ -90,15 +100,19 @@ function apiAllowed(
   req: { headers: Headers; nextauth: { token: SessionToken } },
   pathname: string,
   method: string
-) {
-  if (isPublicApiRoute(pathname, method)) return true
+): "ok" | "unauthenticated" | "forbidden" {
+  if (isPublicApiRoute(pathname, method)) return "ok"
   const token = req.nextauth.token
-  if (pathname === "/api/merchant" || pathname.startsWith("/api/merchant/")) return isMerchantToken(token)
-  // Session admin (cookie NextAuth) : acces complet a l'API d'administration.
-  if (isAdminToken(token)) return true
+  if (pathname === "/api/merchant" || pathname.startsWith("/api/merchant/")) return isMerchantToken(token) ? "ok" : "unauthenticated"
+  // Session admin (cookie NextAuth) : acces selon les permissions RBAC du role.
+  // (Les routes /api/admin/* verifient leur permission elles-memes via requireAdmin.)
+  if (isAdminToken(token)) {
+    const perms = (token as { permissions?: string[] }).permissions
+    return hasPerm(perms, permForApi(pathname, method)) ? "ok" : "forbidden"
+  }
   // Routes mobiles : necessitent un Bearer, dont la validite est controlee par la route.
-  if (isMobileApiRoute(pathname, method) && hasBearerToken(req)) return true
-  return false
+  if (isMobileApiRoute(pathname, method) && hasBearerToken(req)) return "ok"
+  return "unauthenticated"
 }
 
 export default withAuth(
@@ -109,7 +123,7 @@ export default withAuth(
     if (req.method === "OPTIONS") {
       return new NextResponse(null, {
         status: 204,
-        headers: { ...CORS_HEADERS, "Access-Control-Max-Age": "86400" },
+        headers: { ...corsHeaders(req), "Access-Control-Max-Age": "86400" },
       })
     }
 
@@ -117,10 +131,11 @@ export default withAuth(
 
     // 2) API : session admin OU JWT mobile (route mobile) OU route publique
     if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
-      if (!apiAllowed(req, pathname, req.method)) {
+      const access = apiAllowed(req, pathname, req.method)
+      if (access !== "ok") {
         return NextResponse.json(
-          { error: "Non authentifie" },
-          { status: 401, headers: CORS_HEADERS }
+          { error: access === "forbidden" ? "Permission insuffisante" : "Non authentifie" },
+          { status: access === "forbidden" ? 403 : 401, headers: corsHeaders(req) }
         )
       }
     }
@@ -153,7 +168,7 @@ export default withAuth(
 
     const response = NextResponse.next()
     if (pathname.startsWith("/api/")) {
-      for (const [k, v] of Object.entries(CORS_HEADERS)) response.headers.set(k, v)
+      for (const [k, v] of Object.entries(corsHeaders(req))) response.headers.set(k, v)
     }
     return response
   },
