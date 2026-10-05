@@ -160,6 +160,9 @@ export default withAuth(
       !pathname.startsWith("/gestion") &&   // interface marchande (protegee par code cote page)
       !pathname.startsWith("/livreur") &&   // interface livreur de test (publique)
       !pathname.startsWith("/checkout") &&  // retours de paiement Versus
+      !pathname.startsWith("/installer") && // page publique : installer les applications
+      !pathname.startsWith("/pwa") &&       // manifestes et icones des applications installables
+      pathname !== "/sw.js" && pathname !== "/offline.html" && pathname !== "/OneSignalSDKWorker.js" && // service worker (doit etre lisible sans connexion)
       !pathname.startsWith("/api/") &&
       !pathname.startsWith("/_next") &&
       !pathname.startsWith("/favicon") &&

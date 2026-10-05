@@ -29,19 +29,23 @@ export async function GET(req: Request) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    const todayOrdersCount = await prisma.order.count({
+    // Gains du jour = somme des frais de livraison reels (ils varient avec la distance)
+    const todayAgg = await prisma.order.aggregate({
       where: {
         driverId: decoded.id,
-        status: "Delivered",
+        status: { in: ["Delivered", "Completed"] },
         updatedAt: { gte: today }
-      }
+      },
+      _count: true,
+      _sum: { deliveryFee: true },
     })
+    const todayOrdersCount = todayAgg._count
 
     return NextResponse.json({
       totalEarnings: driver.earning,
       totalOrders: driver.totalOrders,
       walletBalance: driver.walletMoney,
-      todayEarnings: todayOrdersCount * 500, // Simulation: 500 FCFA par livraison
+      todayEarnings: todayAgg._sum.deliveryFee ?? 0,
       todayOrders: todayOrdersCount
     })
   } catch (error) {

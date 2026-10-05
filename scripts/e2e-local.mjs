@@ -293,6 +293,38 @@ await setGeneral({ deliveryMode: "Fixed", deliveryFreeAbove: 0, defaultDeliveryF
 const back = await order([{ id: pA.id, qty: 1 }])
 ok("retour au tarif fixe : commande sans position acceptee, 500 F", back.status === 201 && back.json.deliveryFee === 500)
 
+section("10. Applications installables (PWA) et espace livreur")
+for (const [app, path, color] of [["client", "/shop", "#4F46E5"], ["livreur", "/livreur", "#059669"], ["admin", "/dashboard", "#111827"]]) {
+  const m = await req("GET", `/pwa/${app}.webmanifest`)
+  const j = m.json ?? {}
+  const sizes = (j.icons ?? []).map((i) => i.sizes + "/" + i.purpose)
+  ok(`manifeste ${app} : nom, adresse de depart, mode application, icones 192 / 512 / maskable`,
+    m.status === 200 && /manifest\+json/.test(m.headers["content-type"] ?? "") && j.display === "standalone" && j.start_url?.startsWith(path) && j.theme_color === color &&
+      sizes.includes("192x192/any") && sizes.includes("512x512/any") && sizes.includes("512x512/maskable"), `${j.name} · ${j.start_url} · portee ${j.scope}`)
+  const icons = await Promise.all((j.icons ?? []).map((i) => req("GET", i.src)))
+  ok(`icones ${app} accessibles sans connexion`, icons.length === 3 && icons.every((r) => r.status === 200 && /image\/png/.test(r.headers["content-type"] ?? "")))
+}
+const swr = await req("GET", "/sw.js")
+ok("service worker accessible sans connexion, jamais mis en cache par le navigateur", swr.status === 200 && /javascript/.test(swr.headers["content-type"] ?? "") && /no-cache|no-store/.test(swr.headers["cache-control"] ?? "") && /\/api\//.test(swr.text), swr.headers["cache-control"])
+ok("le service worker ne met jamais l'API en cache", /startsWith\("\/api\/"\)\) return/.test(swr.text))
+ok("page hors connexion et page « Installer » publiques", (await req("GET", "/offline.html")).status === 200 && (await req("GET", "/installer")).status === 200)
+const cl = await req("GET", "/client"), ad = await req("GET", "/admin")
+ok("adresses courtes : /client -> boutique, /admin -> administration", [307, 308].includes(cl.status) && /\/shop/.test(cl.headers.location ?? "") && [307, 308].includes(ad.status) && /\/dashboard/.test(ad.headers.location ?? ""), `${cl.headers.location} | ${ad.headers.location}`)
+for (const [name, path] of [["boutique", "/shop"], ["livreur", "/livreur"], ["connexion admin", "/login"]]) {
+  const html = (await req("GET", path)).text
+  ok(`page ${name} : lien vers le manifeste et icone iOS`, /rel="manifest"/.test(html) && /apple-touch-icon|apple-mobile-web-app/i.test(html) && /pwa\/(client|livreur|admin)\.webmanifest/.test(html))
+}
+const livreurHtml = (await req("GET", "/livreur")).text
+ok("la page livreur n'affiche plus de mot de passe de demonstration", !/Demo2024|livreur@papeterie/i.test(livreurHtml))
+ok("commande en cours : sans session = 401", (await req("GET", "/api/driver/orders/active")).status === 401)
+const act = await req("GET", "/api/driver/orders/active", { headers: H })
+const mine = (act.json ?? []).find((o) => o._id === tamper.json.id)
+ok("commande en cours du livreur : client, GPS et gain, sans aucun code de securite", mine && mine.customerName === "Awa" && /771110000/.test(mine.customerPhone) && Math.abs(mine.deliveryGps?.lat - 14.745) < 0.001 && mine.earnings === 2150 && !("pickupOtp" in mine) && !("deliveryOtp" in mine) && !/\b\d{6}\b/.test(JSON.stringify({ ...mine, id: undefined, _id: undefined, customerPhone: undefined })), JSON.stringify({ statut: mine?.status, client: mine?.customerName, gain: mine?.earnings }))
+const histo = await req("GET", "/api/driver/orders/history", { headers: H })
+ok("historique livreur : aucun code de securite renvoye", Array.isArray(histo.json) && histo.json.every((o) => !("pickupOtp" in o) && !("deliveryOtp" in o) && !("signature" in o)))
+const earn = await req("GET", "/api/driver/earnings", { headers: H })
+ok("gains du jour calcules sur les frais reels (plus de forfait fictif de 500 F)", earn.status === 200 && earn.json?.todayEarnings === (await q(`SELECT coalesce(sum("deliveryFee"),0)::int s FROM "Order" WHERE "driverId"=$1 AND status IN ('Delivered','Completed')`, [driverId]))[0].s, JSON.stringify({ jour: earn.json?.todayEarnings, livraisons: earn.json?.todayOrders }))
+
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} controles OK`)
 if (failed.length) console.log("A corriger :\n - " + failed.map((f) => f.name).join("\n - "))

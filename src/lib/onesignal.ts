@@ -13,6 +13,7 @@ export async function initOneSignal() {
     allowLocalhostAsSecureOrigin: true,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     notifyButton: { enable: false } as any,
+    serviceWorkerPath: "sw.js", // le service worker de l'application importe celui de OneSignal (un seul worker par portée)
     serviceWorkerParam: { scope: "/" },
   })
 }

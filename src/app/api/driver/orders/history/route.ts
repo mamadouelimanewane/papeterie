@@ -21,6 +21,7 @@ export async function GET(req: Request) {
         driverId: decoded.id,
         status: { in: ["Delivered", "Cancelled"] }
       },
+      omit: { pickupOtp: true, deliveryOtp: true, signature: true }, // les codes de securite ne sont jamais renvoyes au livreur
       include: {
         store: { select: { name: true, address: true } }
       },
