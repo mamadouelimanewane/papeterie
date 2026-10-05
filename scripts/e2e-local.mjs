@@ -274,6 +274,9 @@ ok("liste livreur : distance reelle (plus de valeur aleatoire) et gain = frais",
 const acc2 = await req("POST", `/api/driver/orders/${tamper.json.id}/accept`, { headers: H })
 ok("apres acceptation : position GPS du client transmise au livreur", acc2.status === 200 && Math.abs(acc2.json?.deliveryGps?.lat - 14.745) < 0.001 && acc2.json?.deliveryDistanceKm > 12, JSON.stringify({ gps: acc2.json?.deliveryGps, km: acc2.json?.deliveryDistanceKm }))
 
+ok("identite du client absente de la liste des commandes disponibles", inPool && !("customerName" in inPool) && !("customerPhone" in inPool), Object.keys(inPool ?? {}).join(","))
+ok("apres acceptation : nom et telephone du client transmis au livreur", acc2.json?.customerName === "Awa" && /771110000/.test(acc2.json?.customerPhone ?? ""), JSON.stringify({ nom: acc2.json?.customerName, tel: acc2.json?.customerPhone }))
+
 // e) codes de livraison : 5 essais errones par commande
 const pick2 = (await q(`SELECT "pickupOtp" FROM "Order" WHERE id=$1`, [tamper.json.id]))[0].pickupOtp
 await req("PUT", `/api/driver/orders/${tamper.json.id}/status`, { body: { status: "PickedUp", otp: pick2 }, headers: H })

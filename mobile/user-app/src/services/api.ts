@@ -62,6 +62,13 @@ export const ordersAPI = {
   track: (id: string) => api.get(`/orders/${id}/track`),
 }
 
+// ── Livraison (frais selon la distance, recherche d'adresse) ──────
+export const deliveryAPI = {
+  config: () => api.get("/shop/config"),
+  quote: (lat: number, lng: number, goods: number) => api.post("/delivery/quote", { lat, lng, goods }),
+  geocode: (q: string) => api.post("/delivery/geocode", { q }),
+}
+
 // ── Wallet ────────────────────────────────────────────────────────
 export const walletAPI = {
   getBalance: () => api.get("/wallet/balance"),

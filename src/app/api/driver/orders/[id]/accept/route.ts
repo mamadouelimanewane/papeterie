@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
 import { readDeliveryTag } from "@/lib/deliveryPricing"
+import { customerFromNotes } from "@/lib/orderPayment"
 
 /**
  * POST /api/driver/orders/[id]/accept → un livreur approuvé accepte une commande libre.
@@ -32,7 +33,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     })
     // Position GPS de livraison (enregistree a la commande) : permet au livreur de lancer la navigation
     const { distanceKm, point } = readDeliveryTag(updated?.notes)
-    return NextResponse.json({ ...updated, deliveryDistanceKm: distanceKm, deliveryGps: point })
+    // Identite du client : communiquee seulement au livreur auquel la commande vient d'etre attribuee
+    const account = updated?.userId ? await prisma.user.findUnique({ where: { id: updated.userId }, select: { name: true, phone: true } }) : null
+    const guest = customerFromNotes(updated?.notes)
+    const guestName = /Client:/.test(updated?.notes ?? "") ? `${guest.firstName} ${guest.lastName === "Schoolmatik" ? "" : guest.lastName}`.trim() : "Client"
+    return NextResponse.json({
+      ...updated,
+      deliveryDistanceKm: distanceKm,
+      deliveryGps: point,
+      customerName: account?.name || guestName,
+      customerPhone: account?.phone || guest.phone || "",
+    })
   } catch (error) {
     console.error("[driver-order-accept]", error)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

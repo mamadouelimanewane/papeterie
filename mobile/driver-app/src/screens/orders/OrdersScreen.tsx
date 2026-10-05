@@ -2,7 +2,9 @@ import React from "react"
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView,
 } from "react-native"
+import { Alert } from "react-native"
 import { useDriverStore } from "../../store/useDriverStore"
+import { ordersAPI } from "../../services/api"
 
 const COLORS = {
   primary: "#6B6BD5", bg: "#F5F5F5", white: "#FFFFFF",
@@ -11,11 +13,31 @@ const COLORS = {
 }
 
 export default function OrdersScreen({ navigation }: any) {
-  const { pendingOrders, isOnline, acceptOrder, currentOrder } = useDriverStore()
+  const { pendingOrders, isOnline, acceptOrder, currentOrder, fetchOrders } = useDriverStore()
+  const [accepting, setAccepting] = React.useState<string | null>(null)
 
-  const handleAccept = (order: any) => {
-    acceptOrder(order)
-    navigation.navigate("ActiveDelivery")
+  // L'attribution se fait COTE SERVEUR (atomique : un seul livreur obtient la commande). Avant, l'application
+  // ne l'enregistrait que localement : les statuts etaient ensuite refuses (« commande non attribuee »).
+  const handleAccept = async (order: any) => {
+    if (accepting) return
+    setAccepting(order.id)
+    try {
+      const res = await ordersAPI.accept(order._id ?? order.id)
+      acceptOrder({
+        ...order,
+        customerName: res.data?.customerName,
+        customerPhone: res.data?.customerPhone,
+        deliveryGps: res.data?.deliveryGps ?? null,
+        deliveryDistanceKm: res.data?.deliveryDistanceKm ?? null,
+        deliveryAddress: res.data?.address || order.deliveryAddress,
+      })
+      navigation.navigate("ActiveDelivery")
+    } catch (e: any) {
+      Alert.alert("Commande indisponible", e?.message || "Cette commande n'est plus disponible.")
+      fetchOrders()
+    } finally {
+      setAccepting(null)
+    }
   }
 
   if (!isOnline) {
@@ -84,7 +106,7 @@ export default function OrdersScreen({ navigation }: any) {
                 <View style={styles.addressInfo}>
                   <Text style={styles.addressType}>Livraison</Text>
                   <Text style={styles.addressText}>{item.deliveryAddress}</Text>
-                  <Text style={styles.customerName}>👤 {item.customerName}</Text>
+                  <Text style={styles.customerName}>Client communiqué après acceptation</Text>
                 </View>
               </View>
             </View>
@@ -113,9 +135,9 @@ export default function OrdersScreen({ navigation }: any) {
               <TouchableOpacity
                 style={[styles.acceptBtn, currentOrder && styles.acceptBtnDisabled]}
                 onPress={() => !currentOrder && handleAccept(item)}
-                disabled={!!currentOrder}
+                disabled={!!currentOrder || accepting !== null}
               >
-                <Text style={styles.acceptText}>{currentOrder ? "Livraison en cours" : "Accepter"}</Text>
+                <Text style={styles.acceptText}>{currentOrder ? "Livraison en cours" : accepting === item.id ? "Attribution…" : "Accepter"}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -1,15 +1,17 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image, Modal, ScrollView, Linking
+  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image, Modal, ScrollView, Linking, TextInput
 } from "react-native"
 import { COLORS, FONTS, SPACING, RADIUS } from "../../constants/theme"
 import { useStore } from "../../store/useStore"
 import { Ionicons } from "@expo/vector-icons"
-import { ordersAPI } from "../../services/api"
+import * as Location from "expo-location"
+import { ordersAPI, deliveryAPI } from "../../services/api"
 
 const PAYMENT_OPTIONS = [
   { id: "Cash", label: "Especes", subtitle: "Payer a la livraison", icon: "cash", color: "#27AE60" },
-  { id: "Wallet", label: "Portefeuille", subtitle: "Paiement instantane", icon: "wallet", color: "#8B5CF6" },
+  // Portefeuille : retiré tant que le serveur ne débite pas le solde (la commande serait créée sans paiement)
+  // { id: "Wallet", label: "Portefeuille", subtitle: "Paiement instantane", icon: "wallet", color: "#8B5CF6" },
   { id: "Versus", label: "Paiement Mobile (Versus)", subtitle: "Wave, Orange Money...", icon: "phone-portrait", color: "#1B74E4" },
   // { id: "Wave", label: "Wave", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#1B74E4" },
   // { id: "Orange", label: "Orange Money", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#FF6600" },
@@ -29,19 +31,66 @@ export default function CartScreen({ navigation }: any) {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const DELIVERY_FEE = 500
-  const FREE_DELIVERY_THRESHOLD = 10000
-  const deliveryFee = (cartTotal >= FREE_DELIVERY_THRESHOLD || isGroupOrder) ? 0 : DELIVERY_FEE
+  // Livraison : tarif fixe ou selon la distance (réglé dans l'administration, relu à chaque ouverture du panier)
+  type Cfg = { delivery: { mode: "Fixed" | "Distance"; baseFee: number; freeAbove: number; maxKm: number } }
+  const [cfg, setCfg] = useState<Cfg | null>(null)
+  const [address, setAddress] = useState(((user as any)?.address as string) || "")
+  const [point, setPoint] = useState<{ lat: number; lng: number; label?: string } | null>(null)
+  const [quote, setQuote] = useState<{ fee: number; distanceKm: number | null } | null>(null)
+  const [quoteMsg, setQuoteMsg] = useState<string | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [hits, setHits] = useState<{ label: string; lat: number; lng: number }[]>([])
+
+  useEffect(() => { deliveryAPI.config().then((r) => setCfg(r.data)).catch(() => setCfg(null)) }, [])
+
+  const distanceMode = cfg?.delivery.mode === "Distance"
+  const fixedFee = cfg ? (cfg.delivery.freeAbove > 0 && cartTotal >= cfg.delivery.freeAbove ? 0 : cfg.delivery.baseFee) : 500
+  // null = pas encore calculable (mode distance sans position) ; le serveur recalcule TOUJOURS le montant réel
+  const deliveryFee: number | null = distanceMode ? (quote?.fee ?? null) : fixedFee
+  const orderTotal = cartTotal + (deliveryFee ?? 0)
+
+  useEffect(() => {
+    if (!distanceMode || !point) { setQuote(null); if (!point) setQuoteMsg(null); return }
+    let cancelled = false
+    deliveryAPI.quote(point.lat, point.lng, cartTotal)
+      .then((r) => { if (!cancelled) { setQuote(r.data); setQuoteMsg(null) } })
+      .catch((e) => { if (!cancelled) { setQuote(null); setQuoteMsg(e.message || "Livraison impossible à cette adresse") } })
+    return () => { cancelled = true }
+  }, [distanceMode, point, cartTotal])
+
+  const locateMe = async () => {
+    setLocating(true); setQuoteMsg(null); setHits([])
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync()
+      if (perm.status !== "granted") { setQuoteMsg("Autorisez la localisation ou utilisez la recherche d'adresse."); return }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
+      setPoint({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: "Ma position" })
+    } catch { setQuoteMsg("Position indisponible : utilisez la recherche d'adresse.") } finally { setLocating(false) }
+  }
+
+  const searchAddress = async () => {
+    if (address.trim().length < 3) { setQuoteMsg("Saisissez votre adresse (quartier, rue) puis cherchez."); return }
+    setLocating(true); setQuoteMsg(null); setHits([])
+    try {
+      const r = await deliveryAPI.geocode(address)
+      if (!r.data.results?.length) setQuoteMsg("Adresse introuvable : précisez le quartier ou utilisez « Ma position ».")
+      else setHits(r.data.results)
+    } catch (e: any) { setQuoteMsg(e.message || "Recherche impossible") } finally { setLocating(false) }
+  }
 
   const selectedPayment = PAYMENT_OPTIONS.find(p => p.id === paymentMethod) ?? PAYMENT_OPTIONS[0]
 
   const handleCheckout = async () => {
     if (cart.length === 0) return
 
+    if (!address.trim()) { Alert.alert("Adresse", "Indiquez votre adresse de livraison."); return }
+    if (distanceMode && !point) { Alert.alert("Position", "Indiquez votre position (bouton « Ma position » ou recherche d'adresse) pour calculer les frais de livraison."); return }
+    if (distanceMode && quote === null) { Alert.alert("Livraison", quoteMsg || "Les frais de livraison ne sont pas encore calculés."); return }
+
     // Verifier solde wallet si paiement par wallet
     if (paymentMethod === "Wallet") {
       const walletBalance = (user as any)?.walletMoney ?? (user as any)?.walletBalance ?? 0
-      if (walletBalance < cartTotal + deliveryFee) {
+      if (walletBalance < orderTotal) {
         Alert.alert("Solde insuffisant", `Votre solde est de ${walletBalance.toLocaleString()} FCFA. Rechargez votre portefeuille.`, [
           { text: "Recharger", onPress: () => navigation.navigate("Wallet") },
           { text: "Annuler", style: "cancel" },
@@ -54,13 +103,16 @@ export default function CartScreen({ navigation }: any) {
     try {
       const orderData = {
         storeId: cart[0].storeId,
-        total: cartTotal + deliveryFee,
+        // Montants indicatifs : le serveur recalcule prix, remise et frais de livraison (il ignore ces valeurs)
+        total: orderTotal,
         subtotal: cartTotal,
-        deliveryFee,
+        deliveryFee: deliveryFee ?? 0,
         paymentMethod,
-        paymentStatus: paymentMethod === "Cash" ? "En attente" : "Paye",
+        firstName: (user as any)?.name,
+        phone_number: (user as any)?.phone,
+        ...(point ? { deliveryLat: point.lat, deliveryLng: point.lng } : {}),
         items: cart.map(i => ({ productId: i.id, name: i.name, price: i.price, quantity: i.quantity })),
-        address: "Dakar, " + ((user as any)?.address || "Adresse du profil"),
+        address: address.trim(),
       }
 
       const res = await ordersAPI.create(orderData)
@@ -81,7 +133,7 @@ export default function CartScreen({ navigation }: any) {
 
       Alert.alert(
         "Commande confirmee !",
-        `Commande ${res.data.orderId}\nTotal : ${(cartTotal + deliveryFee).toLocaleString()} FCFA\nPaiement : ${selectedPayment.label}\n\nVotre livreur va bientot accepter la commande.`,
+        `Commande ${res.data.orderId}\nTotal : ${Number(res.data.total ?? orderTotal).toLocaleString()} FCFA\nPaiement : ${selectedPayment.label}\n\nVotre livreur va bientot accepter la commande.`,
         [{ text: "Voir mes commandes", onPress: () => { clearCart(); navigation.navigate("Orders") } }]
       )
     } catch (error: any) {
@@ -135,7 +187,7 @@ export default function CartScreen({ navigation }: any) {
 
       {isGroupOrder && (
         <View style={styles.groupStatusBanner}>
-           <Text style={styles.groupStatusText}>🤝 Vos voisins ont rejoint ! Livraison gratuite débloquée.</Text>
+           <Text style={styles.groupStatusText}>🤝 Vos voisins ont rejoint la commande groupée !</Text>
         </View>
       )}
 
@@ -143,6 +195,29 @@ export default function CartScreen({ navigation }: any) {
         data={cart}
         keyExtractor={(i) => i.id}
         contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.md }}
+        ListFooterComponent={
+          <View style={styles.deliveryBox}>
+            <Text style={styles.deliveryTitle}>Adresse de livraison</Text>
+            <TextInput style={styles.addressInput} value={address} onChangeText={setAddress} placeholder="Quartier, rue, repère *" placeholderTextColor={COLORS.gray} />
+            <View style={styles.locRow}>
+              <TouchableOpacity style={styles.locBtn} onPress={locateMe} disabled={locating}>
+                <Ionicons name="locate" size={16} color={COLORS.primary} /><Text style={styles.locBtnText}>Ma position</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.locBtn} onPress={searchAddress} disabled={locating}>
+                <Ionicons name="search" size={16} color={COLORS.primary} /><Text style={styles.locBtnText}>Chercher mon adresse</Text>
+              </TouchableOpacity>
+            </View>
+            {locating && <Text style={styles.locHint}>Localisation en cours…</Text>}
+            {hits.map((h, i) => (
+              <TouchableOpacity key={i} style={styles.hit} onPress={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }}>
+                <Text style={styles.hitText} numberOfLines={2}>{h.label}</Text>
+              </TouchableOpacity>
+            ))}
+            {point && <Text style={styles.locOk}>✓ Position retenue{point.label ? ` : ${point.label.slice(0, 60)}` : ""}</Text>}
+            {!point && distanceMode && !locating && <Text style={styles.locHint}>Les frais dépendent de la distance : indiquez votre position.</Text>}
+            {quoteMsg && <Text style={styles.locErr}>{quoteMsg}</Text>}
+          </View>
+        }
         renderItem={({ item }) => (
           <View style={styles.cartItem}>
             <View style={styles.itemImagePlaceholder}>
@@ -176,14 +251,14 @@ export default function CartScreen({ navigation }: any) {
           <Text style={styles.summaryValue}>{cartTotal.toLocaleString()} FCFA</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Livraison</Text>
+          <Text style={styles.summaryLabel}>Livraison{quote?.distanceKm != null ? ` (${String(quote.distanceKm).replace(".", ",")} km)` : ""}</Text>
           <Text style={[styles.summaryValue, deliveryFee === 0 && { color: COLORS.success }]}>
-            {deliveryFee === 0 ? "Gratuit" : `${deliveryFee.toLocaleString()} FCFA`}
+            {deliveryFee === null ? "—" : deliveryFee === 0 ? "Offerte" : `${deliveryFee.toLocaleString()} FCFA`}
           </Text>
         </View>
         <View style={[styles.summaryRow, styles.totalRow]}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>{(cartTotal + deliveryFee).toLocaleString()} FCFA</Text>
+          <Text style={styles.totalValue}>{orderTotal.toLocaleString()} FCFA</Text>
         </View>
 
         {/* Payment method selector */}
@@ -196,7 +271,7 @@ export default function CartScreen({ navigation }: any) {
           <Ionicons name="chevron-down" size={18} color={COLORS.gray} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.checkoutBtn, { backgroundColor: selectedPayment.color }]} onPress={handleCheckout} disabled={isLoading}>
+        <TouchableOpacity style={[styles.checkoutBtn, { backgroundColor: selectedPayment.color }]} onPress={handleCheckout} disabled={isLoading || (distanceMode && quote === null)}>
           <Text style={styles.checkoutText}>{isLoading ? "Commande en cours..." : "Commander maintenant"}</Text>
         </TouchableOpacity>
       </View>
@@ -270,6 +345,17 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: "row", justifyContent: "space-between" },
   summaryLabel: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
   summaryValue: { fontSize: FONTS.sizes.sm, fontWeight: "600", color: COLORS.text },
+  deliveryBox: { backgroundColor: COLORS.white, borderRadius: RADIUS.md, padding: SPACING.md, gap: SPACING.sm, borderWidth: 1, borderColor: COLORS.grayMedium },
+  deliveryTitle: { fontSize: FONTS.sizes.md, fontWeight: "700", color: COLORS.text },
+  addressInput: { borderWidth: 1, borderColor: COLORS.grayMedium, borderRadius: RADIUS.sm, paddingHorizontal: SPACING.md, paddingVertical: 10, color: COLORS.text },
+  locRow: { flexDirection: "row", gap: SPACING.sm },
+  locBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: COLORS.primary },
+  locBtnText: { color: COLORS.primary, fontWeight: "700", fontSize: 13 },
+  locHint: { color: COLORS.gray, fontSize: 12 },
+  locOk: { color: COLORS.success, fontSize: 12, fontWeight: "600" },
+  locErr: { color: "#D32F2F", fontSize: 12 },
+  hit: { padding: SPACING.sm, borderRadius: RADIUS.sm, backgroundColor: COLORS.grayLight ?? "#F3F4F6" },
+  hitText: { fontSize: 12, color: COLORS.text },
   totalRow: { borderTopWidth: 1, borderTopColor: COLORS.grayMedium, paddingTop: SPACING.sm, marginTop: 4 },
   totalLabel: { fontSize: FONTS.sizes.lg, fontWeight: "800", color: COLORS.text },
   totalValue: { fontSize: FONTS.sizes.xl, fontWeight: "800", color: COLORS.primary },

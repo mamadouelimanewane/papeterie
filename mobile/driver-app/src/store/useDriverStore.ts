@@ -18,10 +18,15 @@ interface Driver {
 
 interface Order {
   id: string
+  _id?: string // identifiant interne, utilise par le serveur pour l'attribution
   storeAddress: string
   deliveryAddress: string
-  customerName: string
-  customerPhone: string
+  // Identite du client : renvoyee par le serveur seulement APRES l'acceptation de la commande
+  customerName?: string
+  customerPhone?: string
+  // Position GPS du client (enregistree a la commande) et distance calculee par le serveur
+  deliveryGps?: { lat: number; lng: number } | null
+  deliveryDistanceKm?: number | null
   total: number
   items: number
   distance: string

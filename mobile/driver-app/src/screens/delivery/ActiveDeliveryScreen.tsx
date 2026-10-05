@@ -145,12 +145,16 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
   }
 
   const callCustomer = () => {
+    if (!currentOrder.customerPhone) { Alert.alert("Téléphone indisponible", "Le numéro du client n'est pas renseigné sur cette commande.") ; return }
     Linking.openURL(`tel:${currentOrder.customerPhone}`)
   }
 
-  const openMaps = (address: string) => {
-    const encoded = encodeURIComponent(address)
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
+  // Vers le client : itinéraire GPS exact (position enregistrée à la commande) ; sinon recherche de l'adresse saisie
+  const openMaps = (address: string, gps?: { lat: number; lng: number } | null) => {
+    const url = gps
+      ? `https://www.google.com/maps/dir/?api=1&destination=${gps.lat},${gps.lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+    Linking.openURL(url)
   }
 
   const btnColors = [COLORS.warning, COLORS.primary, COLORS.success]
@@ -234,7 +238,7 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
               <Text style={styles.infoLabel}>MISSION ACTUELLE</Text>
               <Text style={styles.infoTitle}>{STEPS[step].desc}</Text>
            </View>
-           <TouchableOpacity style={styles.navCircle} onPress={() => openMaps(step === 0 ? currentOrder.storeAddress : currentOrder.deliveryAddress)}>
+           <TouchableOpacity style={styles.navCircle} onPress={() => openMaps(step === 0 ? currentOrder.storeAddress : currentOrder.deliveryAddress, step === 0 ? null : currentOrder.deliveryGps)}>
               <Ionicons name="navigate" size={24} color={COLORS.white} />
            </TouchableOpacity>
         </View>
@@ -267,10 +271,10 @@ export default function ActiveDeliveryScreen({ navigation }: any) {
         {/* Client Row */}
         <View style={styles.customerRow}>
            <View style={styles.customerAvatar}>
-              <Text style={styles.avatarText}>{currentOrder.customerName.charAt(0)}</Text>
+              <Text style={styles.avatarText}>{(currentOrder.customerName || "Client").charAt(0)}</Text>
            </View>
            <View style={styles.customerInfo}>
-              <Text style={styles.customerName}>{currentOrder.customerName}</Text>
+              <Text style={styles.customerName}>{currentOrder.customerName || "Client"}</Text>
               <Text style={styles.customerRating}>⭐ 4.9 · Client Premium</Text>
            </View>
            <TouchableOpacity style={styles.phoneBtn} onPress={callCustomer}>
