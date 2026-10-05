@@ -42,6 +42,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/gestion") return true // protege par MERCHANT_CODE dans la route
     if (pathname === "/api/promo") return true // validation code promo (vitrine)
     if (pathname === "/api/shop/register") return true // inscription client vitrine (nom, prenom, tel)
+    if (pathname === "/api/delivery/quote" || pathname === "/api/delivery/geocode") return true // devis de livraison / recherche d'adresse (vitrine)
     if (pathname === "/api/shop/pay") return true // relance du paiement en ligne d'une commande non reglee
     if (pathname === "/api/shop/my-orders") return true // « Mes commandes » verrouille par le numero de telephone
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
@@ -57,11 +58,12 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/store") return true // boutique active (vitrine mono-boutique)
     if (pathname === "/api/kits") return true // kits par classe (vitrine)
     if (pathname.startsWith("/api/images/")) return true // photos produits (vitrine)
+    if (pathname === "/api/shop/config") return true // promos actives ? tarif de livraison
     if (pathname === "/api/shop/order-status") return true // suivi de commande sans donnees personnelles
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true
-    if (pathname.startsWith("/api/promo-codes")) return true
+    // /api/promo-codes : plus public (la liste des codes ne doit pas etre lisible par tous) ; la vitrine valide via POST /api/promo
   }
 
   return false

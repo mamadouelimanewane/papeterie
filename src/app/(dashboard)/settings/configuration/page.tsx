@@ -12,6 +12,8 @@ const app = (p: string): Field[] => [
 
 const DEFAULTS = {
   storeName: "Schoolmatik Librairie", reportEmail: "contact@schoolmatik.sn", reportPhone: "", currency: "FCFA", commissionPct: 10, defaultDeliveryFee: 500,
+  promotionsEnabled: false,
+  deliveryMode: "Fixed", deliveryStoreLat: "", deliveryStoreLng: "", deliveryBaseKm: 2, deliveryPerKm: 150, deliveryMaxKm: 25, deliveryMaxFee: 5000, deliveryRoadFactor: 1.3, deliveryFreeAbove: 0,
   androidUserMaintenance: false, androidUserVersion: "1.0.0", androidUserMandatory: false,
   androidDriverMaintenance: false, androidDriverVersion: "1.0.0", androidDriverMandatory: false,
   iosUserMaintenance: false, iosUserVersion: "1.0.0", iosUserMandatory: false,
@@ -36,8 +38,22 @@ export default function GeneralConfigurationPage() {
         ] },
         { title: "Commission & livraison", fields: [
           { key: "commissionPct", label: "Commission plateforme (%)", type: "number", step: "0.5", min: 0 },
-          { key: "defaultDeliveryFee", label: "Frais de livraison par défaut (FCFA)", type: "number", min: 0 },
+          { key: "defaultDeliveryFee", label: "Frais de livraison de base (FCFA)", type: "number", min: 0, help: "Tarif fixe, ou frais de départ en mode « Distance »." },
           { key: "docExpiryDays", label: "Rappel avant expiration des documents (jours)", type: "number", min: 1 },
+        ] },
+        { title: "Livraison selon la distance", description: "Frais = base + prix du km au-delà des km inclus, arrondi à 50 F. Tant que le mode « Distance » n'est pas activé et la position de la boutique renseignée, le tarif fixe s'applique.", fields: [
+          { key: "deliveryMode", label: "Mode de calcul", type: "select", options: [{ value: "Fixed", label: "Tarif fixe" }, { value: "Distance", label: "Selon la distance" }] },
+          { key: "deliveryStoreLat", label: "Latitude de la boutique", type: "number", step: "0.00001", help: "Exemple Dakar-Plateau : 14.6928. Clic droit sur la carte Google Maps → copier les coordonnées." },
+          { key: "deliveryStoreLng", label: "Longitude de la boutique", type: "number", step: "0.00001", help: "Exemple Dakar-Plateau : -17.4467" },
+          { key: "deliveryBaseKm", label: "Kilomètres inclus dans le frais de base", type: "number", step: "0.5", min: 0 },
+          { key: "deliveryPerKm", label: "Prix de chaque km supplémentaire (FCFA)", type: "number", min: 0 },
+          { key: "deliveryMaxFee", label: "Frais maximum (FCFA, 0 = sans plafond)", type: "number", min: 0 },
+          { key: "deliveryMaxKm", label: "Distance maximale livrable (km)", type: "number", min: 1 },
+          { key: "deliveryRoadFactor", label: "Coefficient routier", type: "number", step: "0.05", min: 1, help: "Distance à vol d'oiseau × ce coefficient (1,3 = les routes allongent le trajet d'environ 30 %)." },
+          { key: "deliveryFreeAbove", label: "Livraison offerte dès (FCFA d'articles, 0 = jamais)", type: "number", min: 0 },
+        ] },
+        { title: "Promotions", description: "Désactivées : le champ « code promo » disparaît du panier et le serveur refuse tout code. Réactivables à tout moment.", fields: [
+          { key: "promotionsEnabled", label: "Codes promo activés", type: "checkbox" },
         ] },
         { title: "Application client — Android", fields: app("androidUser") },
         { title: "Application livreur — Android", fields: app("androidDriver") },

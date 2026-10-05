@@ -30,6 +30,16 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [promoMsg, setPromoMsg] = useState<string | null>(null)
   const { client } = useClient()
 
+  // Configuration publique : codes promo actifs ? livraison fixe ou selon la distance ?
+  type ShopConfig = { promotionsEnabled: boolean; delivery: { mode: "Fixed" | "Distance"; baseFee: number; freeAbove: number; maxKm: number } }
+  const [cfg, setCfg] = useState<ShopConfig | null>(null)
+  const [point, setPoint] = useState<{ lat: number; lng: number; label?: string } | null>(null)
+  const [quote, setQuote] = useState<{ fee: number; distanceKm: number | null; free: boolean } | null>(null)
+  const [quoteMsg, setQuoteMsg] = useState<string | null>(null)
+  const [locBusy, setLocBusy] = useState(false)
+  const [hits, setHits] = useState<{ label: string; lat: number; lng: number }[]>([])
+  useEffect(() => { fetch("/api/shop/config").then((r) => r.json()).then(setCfg).catch(() => setCfg(null)) }, [])
+
   // Client inscrit : pré-remplit nom et téléphone (sans écraser une saisie en cours)
   useEffect(() => {
     if (!client) return
@@ -39,7 +49,43 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
 
   const discountAmount = promo ? Math.min(total, promo.type === "Percentage" ? Math.round((total * promo.discount) / 100) : promo.discount) : 0
   const goods = total - discountAmount
-  const grandTotal = goods + 500
+  const distanceMode = cfg?.delivery.mode === "Distance"
+  const fixedFee = cfg ? (cfg.delivery.freeAbove > 0 && goods >= cfg.delivery.freeAbove ? 0 : cfg.delivery.baseFee) : 500
+  const deliveryFee = distanceMode ? quote?.fee ?? null : fixedFee
+  const grandTotal = goods + (deliveryFee ?? 0)
+
+  // Devis de livraison selon la distance : recalculé quand la position ou le montant des articles change
+  useEffect(() => {
+    if (!distanceMode || !point) { setQuote(null); setQuoteMsg(null); return }
+    let cancelled = false
+    fetch("/api/delivery/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lat: point.lat, lng: point.lng, goods }) })
+      .then(async (r) => ({ ok: r.ok, d: await r.json() }))
+      .then(({ ok, d }) => { if (cancelled) return; if (ok) { setQuote(d); setQuoteMsg(null) } else { setQuote(null); setQuoteMsg(d.error ?? "Livraison impossible à cette adresse") } })
+      .catch(() => { if (!cancelled) setQuoteMsg("Erreur réseau : impossible de calculer la livraison") })
+    return () => { cancelled = true }
+  }, [distanceMode, point, goods])
+
+  function locateMe() {
+    if (!navigator.geolocation) { setQuoteMsg("La localisation n'est pas disponible sur cet appareil : utilisez la recherche d'adresse."); return }
+    setLocBusy(true); setQuoteMsg(null); setHits([])
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setPoint({ lat: p.coords.latitude, lng: p.coords.longitude, label: "Ma position" }); setLocBusy(false) },
+      () => { setLocBusy(false); setQuoteMsg("Position refusée ou indisponible : autorisez la localisation ou utilisez la recherche d'adresse.") },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    )
+  }
+
+  async function searchAddress() {
+    if (address.trim().length < 3) { setQuoteMsg("Saisissez votre adresse (quartier, rue) puis cherchez."); return }
+    setLocBusy(true); setQuoteMsg(null); setHits([])
+    try {
+      const r = await fetch("/api/delivery/geocode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: address }) })
+      const d = await r.json()
+      if (!r.ok) setQuoteMsg(d.error ?? "Recherche impossible")
+      else if (!d.results?.length) setQuoteMsg("Adresse introuvable : précisez le quartier ou utilisez « Ma position ».")
+      else setHits(d.results)
+    } catch { setQuoteMsg("Erreur réseau") } finally { setLocBusy(false) }
+  }
 
   async function applyPromo() {
     if (!promoInput.trim()) return
@@ -57,6 +103,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
     // Téléphone obligatoire : indispensable à la livraison et au déverrouillage de « Mes commandes »
     if (phone.replace(/\D/g, "").length < 9) { setResult({ error: "Indiquez votre numéro de téléphone (9 chiffres) pour la livraison." }); return }
     if (!address.trim()) { setResult({ error: "Indiquez votre adresse de livraison." }); return }
+    if (distanceMode && !point) { setResult({ error: "Indiquez votre position de livraison (bouton « Ma position » ou recherche d'adresse) pour calculer les frais." }); return }
+    if (distanceMode && quote === null) { setResult({ error: quoteMsg ?? "Les frais de livraison ne sont pas encore calculés." }); return }
     setPlacing(true); setResult(null)
     try {
       const res = await fetch("/api/orders", {
@@ -64,7 +112,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           // Le serveur recalcule montant, promo et livraison depuis la base : ces champs ne sont qu'indicatifs.
-          total: grandTotal, subtotal: total, deliveryFee: 500, paymentMethod: method,
+          total: grandTotal, subtotal: total, deliveryFee: deliveryFee ?? 0, paymentMethod: method,
+          ...(point ? { deliveryLat: point.lat, deliveryLng: point.lng } : {}),
           items: cart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
@@ -127,6 +176,25 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone *" type="tel" inputMode="tel" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison *" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
+              {distanceMode && (
+                <div className="col-span-2 rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+                  <div className="flex gap-2">
+                    <button type="button" onClick={locateMe} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"📍"} Ma position</button>
+                    <button type="button" onClick={searchAddress} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"🔎"} Chercher mon adresse</button>
+                  </div>
+                  {locBusy && <p className="mt-1 text-[11px] text-slate-500">Localisation en cours…</p>}
+                  {hits.length > 0 && (
+                    <ul className="mt-2 max-h-32 space-y-1 overflow-auto text-[11px]">
+                      {hits.map((h, i) => (
+                        <li key={i}><button type="button" onClick={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }} className="w-full rounded bg-white px-2 py-1.5 text-left ring-1 ring-slate-200 hover:bg-indigo-100">{h.label}</button></li>
+                      ))}
+                    </ul>
+                  )}
+                  {point && <p className="mt-1.5 text-[11px] text-emerald-700">{"✓"} Position retenue{point.label ? ` : ${point.label.slice(0, 70)}` : ""}</p>}
+                  {!point && !locBusy && <p className="mt-1.5 text-[11px] text-slate-500">Les frais dépendent de la distance : indiquez votre position.</p>}
+                  {quoteMsg && <p className="mt-1.5 text-[11px] text-red-600">{quoteMsg}</p>}
+                </div>
+              )}
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
                 <option value="Cash">Paiement à la livraison (Cash)</option><option value="Versus">Payer par Wave, Orange Money via VERSUS</option>
               </select>
@@ -145,7 +213,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 </div>
               </div>
             )}
-            <div>
+            {cfg?.promotionsEnabled && (<div>
               <div className="flex gap-2">
                 <input value={promoInput} onChange={(e) => setPromoInput(e.target.value.toUpperCase())} placeholder="Code promo" className="flex-1 rounded-lg border px-3 py-2 text-sm uppercase" />
                 {promo
@@ -154,16 +222,16 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               </div>
               {promoMsg && <p className="mt-1 text-xs text-red-500">{promoMsg}</p>}
               {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} appliqué : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
-            </div>
+            </div>)}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total</span><span>{fmt(total)}</span></div>
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
-            <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison</span><span>500 F</span></div>
+            <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison{quote?.distanceKm != null ? ` (${String(quote.distanceKm).replace(".", ",")} km)` : ""}</span><span>{deliveryFee === null ? "—" : deliveryFee === 0 ? "Offerte" : fmt(deliveryFee)}</span></div>
             <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(grandTotal)}</span></div>
             <div className="flex gap-2">
               <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 + Ajouter d'autres articles
               </button>
-              <button onClick={placeOrder} disabled={placing} className="flex-[1.4] rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
+              <button onClick={placeOrder} disabled={placing || (distanceMode && quote === null)} className="flex-[1.4] rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
                 {placing ? "Envoi..." : "Valider la commande"}
               </button>
             </div>

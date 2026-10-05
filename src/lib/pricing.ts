@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client"
+import { getPromotionsEnabled } from "@/lib/shopConfig"
 
 export const DELIVERY_FEE = 500
 
@@ -72,6 +73,7 @@ export async function priceItems(tx: Prisma.TransactionClient, storeId: string, 
 /** Valide un code promo cote serveur et renvoie la remise (0 si aucun code). */
 export async function promoDiscount(tx: Prisma.TransactionClient, code: unknown, goods: number): Promise<{ code: string | null; amount: number }> {
   if (!code) return { code: null, amount: 0 }
+  if (!(await getPromotionsEnabled())) throw new PricingError("Les codes promo sont actuellement désactivés")
   const promo = await tx.promoCode.findUnique({ where: { code: String(code).trim().toUpperCase() } })
   if (!promo || promo.status !== "Active") throw new PricingError("Code promo invalide")
   if (promo.expiresAt && promo.expiresAt < new Date()) throw new PricingError("Code promo expire")

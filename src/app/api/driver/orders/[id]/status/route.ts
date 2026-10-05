@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
 import { creditDriverForDelivery } from "@/lib/delivery"
+import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 
 /** Statuts qu'un livreur peut poser sur SA commande. */
 const ALLOWED_STATUSES = new Set(["PickedUp", "Picked", "OnTheWay", "Delivering", "Delivered"])
@@ -25,10 +26,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (order.driverId !== driver.id) return NextResponse.json({ error: "Commande non attribuée à ce livreur" }, { status: 403 })
     if (["Delivered", "Completed", "Cancelled"].includes(order.status)) return NextResponse.json({ error: "Commande déjà clôturée" }, { status: 409 })
 
+    // Codes a 6 chiffres : 5 essais errones par commande et par 15 min (sinon 1 million de combinaisons testables)
+    const otpKey = `otp:${order.id}`
+    if ((status === "PickedUp" || status === "Picked" || status === "Delivered") && tooManyFailures(otpKey, 5, 15 * 60_000)) {
+      return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes ou contactez l'assistance" }, { status: 429 })
+    }
+
     if ((status === "PickedUp" || status === "Picked") && order.pickupOtp && String(otp ?? "") !== order.pickupOtp) {
+      recordFailure(otpKey, 15 * 60_000)
       return NextResponse.json({ error: otp ? "Code de ramassage incorrect" : "Code de ramassage requis (demandez-le à la boutique)" }, { status: 400 })
     }
     if (status === "Delivered" && String(otp ?? "") !== order.deliveryOtp) {
+      recordFailure(otpKey, 15 * 60_000)
       return NextResponse.json({ error: otp ? "Code de livraison incorrect" : "Code de livraison requis (demandez-le au client)" }, { status: 400 })
     }
 

@@ -24,3 +24,19 @@ export function rateLimit(key: string, max: number, windowMs: number): boolean {
   }
   return true
 }
+
+/** Vrai si `max` échecs ont déjà été enregistrés pour cette clé dans la fenêtre (sans en ajouter un). */
+export function tooManyFailures(key: string, max: number, windowMs: number): boolean {
+  const now = Date.now()
+  const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs)
+  buckets.set(key, hits)
+  return hits.length >= max
+}
+
+/** Enregistre un échec (ex. mauvais code de livraison) pour la clé. */
+export function recordFailure(key: string, windowMs: number): void {
+  const now = Date.now()
+  const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs)
+  hits.push(now)
+  buckets.set(key, hits)
+}

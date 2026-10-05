@@ -75,6 +75,21 @@ const admin = await login("credentials", { email: "admin@test.local", password: 
 const merchant = await login("merchant", { email: "contact@schoolmatik.sn", password: "Marchand-123" })
 ok("admin et marchand connectes", admin.user?.role === "admin" && merchant.user?.role === "merchant")
 
+// reglages generaux : lecture + ecriture fusionnee (le PUT remplace tout l'objet)
+async function setGeneral(patch) {
+  const cur = (await req("GET", "/api/admin/settings/general", { jar: admin.jar })).json?.value ?? {}
+  const r = await req("PUT", "/api/admin/settings/general", { body: { value: { ...cur, ...patch } }, jar: admin.jar })
+  return r.status
+}
+
+section("0b. Promotions : desactivees par defaut")
+const cfg0 = (await req("GET", "/api/shop/config")).json
+ok("codes promo desactives par defaut (champ masque dans le panier)", cfg0?.promotionsEnabled === false, JSON.stringify({ promotionsEnabled: cfg0?.promotionsEnabled }))
+const prOff = await req("POST", "/api/promo", { body: { code: "RENTREE2026" } })
+ok("validation d'un code refusee tant que les promos sont desactivees", prOff.json?.valid === false && prOff.json?.disabled === true)
+const listPublic = await req("GET", "/api/promo-codes")
+ok("la liste des codes promo n'est plus publique", listPublic.status === 401, "HTTP " + listPublic.status)
+
 // ---- experience client
 section("1. Experience client (vitrine)")
 const t0 = Date.now(); const shop = await req("GET", "/shop"); ok("page boutique", shop.status === 200, `${Date.now() - t0} ms`)
@@ -85,10 +100,6 @@ const noPhoto = products.filter((p) => !p.image).length
 info(`${products.length - noPhoto} produits avec image, ${noPhoto} sans (pictogramme)`)
 const bad = products.filter((p) => !(p.price > 0) || !p.name || p.name.length > 120)
 ok("donnees produit propres (prix > 0, nom raisonnable)", bad.length === 0, `${bad.length} anomalie(s)`)
-const pr = await req("POST", "/api/promo", { body: { code: "rentree2026" } })
-ok("code promo valide (insensible a la casse)", pr.json?.valid === true && pr.json?.discount === 15)
-const prBad = await req("POST", "/api/promo", { body: { code: "FAUX" } })
-ok("code promo invalide refuse", prBad.json?.valid === false)
 const pA = products[10], pB = products[200], pC = products[300]
 
 // ---- commandes
@@ -101,6 +112,17 @@ const sumItems = (arr) => arr.reduce((s, [p, n]) => s + p.price * n, 0)
 const itemsA = [[pA, 2], [pB, 1]]; const sA = sumItems(itemsA)
 const oA = await order(itemsA.map(([p, n]) => ({ id: p.id, qty: n })))
 ok("A : commande invite, espèces", oA.status === 201 && oA.json.total === sA + 500, `articles ${fcfa(sA)} + livraison 500 = ${fcfa(oA.json?.total)}`)
+// commande avec code promo alors que les promos sont desactivees : refusee
+const offTry = await order([{ id: pB.id, qty: 1 }], { promoCode: "RENTREE2026" })
+ok("commande avec code promo refusee quand les promos sont desactivees", offTry.status === 400 && /d.sactiv/i.test(offTry.json?.error ?? ""), `HTTP ${offTry.status} ${offTry.json?.error ?? ""}`)
+// l'administrateur reactive les promotions (reversible a tout moment)
+ok("l'admin reactive les codes promo (Parametres)", (await setGeneral({ promotionsEnabled: true })) === 200)
+const cfg1 = (await req("GET", "/api/shop/config")).json
+ok("codes promo reactives : visibles dans la vitrine", cfg1?.promotionsEnabled === true)
+const pr = await req("POST", "/api/promo", { body: { code: "rentree2026" } })
+ok("code promo valide (insensible a la casse)", pr.json?.valid === true && pr.json?.discount === 15)
+const prBad = await req("POST", "/api/promo", { body: { code: "FAUX" } })
+ok("code promo invalide refuse", prBad.json?.valid === false)
 const itemsB = [[pB, 3]]; const sB = sumItems(itemsB)
 const oB = await order(itemsB.map(([p, n]) => ({ id: p.id, qty: n })), { promoCode: "RENTREE2026" }, { authorization: `Bearer ${userToken}` })
 const discB = Math.round((sB * 15) / 100)
@@ -204,6 +226,72 @@ const abuse = await req("POST", "/api/transactions", { body: { userId: uid, amou
 ok("un compte « lecture des rapports » ne peut pas crediter un portefeuille", abuse.status === 403, `HTTP ${abuse.status}`)
 const bal = (await q(`SELECT "walletMoney" FROM "User" WHERE id=$1`, [uid]))[0].walletMoney
 info(`solde du client apres la tentative : ${fcfa(bal)}`)
+
+section("9. Livraison selon la distance")
+const PLATEAU = { lat: 14.6928, lng: -17.4467 } // position de la boutique (Dakar-Plateau)
+// a) tarif fixe (defaut) : honore le reglage « frais de base »
+ok("tarif fixe : frais de base reglables (700 F)", (await setGeneral({ promotionsEnabled: false, deliveryMode: "Fixed", defaultDeliveryFee: 700 })) === 200)
+await new Promise((r) => setTimeout(r, 100))
+// le cache de reglages (30 s) est vide par le PUT : la commande suivante voit le nouveau tarif
+const fx = await order([{ id: pA.id, qty: 1 }])
+ok("commande en tarif fixe : livraison = 700 F", fx.status === 201 && fx.json.deliveryFee === 700, "livraison " + fx.json?.deliveryFee)
+
+// b) mode Distance
+ok("l'admin active le mode Distance (boutique a Dakar-Plateau)", (await setGeneral({ deliveryMode: "Distance", deliveryStoreLat: PLATEAU.lat, deliveryStoreLng: PLATEAU.lng, defaultDeliveryFee: 500, deliveryBaseKm: 2, deliveryPerKm: 150, deliveryMaxKm: 25, deliveryMaxFee: 5000, deliveryRoadFactor: 1.3, deliveryFreeAbove: 0 })) === 200)
+const quote = async (lat, lng, goods = 3000) => req("POST", "/api/delivery/quote", { body: { lat, lng, goods } })
+const near = await quote(14.6930, -17.4460)
+ok("a 100 m de la boutique : frais de base 500 F", near.json?.fee === 500 && near.json?.mode === "Distance", JSON.stringify(near.json))
+const almadies = await quote(14.7450, -17.5220) // ~10 km a vol d'oiseau
+ok("Dakar-Plateau -> Almadies : ~13 km par la route, 2 150 F", almadies.json?.fee === 2150 && almadies.json.distanceKm > 12 && almadies.json.distanceKm < 14, JSON.stringify(almadies.json))
+const sacre = await quote(14.7167, -17.4677) // Medina / Point E : ~3,5 km
+ok("trajet court (~3-4 km) : frais intermediaires", sacre.json?.fee > 500 && sacre.json?.fee < 1000, JSON.stringify(sacre.json))
+const rufisque = await quote(14.7150, -17.2730) // Rufisque : ~20 km a vol d'oiseau
+ok("Rufisque (~25 km par la route) : plafonne ou hors zone", rufisque.status === 422 || rufisque.json?.fee <= 5000, JSON.stringify(rufisque.json))
+const thies = await quote(14.7910, -16.9260)
+ok("Thies (~56 km) : hors zone de livraison", thies.status === 422 && thies.json?.code === "HORS_ZONE", thies.json?.error)
+const paris = await quote(48.8566, 2.3522)
+ok("position hors du Senegal refusee", paris.status === 400 && paris.json?.code === "POSITION_INVALIDE")
+const nopos = await quote(undefined, undefined)
+ok("pas de position en mode Distance : demandee", nopos.status === 422 && nopos.json?.code === "POSITION_REQUISE")
+
+// c) commandes
+const noPoint = await order([{ id: pA.id, qty: 1 }])
+ok("commande sans position refusee en mode Distance", noPoint.status === 400 && /position/i.test(noPoint.json?.error ?? ""), noPoint.json?.error)
+const farOrder = await order([{ id: pA.id, qty: 1 }], { deliveryLat: 14.7910, deliveryLng: -16.9260 })
+ok("commande hors zone refusee", farOrder.status === 400 && /zone/i.test(farOrder.json?.error ?? ""), farOrder.json?.error)
+const badGeo = await order([{ id: pA.id, qty: 1 }], { deliveryLat: 48.85, deliveryLng: 2.35 })
+ok("commande avec position hors Senegal refusee", badGeo.status === 400)
+const tamper = await order([{ id: pA.id, qty: 1 }], { deliveryLat: 14.7450, deliveryLng: -17.5220, deliveryFee: 0, total: 1, subtotal: 1 })
+ok("frais envoyes par le client (0 F) ignores : recalcul serveur 2 150 F", tamper.status === 201 && tamper.json.deliveryFee === 2150 && tamper.json.total === pA.price + 2150, "livraison " + tamper.json?.deliveryFee + ", total " + tamper.json?.total)
+const noteTag = (await q(`SELECT notes FROM "Order" WHERE id=$1`, [tamper.json.id]))[0].notes
+ok("distance et position GPS enregistrees sur la commande", /\[Livraison: [\d,]+ km · GPS 14\.7450\d*,-17\.5220\d*\]/.test(noteTag), noteTag?.match(/\[Livraison[^\]]*\]/)?.[0])
+
+// d) livreur : vraie distance dans la liste, GPS apres acceptation, frais verses
+const H = { authorization: `Bearer ${driverToken}` }
+const pool = await req("GET", "/api/driver/orders/available", { headers: H })
+const inPool = (pool.json ?? []).find((o) => o._id === tamper.json.id)
+ok("liste livreur : distance reelle (plus de valeur aleatoire) et gain = frais", inPool && /km/.test(inPool.distance) && inPool.earnings === 2150, JSON.stringify({ distance: inPool?.distance, earnings: inPool?.earnings }))
+const acc2 = await req("POST", `/api/driver/orders/${tamper.json.id}/accept`, { headers: H })
+ok("apres acceptation : position GPS du client transmise au livreur", acc2.status === 200 && Math.abs(acc2.json?.deliveryGps?.lat - 14.745) < 0.001 && acc2.json?.deliveryDistanceKm > 12, JSON.stringify({ gps: acc2.json?.deliveryGps, km: acc2.json?.deliveryDistanceKm }))
+
+// e) codes de livraison : 5 essais errones par commande
+const pick2 = (await q(`SELECT "pickupOtp" FROM "Order" WHERE id=$1`, [tamper.json.id]))[0].pickupOtp
+await req("PUT", `/api/driver/orders/${tamper.json.id}/status`, { body: { status: "PickedUp", otp: pick2 }, headers: H })
+const tries = []
+for (let i = 0; i < 6; i++) tries.push((await req("PUT", `/api/driver/orders/${tamper.json.id}/status`, { body: { status: "Delivered", otp: String(100000 + i) }, headers: H })).status)
+ok("codes de livraison : verrouillage apres 5 essais errones", tries.slice(0, 5).every((x) => x === 400) && tries[5] === 429, tries.join(" "))
+const goodAfterLock = await req("PUT", `/api/driver/orders/${tamper.json.id}/status`, { body: { status: "Delivered", otp: (await q(`SELECT "deliveryOtp" FROM "Order" WHERE id=$1`, [tamper.json.id]))[0].deliveryOtp }, headers: H })
+ok("meme le bon code est refuse pendant le verrouillage (15 min)", goodAfterLock.status === 429)
+
+// f) livraison offerte au-dessus d'un montant
+await setGeneral({ deliveryFreeAbove: 20000 })
+const big = await order([{ id: pB.id, qty: 10 }], { deliveryLat: 14.7450, deliveryLng: -17.5220 })
+ok("livraison offerte au-dessus du seuil (20 000 F d'articles)", big.status === 201 && big.json.deliveryFee === 0 && big.json.total === big.json.subtotal, "articles " + big.json?.subtotal + ", livraison " + big.json?.deliveryFee)
+
+// g) retour au tarif fixe : tout fonctionne sans position
+await setGeneral({ deliveryMode: "Fixed", deliveryFreeAbove: 0, defaultDeliveryFee: 500 })
+const back = await order([{ id: pA.id, qty: 1 }])
+ok("retour au tarif fixe : commande sans position acceptee, 500 F", back.status === 201 && back.json.deliveryFee === 500)
 
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} controles OK`)

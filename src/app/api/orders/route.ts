@@ -4,7 +4,9 @@ import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { randomInt } from "crypto"
 import { verifyBearer } from "@/lib/auth"
 import { getCommissionPct } from "@/lib/commission"
-import { DELIVERY_FEE, PricingError, priceItems, promoDiscount } from "@/lib/pricing"
+import { PricingError, priceItems, promoDiscount } from "@/lib/pricing"
+import { getDeliveryConfig } from "@/lib/shopConfig"
+import { deliveryTag, parsePoint, quoteDelivery } from "@/lib/deliveryPricing"
 
 export async function GET(req: NextRequest) {
   try {
@@ -75,13 +77,22 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
     // userId uniquement depuis un JWT valide (jamais depuis le corps de la requete)
     const userId: string | null = verifyBearer(req)?.id ?? null
 
+    // Position de livraison (GPS) : fournie par le panier ; les frais sont TOUJOURS recalcules ici, jamais pris au client
+    const hasCoords = data.deliveryLat !== undefined && data.deliveryLat !== null && data.deliveryLat !== ""
+    const point = parsePoint(data.deliveryLat, data.deliveryLng)
+    if (hasCoords && !point) return NextResponse.json({ error: "Position de livraison invalide ou hors du Sénégal" }, { status: 400 })
+    const deliveryCfg = await getDeliveryConfig()
     const commissionPct = await getCommissionPct()
     const order = await prisma.$transaction(async (tx) => {
       // 1. Prix recalcules depuis la base (le client ne fixe jamais les montants)
       const items = await priceItems(tx, storeId, data.items)
       const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
       const promo = await promoDiscount(tx, data.promoCode, subtotal)
-      const total = subtotal - promo.amount + DELIVERY_FEE
+      const goods = subtotal - promo.amount
+      const quote = quoteDelivery(deliveryCfg, point, goods)
+      if (!quote.ok) throw new PricingError(quote.reason)
+      const deliveryFee = quote.fee
+      const total = goods + deliveryFee
       if (!(total > 0)) throw new PricingError("Montant invalide")
 
       // 2. Verifier et decrementer le stock (decrement conditionnel : pas de stock negatif)
@@ -110,7 +121,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
           userId,
           total,
           subtotal,
-          deliveryFee: DELIVERY_FEE,
+          deliveryFee,
           earning: Math.round((subtotal * commissionPct) / 100), // commission configurée (Paramètres), sur le prix des articles
           status: "Pending",
           paymentMethod: data.paymentMethod ?? "Cash",
@@ -120,7 +131,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
           // Commande invité : on conserve nom et téléphone du client (sinon introuvables pour la facture / la livraison)
           notes: [
             data.firstName || data.phone_number ? `Client: ${String(data.firstName ?? "").slice(0, 80)} | Tél: ${String(data.phone_number ?? "").slice(0, 20)} |` : null,
-            data.notes, promo.code ? `[Promo: ${promo.code}]` : null,
+            data.notes, promo.code ? `[Promo: ${promo.code}]` : null, deliveryTag(quote.distanceKm, point),
           ].filter(Boolean).join(" ") || null,
           deliveryOtp,
         },
