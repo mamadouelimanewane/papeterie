@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireSuperAdmin, isResponse } from "@/lib/adminAuth"
 
-export async function GET() {
+// Rôles et permissions — super-administrateur uniquement (un rôle « * » donne tous les droits)
+export async function GET(req: NextRequest) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const roles = await prisma.role.findMany({ orderBy: { createdAt: "asc" } })
     return NextResponse.json(roles)
   } catch (e) { console.error("[roles GET]", e); return NextResponse.json({ error: "Erreur serveur" }, { status: 500 }) }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { name, description, permissions } = await req.json()
     if (!name) return NextResponse.json({ error: "Nom du rôle requis" }, { status: 400 })

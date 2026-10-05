@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
+import { readDeliveryTag } from "@/lib/deliveryPricing"
 
 /**
  * POST /api/driver/orders/[id]/accept → un livreur approuvé accepte une commande libre.
@@ -19,7 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
     const { count } = await prisma.order.updateMany({
-      where: { id: order.id, status: "Pending", driverId: null },
+      where: { id: order.id, status: { in: ["Pending", "Confirme"] }, driverId: null },
       data: { status: "Accepted", driverId: driver.id, pickupOtp },
     })
     if (count === 0) return NextResponse.json({ error: "Commande déjà prise par un autre livreur ou plus disponible" }, { status: 409 })
@@ -29,7 +30,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       omit: { pickupOtp: true, deliveryOtp: true },
       include: { store: { select: { name: true, address: true, phone: true } } },
     })
-    return NextResponse.json(updated)
+    // Position GPS de livraison (enregistree a la commande) : permet au livreur de lancer la navigation
+    const { distanceKm, point } = readDeliveryTag(updated?.notes)
+    return NextResponse.json({ ...updated, deliveryDistanceKm: distanceKm, deliveryGps: point })
   } catch (error) {
     console.error("[driver-order-accept]", error)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

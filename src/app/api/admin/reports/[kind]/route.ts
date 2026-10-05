@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         const uname = new Map(users.map((u) => [u.id, u.name]))
         const rows = orders.map((o) => {
           const items = Array.isArray(o.items) ? (o.items as { name?: string; qty?: number }[]) : []
-          const cancelled = o.status === "Cancelled"
+          const cancelled = o.status === "Cancelled" || o.status === "Annule"
           const platform = cancelled ? 0 : o.earning > 0 ? o.earning : Math.round((o.subtotal || o.total) * pct / 100)
           return {
             id: o.id, orderId: o.orderId, store: o.store?.name ?? "—", area: o.store?.serviceArea ?? "—",

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { requireAdmin, isResponse } from "@/lib/adminAuth"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
@@ -34,45 +35,47 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: Request) {
+/**
+ * Ecriture manuelle d'une transaction + mise a jour du solde. Reservee a la permission « wallet.manage »
+ * (la page /api/admin/wallet est la voie normale ; celle-ci est conservee pour compatibilite).
+ * Credit = type « Credit » / « Crédit » ; tout autre type est un debit ; une boutique est aussi creditable/debitable.
+ */
+export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req, "wallet.manage")
+  if (isResponse(auth)) return auth
   try {
     const data = await req.json()
-    if (!data.amount || !data.type) {
-      return NextResponse.json({ error: "amount et type sont requis" }, { status: 400 })
+    const amount = Number(data.amount)
+    if (!Number.isFinite(amount) || amount <= 0 || !data.type) {
+      return NextResponse.json({ error: "amount (> 0) et type sont requis" }, { status: 400 })
     }
+    const parties = [data.userId, data.driverId, data.storeId].filter(Boolean)
+    if (parties.length !== 1) return NextResponse.json({ error: "Un seul compte (userId, driverId ou storeId) attendu" }, { status: 400 })
+    const isCredit = /^cr[eé]dit/i.test(String(data.type))
+    const delta = isCredit ? amount : -amount
 
-    const tx = await prisma.transaction.create({
-      data: {
-        userId: data.userId ?? null,
-        driverId: data.driverId ?? null,
-        storeId: data.storeId ?? null,
-        amount: Number(data.amount),
-        type: data.type,
-        method: data.method ?? "Cash",
-        description: data.description ?? null,
-        receiptNo: data.receiptNo ?? null,
-        status: "Completed",
-      },
+    const tx = await prisma.$transaction(async (db) => {
+      // Un debit ne peut pas rendre le solde negatif (mise a jour conditionnelle)
+      const guard = isCredit ? {} : { walletMoney: { gte: amount } }
+      const updated = data.userId
+        ? await db.user.updateMany({ where: { id: data.userId, ...guard }, data: { walletMoney: { increment: delta } } })
+        : data.driverId
+          ? await db.driver.updateMany({ where: { id: data.driverId, ...guard }, data: { walletMoney: { increment: delta } } })
+          : await db.store.updateMany({ where: { id: data.storeId, ...guard }, data: { walletMoney: { increment: delta } } })
+      if (updated.count !== 1) throw new Error("Compte introuvable ou solde insuffisant")
+      return db.transaction.create({
+        data: {
+          userId: data.userId ?? null, driverId: data.driverId ?? null, storeId: data.storeId ?? null,
+          amount, type: isCredit ? "Crédit" : "Débit", method: String(data.method ?? "Manuel"),
+          description: data.description ? String(data.description) : null,
+          receiptNo: data.receiptNo ? String(data.receiptNo) : `ADM-${Date.now().toString(36).toUpperCase()}`,
+          status: "Completed",
+        },
+      })
     })
-
-    // Update wallet balance
-    const amount = data.type === "Credit" ? Number(data.amount) : -Number(data.amount)
-    if (data.userId) {
-      await prisma.user.update({
-        where: { id: data.userId },
-        data: { walletMoney: { increment: amount } },
-      })
-    }
-    if (data.driverId) {
-      await prisma.driver.update({
-        where: { id: data.driverId },
-        data: { walletMoney: { increment: amount } },
-      })
-    }
-
     return NextResponse.json(tx, { status: 201 })
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: msg }, { status: msg.startsWith("Compte") ? 400 : 500 })
   }
 }

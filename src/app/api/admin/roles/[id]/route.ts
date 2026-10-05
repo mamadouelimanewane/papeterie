@@ -1,7 +1,10 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireSuperAdmin, isResponse } from "@/lib/adminAuth"
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     const data = await req.json()
@@ -15,7 +18,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } catch (e) { console.error("[roles PATCH]", e); return NextResponse.json({ error: "Erreur serveur" }, { status: 500 }) }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     await prisma.role.delete({ where: { id } })

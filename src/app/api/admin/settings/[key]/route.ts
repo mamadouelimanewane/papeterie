@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { resetCommissionCache } from "@/lib/commission"
+import { resetSettingsCache } from "@/lib/appSettings"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 
 type Params = { params: Promise<{ key: string }> }
@@ -36,8 +38,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return NextResponse.json({ error: "Valeur attendue" }, { status: 400 })
     const current = ((await prisma.appSetting.findUnique({ where: { key } }))?.value ?? {}) as Obj
     const merged: Obj = { ...value }
+    if (key === "general" && "commissionPct" in merged) {
+      const pct = Number(merged.commissionPct)
+      if (!Number.isFinite(pct) || pct < 0 || pct > 100) return NextResponse.json({ error: "Commission invalide (0 à 100 %)" }, { status: 400 })
+      merged.commissionPct = pct
+    }
     for (const [k, v] of Object.entries(merged)) if (v === MASK) merged[k] = current[k] ?? ""
     const s = await prisma.appSetting.upsert({ where: { key }, create: { key, value: merged as object }, update: { value: merged as object } })
+    resetSettingsCache(key)
+    if (key === "general") resetCommissionCache()
     return NextResponse.json({ value: mask(s.value as Obj), updatedAt: s.updatedAt })
   } catch (e) { return errorResponse(e) }
 }

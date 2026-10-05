@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { requireSuperAdmin, isResponse } from "@/lib/adminAuth"
 
-// Liste des comptes d'administration (sous-admins)
-export async function GET() {
+const MIN_PASSWORD = 10
+
+// Liste des comptes d'administration (sous-admins) — super-administrateur uniquement
+export async function GET(req: NextRequest) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const admins = await prisma.admin.findMany({
       orderBy: { createdAt: "desc" },
@@ -16,21 +21,27 @@ export async function GET() {
   }
 }
 
-// Creer un compte d'administration
-export async function POST(req: Request) {
+// Creer un compte d'administration — super-administrateur uniquement
+export async function POST(req: NextRequest) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { name, email, password, role, status } = await req.json()
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Nom, email et mot de passe requis" }, { status: 400 })
     }
-    const exists = await prisma.admin.findUnique({ where: { email } })
+    if (String(password).length < MIN_PASSWORD) {
+      return NextResponse.json({ error: `Mot de passe trop court (${MIN_PASSWORD} caractères minimum)` }, { status: 400 })
+    }
+    const cleanEmail = String(email).trim().toLowerCase()
+    const exists = await prisma.admin.findUnique({ where: { email: cleanEmail } })
     if (exists) return NextResponse.json({ error: "Cet email existe deja" }, { status: 409 })
 
     const admin = await prisma.admin.create({
       data: {
         name: String(name).trim(),
-        email: String(email).trim().toLowerCase(),
-        password: await bcrypt.hash(String(password), 10),
+        email: cleanEmail,
+        password: await bcrypt.hash(String(password), 12),
         role: role || "SubAdmin",
         status: status || "Active",
       },

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
 import { assertSessionActive } from "@/lib/mobileSession"
 import { creditDriverForDelivery, DELIVERED } from "@/lib/delivery"
+import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 
 /**
  * Qui appelle ? Session back-office (cookie NextAuth) ou application mobile (Bearer JWT vérifié).
@@ -100,12 +101,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Vérification des codes (ramassage à la boutique, remise au client)
     if (data.status === "Processing" && caller.kind === "driver") {
+      if (tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
       if (!data.otp) return NextResponse.json({ error: "OTP de ramassage requis" }, { status: 400 })
-      if (data.otp !== order.pickupOtp) return NextResponse.json({ error: "OTP de ramassage incorrect" }, { status: 400 })
+      if (data.otp !== order.pickupOtp) { recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de ramassage incorrect" }, { status: 400 }) }
     }
     if (data.status === "Delivered" && caller.kind === "driver") {
+      if (tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
       if (!data.otp) return NextResponse.json({ error: "OTP de livraison requis" }, { status: 400 })
-      if (data.otp !== order.deliveryOtp) return NextResponse.json({ error: "OTP de livraison incorrect" }, { status: 400 })
+      if (data.otp !== order.deliveryOtp) { recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de livraison incorrect" }, { status: 400 }) }
       if (!data.signature) return NextResponse.json({ error: "Signature client requise" }, { status: 400 })
     }
 

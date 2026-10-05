@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 
 /**
  * Inscription client depuis la vitrine publique (/shop) : prénom, nom, téléphone.
@@ -19,7 +20,10 @@ function normalizePhone(raw: string): string | null {
 const clean = (s: unknown) => (typeof s === "string" ? s.trim().replace(/\s+/g, " ") : "")
 const NAME_RE = /^[\p{L}][\p{L}' -]{0,59}$/u
 
-export async function POST(req: Request) {
+export async function POST(req: Request) {  if (!rateLimit("shop-register:" + clientIp(req), 10, 60 * 60_000)) {
+    return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
+  }
+
   try {
     const body = await req.json().catch(() => ({}))
 

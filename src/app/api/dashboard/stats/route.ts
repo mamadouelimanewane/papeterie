@@ -24,8 +24,8 @@ export async function GET() {
       prisma.driver.count({ where: { status: "Online" } }),
       prisma.order.count(),
       prisma.order.count({ where: { status: "Pending" } }),
-      prisma.order.count({ where: { status: "Completed" } }),
-      prisma.order.count({ where: { status: "Cancelled" } }),
+      prisma.order.count({ where: { status: { in: ["Delivered", "Completed"] } } }),
+      prisma.order.count({ where: { status: { in: ["Cancelled", "Annule"] } } }),
       prisma.store.count({ where: { status: "Active" } }),
       prisma.category.count({ where: { status: "Active" } }),
       prisma.product.count({ where: { status: "Active" } }),
@@ -35,7 +35,7 @@ export async function GET() {
 
     // Revenue totals
     const revenueResult = await prisma.order.aggregate({
-      where: { status: "Completed" },
+      where: { status: { in: ["Delivered", "Completed"] } },
       _sum: { total: true, earning: true },
     })
     const totalRevenue = revenueResult._sum.total ?? 0

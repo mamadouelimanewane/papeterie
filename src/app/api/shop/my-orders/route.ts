@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { PAID_STATUSES } from "@/lib/orderPayment"
 
 /** 9 derniers chiffres : « +221 77 123 45 67 », « 771234567 » et « 00221771234567 » sont équivalents. */
@@ -10,7 +11,10 @@ const normPhone = (s: unknown) => String(s ?? "").replace(/\D/g, "").slice(-9)
  * Corps : { phone, orderIds } — ne renvoie QUE les commandes passées avec ce numéro
  * (téléphone saisi à la commande, ou téléphone du compte client). Aucune donnée personnelle renvoyée.
  */
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {  if (!rateLimit("shop-my-orders:" + clientIp(req), 15, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
+  }
+
   try {
     const { phone, orderIds } = await req.json().catch(() => ({}))
     const p = normPhone(phone)

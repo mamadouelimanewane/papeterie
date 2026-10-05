@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
+import { readDeliveryTag } from "@/lib/deliveryPricing"
 
 /**
  * Commandes en attente d'un livreur. Réservé aux livreurs approuvés.
@@ -11,9 +12,9 @@ export async function GET(req: Request) {
   if (isDriverError(driver)) return driver
   try {
     const orders = await prisma.order.findMany({
-      where: { status: "Pending", driverId: null },
+      where: { status: { in: ["Pending", "Confirme"] }, driverId: null },
       select: {
-        id: true, orderId: true, address: true, items: true, total: true, deliveryFee: true,
+        id: true, orderId: true, address: true, items: true, total: true, deliveryFee: true, notes: true,
         store: { select: { name: true, address: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -26,7 +27,8 @@ export async function GET(req: Request) {
       storeAddress: o.store?.address || "Dakar",
       deliveryAddress: o.address || "Adresse communiquée après acceptation",
       items: Array.isArray(o.items) ? (o.items as unknown[]).length : 1,
-      distance: "—", // pas de calcul d'itinéraire côté serveur (l'ancienne valeur était aléatoire)
+      // distance boutique -> client enregistrée à la commande (calculée par le serveur) ; « — » si la commande n'a pas de position GPS
+      distance: (() => { const d = readDeliveryTag(o.notes).distanceKm; return d === null ? "—" : `${String(d).replace(".", ",")} km` })(),
       earnings: o.deliveryFee || 500, // gain du livreur = frais de livraison
       total: o.total,
     })))

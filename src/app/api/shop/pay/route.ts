@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { PAID_STATUSES, startOrderPayment } from "@/lib/orderPayment"
 
 /**
@@ -7,7 +8,10 @@ import { PAID_STATUSES, startOrderPayment } from "@/lib/orderPayment"
  * Corps : { orderId }. Renvoie { link } vers la page de paiement.
  * Sans risque pour le client : on ne peut que PAYER la commande, jamais la modifier.
  */
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {  if (!rateLimit("shop-pay:" + clientIp(req), 10, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
+  }
+
   try {
     const { orderId } = await req.json().catch(() => ({}))
     if (typeof orderId !== "string" || !/^[A-Z0-9-]{4,60}$/i.test(orderId)) {
