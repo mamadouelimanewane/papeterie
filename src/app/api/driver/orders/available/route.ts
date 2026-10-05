@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   if (isDriverError(driver)) return driver
   try {
     const orders = await prisma.order.findMany({
-      where: { status: "Pending", driverId: null },
+      where: { status: { in: ["Pending", "Confirme"] }, driverId: null },
       select: {
         id: true, orderId: true, address: true, items: true, total: true, deliveryFee: true,
         store: { select: { name: true, address: true } },

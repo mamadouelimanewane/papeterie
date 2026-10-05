@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
     const { count } = await prisma.order.updateMany({
-      where: { id: order.id, status: "Pending", driverId: null },
+      where: { id: order.id, status: { in: ["Pending", "Confirme"] }, driverId: null },
       data: { status: "Accepted", driverId: driver.id, pickupOtp },
     })
     if (count === 0) return NextResponse.json({ error: "Commande déjà prise par un autre livreur ou plus disponible" }, { status: 409 })

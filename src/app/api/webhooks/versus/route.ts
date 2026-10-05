@@ -62,7 +62,8 @@ export async function POST(req: Request) {
           console.error("[versus-webhook] montant insuffisant", { order: existingOrder.orderId, paid: paidAmount, total: existingOrder.total })
         } else {
           paymentStatus = "Complete"
-          if (existingOrder.status === "Pending") orderStatus = "Confirme"
+          // Le paiement est suivi par paymentStatus ; le statut de livraison reste « Pending » pour que
+          // la commande apparaisse aux livreurs (un statut « Confirme » la rendait invisible et inacceptable).
         }
       } else if (status === "FAILED" || status === "REJECTED" || status === "CANCELLED") {
         paymentStatus = "Echoue"

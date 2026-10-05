@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { randomInt } from "crypto"
 import { verifyBearer } from "@/lib/auth"
+import { getCommissionPct } from "@/lib/commission"
 import { DELIVERY_FEE, PricingError, priceItems, promoDiscount } from "@/lib/pricing"
 
 export async function GET(req: NextRequest) {
@@ -74,6 +75,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
     // userId uniquement depuis un JWT valide (jamais depuis le corps de la requete)
     const userId: string | null = verifyBearer(req)?.id ?? null
 
+    const commissionPct = await getCommissionPct()
     const order = await prisma.$transaction(async (tx) => {
       // 1. Prix recalcules depuis la base (le client ne fixe jamais les montants)
       const items = await priceItems(tx, storeId, data.items)
@@ -109,7 +111,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
           total,
           subtotal,
           deliveryFee: DELIVERY_FEE,
-          earning: subtotal * 0.1,
+          earning: Math.round((subtotal * commissionPct) / 100), // commission configurée (Paramètres), sur le prix des articles
           status: "Pending",
           paymentMethod: data.paymentMethod ?? "Cash",
           paymentStatus: "En attente",
