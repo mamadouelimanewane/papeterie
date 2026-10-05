@@ -123,7 +123,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
           deliveryOtp,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 }); // sous forte charge, patienter pour une connexion plutôt qu'échouer (défaut : 2 s)
 
     let paymentData: unknown = null;
     let paymentError: string | null = null;

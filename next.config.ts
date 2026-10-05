@@ -15,7 +15,12 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Images de la vitrine : 7 jours en cache navigateur/CDN (le défaut de Next pour public/ est « à revalider à chaque fois »)
+      { source: "/generic/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      { source: "/products/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=86400" }] },
+    ];
   },
 };
 

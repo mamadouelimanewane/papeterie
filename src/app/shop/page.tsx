@@ -41,7 +41,7 @@ export default function ShopPage() {
   const [registerOpen, setRegisterOpen] = useState(false)
 
   useEffect(() => {
-    fetch("/api/store?products=1").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
+    fetch("/api/store?products=1&view=shop").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
