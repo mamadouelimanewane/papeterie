@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { randomInt } from "crypto"
 import { verifyBearer } from "@/lib/auth"
 import { DELIVERY_FEE, PricingError, priceItems, promoDiscount } from "@/lib/pricing"
@@ -55,7 +56,10 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request) {  if (!rateLimit("orders-post:" + clientIp(req), 20, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
+  }
+
   try {
     const data = await req.json()
 

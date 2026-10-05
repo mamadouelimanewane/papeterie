@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { requireSuperAdmin, isResponse } from "@/lib/adminAuth"
 
-// Modifier un compte (role, statut, ou reinitialiser le mot de passe)
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+const MIN_PASSWORD = 10
+
+// Modifier un compte (role, statut, ou reinitialiser le mot de passe) — super-administrateur uniquement
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     const data = await req.json()
@@ -11,7 +16,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (data.name) update.name = String(data.name).trim()
     if (data.role) update.role = data.role
     if (data.status) update.status = data.status
-    if (data.password) update.password = await bcrypt.hash(String(data.password), 10)
+    if (data.password) {
+      if (String(data.password).length < MIN_PASSWORD) {
+        return NextResponse.json({ error: `Mot de passe trop court (${MIN_PASSWORD} caractères minimum)` }, { status: 400 })
+      }
+      update.password = await bcrypt.hash(String(data.password), 12)
+    }
 
     const admin = await prisma.admin.update({
       where: { id },
@@ -25,7 +35,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSuperAdmin(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     const count = await prisma.admin.count()

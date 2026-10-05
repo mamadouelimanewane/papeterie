@@ -143,7 +143,8 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-  session: { strategy: "jwt" },
+  // Session web (admin, marchand) : 12 h au lieu des 30 jours par défaut de NextAuth
+  session: { strategy: "jwt", maxAge: 12 * 60 * 60 },
   secret: process.env.NEXTAUTH_SECRET,
 })
 

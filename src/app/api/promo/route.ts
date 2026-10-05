@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { clientIp, rateLimit } from "@/lib/ratelimit"
 
 // Valide un code promo (public) : renvoie la remise applicable.
 export async function POST(req: Request) {
+  if (!rateLimit("promo:" + clientIp(req), 30, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
+  }
   try {
     const { code } = await req.json()
     if (!code) return NextResponse.json({ valid: false, error: "Code requis" }, { status: 400 })

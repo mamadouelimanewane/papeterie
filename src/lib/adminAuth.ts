@@ -26,3 +26,15 @@ export function errorResponse(error: unknown, fallback = "Erreur serveur") {
   console.error("[admin]", error)
   return NextResponse.json({ error: error instanceof Error ? error.message : fallback }, { status: 500 })
 }
+
+/**
+ * Super-administrateur uniquement (permission « * ») : gestion des comptes admin et des rôles.
+ * Un simple droit « settings.manage » ne suffit pas, sinon un sous-admin pourrait se promouvoir super-admin.
+ */
+export async function requireSuperAdmin(req: NextRequest): Promise<JWT | NextResponse> {
+  const auth = await requireAdmin(req)
+  if (isResponse(auth)) return auth
+  const perms = (auth.permissions as string[] | undefined) ?? []
+  if (!perms.includes("*")) return NextResponse.json({ error: "Réservé au super-administrateur" }, { status: 403 })
+  return auth
+}
