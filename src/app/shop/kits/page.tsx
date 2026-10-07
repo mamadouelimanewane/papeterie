@@ -17,7 +17,7 @@ export default function KitsPage() {
   const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
   const [config, setConfig] = useState<{ included: boolean; qty: number }[]>([])
   const [cartOpen, setCartOpen] = useState(false)
-  const { cart, add, dec, inc, clear, count, total } = useCart()
+  const { cart, add, dec, inc, remove, removeMultiple, clear, count, total } = useCart()
 
   useEffect(() => {
     fetch("/api/kits").then((r) => r.json()).then((d) => setKits(Array.isArray(d) ? d : [])).catch(() => setKits([])).finally(() => setLoading(false))
@@ -186,7 +186,7 @@ export default function KitsPage() {
         </div>
       )}
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} clear={clear} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} remove={remove} removeMultiple={removeMultiple} clear={clear} />
     </div>
   )
 }

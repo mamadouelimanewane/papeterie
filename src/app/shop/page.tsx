@@ -36,7 +36,7 @@ export default function ShopPage() {
   const [cartOpen, setCartOpen] = useState(false)
   const [detail, setDetail] = useState<Product | null>(null)
   const [toast, setToast] = useState<{ msg: string; n: number } | null>(null)
-  const { cart, add, dec, inc, clear, count, total } = useCart()
+  const { cart, add, dec, inc, remove, removeMultiple, clear, count, total } = useCart()
   const { client, save: saveClient, logout } = useClient()
   const [registerOpen, setRegisterOpen] = useState(false)
 
@@ -291,7 +291,7 @@ export default function ShopPage() {
           showToast(already ? `Bon retour ${p.firstName} ! Ce numéro était déjà inscrit.` : `Bienvenue ${p.firstName}, votre compte est créé !`)
         }} />
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} clear={clear} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} count={count} total={total} dec={dec} inc={inc} remove={remove} removeMultiple={removeMultiple} clear={clear} />
     </div>
   )
 }
