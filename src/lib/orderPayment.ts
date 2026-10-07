@@ -5,7 +5,7 @@ type OrderForPayment = { id: string; orderId: string; total: number; notes?: str
 /** Statuts de paiement considérés comme réglés (webhook Versus : "Complete" ; saisie manuelle : "Payé"). */
 export const PAID_STATUSES = ["Complete", "Completed", "Paye", "Payé", "Paid"]
 
-/** Lien de paiement renvoyé par Versus (la forme de la réponse varie selon l'API). */
+/** Lien de paiement renvoyé par Schoolmatik (la forme de la réponse varie selon l'API). */
 export function paymentLink(paymentData: unknown): string | null {
   const d = paymentData as { data?: { link?: string; data?: { link?: string } } } | null
   return d?.data?.data?.link ?? d?.data?.link ?? null
@@ -20,7 +20,7 @@ export function customerFromNotes(notes?: string | null) {
 }
 
 /**
- * Initie un paiement Versus (Wave, Orange Money, carte, Mixx) pour une commande.
+ * Initie un paiement Schoolmatik (Wave, Orange Money, carte, Mixx) pour une commande.
  * Le montant payé est `order.total`, qui inclut les frais de livraison.
  */
 export async function startOrderPayment(
@@ -47,5 +47,5 @@ export async function startOrderPayment(
   })
   return result.success
     ? { ok: true as const, paymentData: result, link: paymentLink(result) }
-    : { ok: false as const, error: result.message ?? "Échec de l'initialisation du paiement Versus" }
+    : { ok: false as const, error: result.message ?? "Échec de l'initialisation du paiement Schoolmatik" }
 }
