@@ -44,6 +44,7 @@
 
   /* Prix : on garde l'ancien violet de l'application (indigo-700), demandé pour tous les montants */
   --color-price: #4338ca;
+  --color-price-dark: #3730a3;
 
   --color-leaf-50: #effaef;
   --color-leaf-100: #d6f1d6;
