@@ -108,7 +108,7 @@ export default function ShopPage() {
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-4">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-11 w-11 shrink-0 rounded-xl bg-white object-contain shadow-sm ring-1 ring-black/5" />
+            <img src="/brand/schoolmatik-logo-256.png" alt="Schoolmatik" className="h-14 w-14 shrink-0 rounded-xl bg-white object-contain shadow-sm ring-1 ring-black/5 sm:h-16 sm:w-16" />
             <div className="min-w-0 leading-tight">
               <div className="truncate font-extrabold tracking-tight text-brand-700">{store.name}</div>
               <div className="hidden text-[11px] font-medium text-slate-700 sm:block">Fournitures &amp; livres scolaires - Dakar</div>
@@ -151,13 +151,19 @@ export default function ShopPage() {
         <div className="relative overflow-hidden rounded-2xl bg-sun-400 p-6 text-slate-900 ring-1 ring-sun-500/40 sm:p-8">
           <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-sun-300" />
           <div aria-hidden className="pointer-events-none absolute -bottom-24 right-24 h-48 w-48 rounded-full border-[14px] border-brand-600/10" />
-          <div className="relative">
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          {/* Logo Schoolmatik en grand : en tête du bandeau sur téléphone, à droite sur ordinateur */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/schoolmatik-logo-512.png" alt="Schoolmatik Solutions"
+            className="h-28 w-28 shrink-0 rounded-3xl bg-white object-contain shadow-lg ring-1 ring-black/5 sm:order-2 sm:h-44 sm:w-44 lg:h-52 lg:w-52" />
+          <div className="sm:order-1">
             <p className="inline-block rounded-full bg-brand-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Rentrée scolaire</p>
             <h1 className="mt-3 max-w-2xl text-2xl font-extrabold leading-tight text-brand-700 sm:text-4xl">Tous les livres &amp; fournitures, livrés à Dakar</h1>
             <p className="mt-2 max-w-xl text-sm font-medium text-slate-800">Cahiers, manuels, kits de géométrie, sacs… Commandez en ligne et payez par Wave ou Orange Money, sans vous déplacer.</p>
             <Link href="/shop/kits" className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700">
             {"🎒"} Voir les kits par classe
             </Link>
+          </div>
           </div>
         </div>
         {!client && (
