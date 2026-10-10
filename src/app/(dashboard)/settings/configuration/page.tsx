@@ -21,6 +21,8 @@ const DEFAULTS = {
   adminLang: "fr", userLang: "fr", driverLang: "fr",
   docExpiryDays: 30, userImageMode: "Optional",
   userDeleteUrl: "", driverDeleteUrl: "",
+  legalName: "", legalAddress: "", legalPhone: "", ninea: "", rccm: "",
+  receiptFooter: "Merci pour votre confiance et bonne rentrée !",
   logo: "", appTheme: "#4F46E5", screen1Text: "Tous vos livres et fournitures, livrés à Dakar",
 }
 
@@ -35,6 +37,14 @@ export default function GeneralConfigurationPage() {
           { key: "reportEmail", label: "E-mail de signalement de problème", type: "email" },
           { key: "reportPhone", label: "Téléphone de signalement de problème", type: "tel" },
           { key: "currency", label: "Devise", type: "select", options: ["FCFA", "EUR", "USD"], required: true },
+        ] },
+        { title: "Reçu client", description: "Informations imprimées sur le reçu remis au client après paiement. Les champs vides n'apparaissent pas. Le logo utilisé est celui réglé plus bas sur cette page.", fields: [
+          { key: "legalName", label: "Raison sociale", placeholder: "Ex. SCHOOLMATIK SARL" },
+          { key: "legalAddress", label: "Adresse du siège", placeholder: "Ex. 12 rue X, Dakar-Plateau", help: "Vide : adresse de la boutique." },
+          { key: "legalPhone", label: "Téléphone service client", type: "tel", help: "Vide : téléphone de la boutique." },
+          { key: "ninea", label: "NINEA" },
+          { key: "rccm", label: "RCCM", placeholder: "Ex. SN-DKR-2024-B-12345" },
+          { key: "receiptFooter", label: "Message en bas du reçu", type: "textarea" },
         ] },
         { title: "Commission & livraison", fields: [
           { key: "commissionPct", label: "Commission plateforme (%)", type: "number", step: "0.5", min: 0 },

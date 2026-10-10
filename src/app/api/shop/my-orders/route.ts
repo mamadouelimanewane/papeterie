@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { PAID_STATUSES } from "@/lib/orderPayment"
+import { receiptToken } from "@/lib/receiptToken"
 
 /** 9 derniers chiffres : « +221 77 123 45 67 », « 771234567 » et « 00221771234567 » sont équivalents. */
 const normPhone = (s: unknown) => String(s ?? "").replace(/\D/g, "").slice(-9)
@@ -41,6 +42,8 @@ export async function POST(req: NextRequest) {
         total: o.total, createdAt: o.createdAt, paid: PAID_STATUSES.includes(o.paymentStatus),
         // Code à donner au livreur : seulement au titulaire du numéro, et tant que la commande est en cours
         deliveryCode: ["Delivered", "Completed", "Cancelled"].includes(o.status) ? null : o.deliveryOtp,
+        // Accès au reçu (commandes payées seulement), réservé au titulaire du numéro
+        receiptToken: PAID_STATUSES.includes(o.paymentStatus) ? receiptToken(o.orderId) : null,
       })),
     })
   } catch (e) {
