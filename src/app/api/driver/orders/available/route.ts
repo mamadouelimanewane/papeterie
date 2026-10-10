@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
 import { readDeliveryTag } from "@/lib/deliveryPricing"
+import { deliverableWhere } from "@/lib/orderExpiry"
+import { PAID_STATUSES } from "@/lib/orderPayment"
 
 /**
  * Commandes en attente d'un livreur. Réservé aux livreurs approuvés.
@@ -12,7 +14,7 @@ export async function GET(req: Request) {
   if (isDriverError(driver)) return driver
   try {
     const orders = await prisma.order.findMany({
-      where: { status: { in: ["Pending", "Confirme"] }, driverId: null },
+      where: deliverableWhere(PAID_STATUSES),
       select: {
         id: true, orderId: true, address: true, items: true, total: true, deliveryFee: true, notes: true,
         store: { select: { name: true, address: true } },

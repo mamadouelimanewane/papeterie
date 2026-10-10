@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     const driver = await prisma.driver.findUnique({
@@ -12,12 +15,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (!driver) return NextResponse.json({ error: "Livreur introuvable" }, { status: 404 })
     return NextResponse.json(driver)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/drivers/[id]]")
   }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     const data = await req.json()
@@ -29,18 +33,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const driver = await prisma.driver.update({ where: { id }, data: update, omit: { password: true } })
     return NextResponse.json(driver)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/drivers/[id]]")
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { id } = await params
     await prisma.driver.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/drivers/[id]]")
   }
 }

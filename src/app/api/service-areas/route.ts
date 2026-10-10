@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
 export async function GET() {
   try {
     const areas = await prisma.serviceArea.findMany({ orderBy: { name: "asc" } })
     return NextResponse.json(areas)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/service-areas]")
   }
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const data = await req.json()
     if (!data.name || !data.country) {
@@ -22,7 +24,6 @@ export async function POST(req: Request) {
     })
     return NextResponse.json(area, { status: 201 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/service-areas]")
   }
 }

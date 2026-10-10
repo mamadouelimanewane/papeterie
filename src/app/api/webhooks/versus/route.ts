@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { safeEqual } from "@/lib/auth"
 import { PAID_STATUSES } from "@/lib/orderPayment"
+import { CANCELLED_STATUSES, REFUND_STATUS, reserveStockAgain, restoreStock } from "@/lib/orderExpiry"
 
 /**
  * Verifie le secret du webhook (VERSUS_WEBHOOK_SECRET), obligatoire.
@@ -48,48 +49,64 @@ export async function POST(req: Request) {
 
       // Une commande deja reglee ne change plus : un avis rejoue ou en retard (ex. FAILED apres COMPLETED)
       // ne doit ni annuler une commande payee, ni la faire revenir en arriere, ni doubler l'encaissement.
-      if (PAID_STATUSES.includes(existingOrder.paymentStatus)) {
+      if (PAID_STATUSES.includes(existingOrder.paymentStatus) || existingOrder.paymentStatus === REFUND_STATUS) {
         return NextResponse.json({ success: true, message: "Commande deja reglee, avis ignore" }, { status: 200 })
       }
+      const wasCancelled = CANCELLED_STATUSES.includes(existingOrder.status)
 
       let paymentStatus = "En attente"
       let orderStatus = existingOrder.status
       const paidAmount = parseFloat(amount)
       if (status === "COMPLETED") {
-        if (Number.isFinite(paidAmount) && paidAmount + 1 < existingOrder.total) {
-          // Montant recu inferieur au total : pas de confirmation automatique, a traiter a la main
+        if (!Number.isFinite(paidAmount) || paidAmount + 1 < existingOrder.total) {
+          // Montant absent ou inferieur au total : pas de confirmation automatique, a traiter a la main
           paymentStatus = "Partiel"
-          console.error("[versus-webhook] montant insuffisant", { order: existingOrder.orderId, paid: paidAmount, total: existingOrder.total })
+          console.error("[versus-webhook] montant absent ou insuffisant", { order: existingOrder.orderId, paid: amount, total: existingOrder.total })
+        } else if (wasCancelled) {
+          // Paiement recu apres expiration / annulation : le stock avait ete libere.
+          // On le re-reserve ; si un article n'est plus disponible, la commande est a rembourser.
+          if (await reserveStockAgain(existingOrder.items)) {
+            paymentStatus = "Complete"
+            orderStatus = "Pending"
+          } else {
+            paymentStatus = REFUND_STATUS
+            console.error("[versus-webhook] paiement recu sur commande annulee, stock indisponible : a rembourser", { order: existingOrder.orderId })
+          }
         } else {
           paymentStatus = "Complete"
           // Le paiement est suivi par paymentStatus ; le statut de livraison reste « Pending » pour que
           // la commande apparaisse aux livreurs (un statut « Confirme » la rendait invisible et inacceptable).
         }
       } else if (status === "FAILED" || status === "REJECTED" || status === "CANCELLED") {
-        paymentStatus = "Echoue"
+        paymentStatus = wasCancelled ? existingOrder.paymentStatus : "Echoue"
         if (existingOrder.status === "Pending") orderStatus = "Annule"
       }
 
-      // Mise a jour conditionnelle et atomique : deux avis simultanes ne passent pas tous les deux
+      // Mise a jour conditionnelle et atomique : deux avis simultanes ne passent pas tous les deux, et la
+      // commande ne doit pas avoir change entre-temps (ex. annulee par l'expiration des impayes, qui a deja
+      // libere le stock : la confirmer telle quelle revendrait des articles plus en stock).
       const { count } = await prisma.order.updateMany({
-        where: { id: external_reference, paymentStatus: { notIn: PAID_STATUSES } },
+        where: {
+          id: external_reference,
+          status: existingOrder.status,
+          paymentStatus: existingOrder.paymentStatus,
+        },
         data: { paymentStatus, status: orderStatus, invoiceId: reference ?? existingOrder.invoiceId },
       })
       if (count === 0) {
-        return NextResponse.json({ success: true, message: "Commande deja reglee, avis ignore" }, { status: 200 })
+        // Stock re-reserve pour rien : on le rend
+        if (wasCancelled && orderStatus === "Pending") await restoreStock(existingOrder.items)
+        const now = await prisma.order.findUnique({ where: { id: external_reference }, select: { paymentStatus: true } })
+        if (now && (PAID_STATUSES.includes(now.paymentStatus) || now.paymentStatus === REFUND_STATUS)) {
+          return NextResponse.json({ success: true, message: "Commande deja reglee, avis ignore" }, { status: 200 })
+        }
+        // La commande a change pendant le traitement : Versus renverra l'avis et il sera traite sur l'etat a jour
+        return NextResponse.json({ error: "Commande modifiee pendant le traitement, reessayez" }, { status: 409 })
       }
 
       // Restauration du stock si la commande vient d'etre annulee
-      if (orderStatus === "Annule" && existingOrder.status !== "Annule") {
-        const items = Array.isArray(existingOrder.items) ? existingOrder.items : []
-        for (const item of items as { productId?: string; quantity?: number }[]) {
-          if (item.productId && item.quantity) {
-            await prisma.product.update({
-              where: { id: item.productId },
-              data: { stock: { increment: Number(item.quantity) } },
-            }).catch((e) => console.error("[versus-webhook] Erreur restauration stock", e))
-          }
-        }
+      if (orderStatus === "Annule" && !wasCancelled) {
+        await restoreStock(existingOrder.items)
       }
 
       if (paymentStatus === "Complete") {

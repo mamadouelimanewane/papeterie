@@ -11,7 +11,8 @@ const normPhone = (s: unknown) => String(s ?? "").replace(/\D/g, "").slice(-9)
  * Corps : { phone, orderIds } — ne renvoie QUE les commandes passées avec ce numéro
  * (téléphone saisi à la commande, ou téléphone du compte client). Aucune donnée personnelle renvoyée.
  */
-export async function POST(req: NextRequest) {  if (!rateLimit("shop-my-orders:" + clientIp(req), 15, 10 * 60_000)) {
+export async function POST(req: NextRequest) {
+  if (!await rateLimit("shop-my-orders:" + clientIp(req), 15, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
   }
 

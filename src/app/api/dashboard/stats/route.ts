@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const [
       totalUsers,
@@ -129,7 +132,6 @@ export async function GET() {
       })),
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/dashboard/stats]")
   }
 }

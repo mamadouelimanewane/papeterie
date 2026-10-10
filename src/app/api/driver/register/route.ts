@@ -7,7 +7,7 @@ import { sign } from "jsonwebtoken"
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
 
 export async function POST(req: Request) {
-  if (!rateLimit("driver-register:" + clientIp(req), 5, 60 * 60_000)) {
+  if (!await rateLimit("driver-register:" + clientIp(req), 5, 60 * 60_000)) {
     return NextResponse.json({ error: "Trop de tentatives, reessayez plus tard" }, { status: 429, headers: { "Retry-After": "900" } })
   }
   try {

@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { adminTokenOrNull, errorResponse, isResponse, requireAdminApi } from "@/lib/adminAuth"
+import { PUBLIC_STORE_SELECT } from "@/lib/storePublic"
 
+/**
+ * Liste des boutiques.
+ * - Session admin (stores.view) : vue complète du back-office (solde, contacts, recherche par e-mail/téléphone).
+ * - Public (vitrine, app client) : boutiques actives uniquement, champs vitrine seulement.
+ */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get("search") ?? ""
     const status = searchParams.get("status") ?? ""
+    const admin = await adminTokenOrNull(req, "stores.view")
+
+    if (!admin) {
+      const stores = await prisma.store.findMany({
+        where: {
+          status: "Active",
+          ...(search ? { name: { contains: search, mode: "insensitive" as const } } : {}),
+        },
+        select: PUBLIC_STORE_SELECT,
+        orderBy: { createdAt: "desc" },
+      })
+      return NextResponse.json(stores)
+    }
 
     const where: Record<string, unknown> = {}
     if (status) where.status = status
@@ -26,12 +46,13 @@ export async function GET(req: NextRequest) {
     })
     return NextResponse.json(stores)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[stores-get]")
   }
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const data = await req.json()
     if (!data.name || !data.email) {
@@ -52,7 +73,6 @@ export async function POST(req: Request) {
     })
     return NextResponse.json(store, { status: 201 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[stores-post]")
   }
 }

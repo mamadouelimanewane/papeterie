@@ -8,7 +8,7 @@ import { parsePoint, quoteDelivery } from "@/lib/deliveryPricing"
  * Indicatif pour le panier : le prix réellement facturé est recalculé par le serveur à la création de la commande.
  */
 export async function POST(req: Request) {
-  if (!rateLimit("delivery-quote:" + clientIp(req), 60, 10 * 60_000)) {
+  if (!await rateLimit("delivery-quote:" + clientIp(req), 60, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
   }
   const b = await req.json().catch(() => ({}))

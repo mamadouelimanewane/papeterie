@@ -7,8 +7,12 @@ import { getCommissionPct } from "@/lib/commission"
 import { PricingError, priceItems, promoDiscount } from "@/lib/pricing"
 import { getDeliveryConfig } from "@/lib/shopConfig"
 import { deliveryTag, parsePoint, quoteDelivery } from "@/lib/deliveryPricing"
+import { errorResponse, isResponse, requireAdminApi } from "@/lib/adminAuth"
+import { ONLINE_PAYMENT_METHODS, releaseExpiredOrdersThrottled } from "@/lib/orderExpiry"
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { searchParams } = new URL(req.url)
     const page = Math.max(1, Number(searchParams.get("page") ?? "1"))
@@ -54,12 +58,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ orders, total, page, perPage, totalPages: Math.ceil(total / perPage) })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[orders-get]")
   }
 }
 
-export async function POST(req: Request) {  if (!rateLimit("orders-post:" + clientIp(req), 20, 10 * 60_000)) {
+export async function POST(req: Request) {
+  if (!await rateLimit("orders-post:" + clientIp(req), 20, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
   }
 
@@ -73,6 +77,20 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
     if (!storeId || !data.items) {
       return NextResponse.json({ error: "storeId (ou boutique active) et items sont requis" }, { status: 400 })
     }
+
+    // Paiement en ligne obligatoire (Wave, Orange Money via Versus). Le paiement a la livraison et le
+    // portefeuille sont refuses ici, et pas seulement masques dans l'interface : un appel direct a l'API
+    // ne doit pas pouvoir creer une commande non payee qui bloquerait du stock.
+    const paymentMethod: string = data.paymentMethod ?? "Versus"
+    if (!ONLINE_PAYMENT_METHODS.includes(paymentMethod)) {
+      return NextResponse.json(
+        { error: "Seul le paiement en ligne (Wave, Orange Money) est accepte" },
+        { status: 400 }
+      )
+    }
+
+    // Libere le stock des commandes en ligne restees impayees (au plus une passe toutes les 5 min)
+    await releaseExpiredOrdersThrottled()
 
     // userId uniquement depuis un JWT valide (jamais depuis le corps de la requete)
     const userId: string | null = verifyBearer(req)?.id ?? null
@@ -124,7 +142,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
           deliveryFee,
           earning: Math.round((subtotal * commissionPct) / 100), // commission configurée (Paramètres), sur le prix des articles
           status: "Pending",
-          paymentMethod: data.paymentMethod ?? "Cash",
+          paymentMethod,
           paymentStatus: "En attente",
           items,
           address: data.address ?? null,
@@ -140,9 +158,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
 
     let paymentData: unknown = null;
     let paymentError: string | null = null;
-    const versusMethods = ["Versus", "Wave", "Orange", "Orange Money"];
-    const wantsVersus =
-      versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod);
+    const wantsVersus = ONLINE_PAYMENT_METHODS.includes(order.paymentMethod);
     if (wantsVersus) {
       try {
         const { startOrderPayment } = await import("@/lib/orderPayment");
@@ -157,7 +173,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
         else paymentError = r.error;
       } catch (err) {
         console.error("Erreur création paiement Versus:", err);
-        paymentError = err instanceof Error ? err.message : "Erreur d'initialisation du paiement Versus";
+        paymentError = "Paiement en ligne momentanement indisponible, reessayez depuis Mes commandes";
       }
     }
 
