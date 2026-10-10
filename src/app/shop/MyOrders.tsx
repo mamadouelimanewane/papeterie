@@ -98,7 +98,7 @@ export default function MyOrders() {
                           <div className="flex items-center justify-between gap-2">
                             <div>
                               <div className="font-mono text-xs text-slate-500">N° {s.orderId}</div>
-                              <div className="font-bold text-brand-700">{fmt(s.total)}</div>
+                              <div className="font-bold text-price">{fmt(s.total)}</div>
                               <div className="text-[11px] text-slate-400">{new Date(s.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</div>
                             </div>
                             <div className="text-right text-xs">
