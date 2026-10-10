@@ -209,7 +209,7 @@ export default function ShopPage() {
                 <div className="line-clamp-2 text-sm font-medium leading-tight">{p.name}</div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="font-extrabold text-price">{fmt(p.price)}</span>
-                  <button onClick={(e) => { e.stopPropagation(); addProduct(p) }} className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700" aria-label="Ajouter">+</button>
+                  <button onClick={(e) => { e.stopPropagation(); addProduct(p) }} className="grid h-8 w-8 place-items-center rounded-full bg-price text-white transition hover:bg-price-dark" aria-label="Ajouter">+</button>
                 </div>
               </div>
             </div>
