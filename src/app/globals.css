@@ -12,6 +12,43 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+ * Charte Schoolmatik (logo et flyers) : jaune dominant, rouge pour les titres et les actions.
+ * - sun   : jaune Schoolmatik (#F6E021 = sun-400). Fonds, bandeaux, surlignages. Texte foncé dessus.
+ * - brand : rouge Schoolmatik (#C61620 = brand-600). Boutons, liens, montants, titres.
+ * - leaf  : vert des flyers (#288028 = leaf-600). Confirmations ponctuelles.
+ * Le texte blanc ne se pose que sur brand-600 et plus foncé (contraste AA).
+ */
+@theme {
+  --color-sun-50: #fffde8;
+  --color-sun-100: #fef9c3;
+  --color-sun-200: #fdf28c;
+  --color-sun-300: #fae94f;
+  --color-sun-400: #f6e021;
+  --color-sun-500: #e2c80c;
+  --color-sun-600: #bda507;
+  --color-sun-700: #8e7a08;
+  --color-sun-800: #6b5c0b;
+  --color-sun-900: #4a400c;
+
+  --color-brand-50: #fdf2f2;
+  --color-brand-100: #fbe0e1;
+  --color-brand-200: #f6c0c3;
+  --color-brand-300: #ee8f94;
+  --color-brand-400: #e2565e;
+  --color-brand-500: #d42d36;
+  --color-brand-600: #c61620;
+  --color-brand-700: #a3121b;
+  --color-brand-800: #821017;
+  --color-brand-900: #5e0c11;
+
+  --color-leaf-50: #effaef;
+  --color-leaf-100: #d6f1d6;
+  --color-leaf-500: #349a34;
+  --color-leaf-600: #288028;
+  --color-leaf-700: #1f661f;
+}
+
 /* Toutes les interfaces sont conçues en thème clair : on ne suit PAS le mode sombre
    du téléphone (sinon texte clair sur champs blancs = saisie invisible). */
 :root {

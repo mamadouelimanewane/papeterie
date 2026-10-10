@@ -123,7 +123,7 @@ export default function OrdersPage() {
         <div className="flex items-center gap-2">
           <span>🛒</span>
           <h1 className="text-lg font-semibold text-gray-700">Commandes — Schoolmatik Librairie</h1>
-          {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
+          {loading && <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
           <button
@@ -148,21 +148,21 @@ export default function OrdersPage() {
               placeholder="Rechercher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-52"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 w-52"
             />
           </div>
           <div>
             <label className="text-xs text-gray-500 block mb-1">Du</label>
             <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-36" />
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 w-36" />
           </div>
           <div>
             <label className="text-xs text-gray-500 block mb-1">Au</label>
             <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-36" />
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 w-36" />
           </div>
           <div className="flex gap-2 items-end">
-            <button onClick={() => { setPage(1); fetchOrders() }} className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"><Search size={16} /></button>
+            <button onClick={() => { setPage(1); fetchOrders() }} className="p-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600"><Search size={16} /></button>
             <button onClick={reset} className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"><RefreshCw size={16} /></button>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function OrdersPage() {
                 <tr key={order.id} className="hover:bg-gray-50/80">
                   <td className="px-3 py-3 text-gray-500">{(page - 1) * perPage + i + 1}</td>
                   <td className="px-3 py-3">
-                    <button className="text-indigo-600 font-semibold hover:underline" onClick={() => setSelectedOrder(order)}>
+                    <button className="text-brand-600 font-semibold hover:underline" onClick={() => setSelectedOrder(order)}>
                       {order.orderId}
                     </button>
                   </td>
@@ -223,14 +223,14 @@ export default function OrdersPage() {
                       {order.paymentStatus}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-indigo-600 font-medium">{order.earning.toLocaleString("fr-FR")}</td>
+                  <td className="px-3 py-3 text-brand-600 font-medium">{order.earning.toLocaleString("fr-FR")}</td>
                   <td className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">{order.address ?? "—"}</td>
                   <td className="px-3 py-3"><StatusBadge status={order.status} /></td>
                   <td className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">
                     {new Date(order.createdAt).toLocaleString("fr-FR")}
                   </td>
                   <td className="px-3 py-3">
-                    <button className="p-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600" onClick={() => setSelectedOrder(order)} title="Voir détails">
+                    <button className="p-1.5 bg-brand-500 text-white rounded hover:bg-brand-600" onClick={() => setSelectedOrder(order)} title="Voir détails">
                       <Eye size={12} />
                     </button>
                   </td>
@@ -249,7 +249,7 @@ export default function OrdersPage() {
             {Array.from({ length: Math.min(5, totalPages) }, (_, idx) => {
               const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + idx
               return (
-                <button key={p} onClick={() => setPage(p)} className={`px-2.5 py-1 rounded border ${page === p ? "bg-indigo-500 text-white border-indigo-500" : "border-gray-200 hover:bg-gray-50"}`}>{p}</button>
+                <button key={p} onClick={() => setPage(p)} className={`px-2.5 py-1 rounded border ${page === p ? "bg-brand-500 text-white border-brand-500" : "border-gray-200 hover:bg-gray-50"}`}>{p}</button>
               )
             })}
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-2 py-1 rounded border border-gray-200 disabled:opacity-40 hover:bg-gray-50">›</button>

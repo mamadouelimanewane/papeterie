@@ -76,12 +76,12 @@ export default function MyOrders() {
             {list === null ? (
               <form onSubmit={(e) => { e.preventDefault(); load(phone) }} className="space-y-3">
                 <p className="text-sm text-slate-600">{"🔒"} Pour protéger vos commandes, confirmez le numéro de téléphone utilisé lors de la commande.</p>
-                <div className="flex rounded-lg border border-slate-200 focus-within:border-indigo-400">
+                <div className="flex rounded-lg border border-slate-200 focus-within:border-brand-400">
                   <span className="grid place-items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+221</span>
                   <input required type="tel" inputMode="tel" autoComplete="off" value={phone} onChange={(e) => setPhone(e.target.value)}
                     placeholder="77 123 45 67" className="w-full rounded-r-lg px-3 py-2.5 text-sm outline-none" />
                 </div>
-                <button type="submit" disabled={loading} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                <button type="submit" disabled={loading} className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
                   {loading ? "Vérification…" : "Voir mes commandes"}
                 </button>
               </form>
@@ -98,7 +98,7 @@ export default function MyOrders() {
                           <div className="flex items-center justify-between gap-2">
                             <div>
                               <div className="font-mono text-xs text-slate-500">N° {s.orderId}</div>
-                              <div className="font-bold text-indigo-700">{fmt(s.total)}</div>
+                              <div className="font-bold text-brand-700">{fmt(s.total)}</div>
                               <div className="text-[11px] text-slate-400">{new Date(s.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</div>
                             </div>
                             <div className="text-right text-xs">
@@ -107,21 +107,21 @@ export default function MyOrders() {
                             </div>
                           </div>
                           {s.deliveryCode && (
-                            <div className="mt-2 flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2">
-                              <span className="text-[11px] text-indigo-700">Code à donner au livreur</span>
-                              <span className="font-mono text-base font-extrabold tracking-[0.25em] text-indigo-800">{s.deliveryCode}</span>
+                            <div className="mt-2 flex items-center justify-between rounded-lg bg-sun-50 px-3 py-2">
+                              <span className="text-[11px] text-brand-700">Code à donner au livreur</span>
+                              <span className="font-mono text-base font-extrabold tracking-[0.25em] text-brand-800">{s.deliveryCode}</span>
                             </div>
                           )}
                           {s.paid && s.receiptToken && (
                             <a href={`/checkout/success?orderId=${encodeURIComponent(s.orderId)}&t=${encodeURIComponent(s.receiptToken)}`}
-                              className="mt-2 block w-full rounded-lg border border-indigo-200 py-2 text-center text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+                              className="mt-2 block w-full rounded-lg border border-sun-300 py-2 text-center text-sm font-semibold text-brand-700 hover:bg-sun-50">
                               Voir le reçu
                             </a>
                           )}
                           {canPay && (
                             <button disabled={paying === s.orderId}
                               onClick={async () => { setMsg(null); setPaying(s.orderId); const e = await payOrder(s.orderId); setPaying(null); if (e) setMsg(e) }}
-                              className="mt-2 w-full rounded-lg bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                              className="mt-2 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
                               {paying === s.orderId ? "Ouverture du paiement…" : "Payer en ligne (Wave, Orange Money, carte)"}
                             </button>
                           )}

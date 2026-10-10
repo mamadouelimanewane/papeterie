@@ -118,14 +118,14 @@ export default function GestionPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <header className="border-b bg-white">
+      <header className="bg-sun-400 shadow-[inset_0_-3px_0_0_var(--color-brand-600)]">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-600 text-white">{"⚙️"}</span>
+          <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-10 w-10 rounded-xl bg-white object-contain ring-1 ring-black/5" />
           <div className="leading-tight">
-            <div className="font-extrabold text-indigo-700">Gestion du catalogue</div>
-            <div className="text-[11px] text-slate-400">Ajouter des categories et des produits</div>
+            <div className="font-extrabold text-brand-700">Gestion du catalogue</div>
+            <div className="text-[11px] font-medium text-slate-700">Ajouter des categories et des produits</div>
           </div>
-          <Link href="/shop" className="ml-auto text-sm text-indigo-600">Voir la boutique &rarr;</Link>
+          <Link href="/shop" className="ml-auto text-sm font-semibold text-brand-700">Voir la boutique &rarr;</Link>
         </div>
       </header>
 
@@ -136,10 +136,10 @@ export default function GestionPage() {
         </div>
 
         <div className="mb-4 inline-flex rounded-full bg-white p-1 ring-1 ring-slate-200">
-          <button onClick={() => setTab("product")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "product" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouveau produit</button>
-          <button onClick={() => setTab("category")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "category" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Nouvelle categorie</button>
-          <button onClick={() => setTab("promo")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "promo" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Promotion</button>
-          <button onClick={() => setTab("stock")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "stock" ? "bg-indigo-600 text-white" : "text-slate-600"}`}>Stock</button>
+          <button onClick={() => setTab("product")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "product" ? "bg-brand-600 text-white" : "text-slate-600"}`}>Nouveau produit</button>
+          <button onClick={() => setTab("category")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "category" ? "bg-brand-600 text-white" : "text-slate-600"}`}>Nouvelle categorie</button>
+          <button onClick={() => setTab("promo")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "promo" ? "bg-brand-600 text-white" : "text-slate-600"}`}>Promotion</button>
+          <button onClick={() => setTab("stock")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${tab === "stock" ? "bg-brand-600 text-white" : "text-slate-600"}`}>Stock</button>
         </div>
 
         {msg && (
@@ -152,7 +152,7 @@ export default function GestionPage() {
               <label className="text-sm font-medium">Nom de la categorie</label>
               <input value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Ex: Sport, Informatique, Arts plastiques..." className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
             </div>
-            <button onClick={addCategory} disabled={busy || !code} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white disabled:opacity-50">
+            <button onClick={addCategory} disabled={busy || !code} className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-50">
               {busy ? "..." : "Creer la categorie"}
             </button>
             <div className="pt-2">
@@ -224,7 +224,7 @@ export default function GestionPage() {
                 <input value={prExp} onChange={(e) => setPrExp(e.target.value)} type="date" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" />
               </div>
             </div>
-            <button onClick={addPromo} disabled={busy || !code} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white disabled:opacity-50">
+            <button onClick={addPromo} disabled={busy || !code} className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-50">
               {busy ? "..." : "Creer le code promo"}
             </button>
           </div>
@@ -233,7 +233,7 @@ export default function GestionPage() {
           <div className="overflow-x-auto rounded-xl bg-white p-4 ring-1 ring-slate-100">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-slate-600">Stock des produits ({products.length})</span>
-              <button onClick={loadProducts} className="text-xs text-indigo-600">Rafraîchir</button>
+              <button onClick={loadProducts} className="text-xs text-brand-600">Rafraîchir</button>
             </div>
             {(() => {
               const low = products.filter((p) => (p.stock ?? 0) <= LOW_STOCK)

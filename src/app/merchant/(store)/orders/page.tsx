@@ -84,7 +84,7 @@ export default function MerchantOrders() {
             key={t.value}
             onClick={() => setTab(t.value)}
             className={`px-3 py-1.5 rounded-xl text-sm whitespace-nowrap transition-colors ${
-              tab === t.value ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+              tab === t.value ? "bg-brand-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
             }`}
           >
             {t.label}
@@ -99,10 +99,10 @@ export default function MerchantOrders() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="N° de commande, client, adresse…"
-            className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
         </div>
-        <button type="submit" className="px-4 bg-indigo-600 text-white rounded-xl text-sm">Rechercher</button>
+        <button type="submit" className="px-4 bg-brand-600 text-white rounded-xl text-sm">Rechercher</button>
         <button type="button" onClick={() => { setSearch(""); setQuery(""); load() }} title="Actualiser"
           className="p-2.5 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50">
           <RefreshCw size={16} />
@@ -122,7 +122,7 @@ export default function MerchantOrders() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center"><Loader2 size={22} className="animate-spin text-indigo-500 mx-auto" /></td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center"><Loader2 size={22} className="animate-spin text-brand-500 mx-auto" /></td></tr>
             ) : orders.length === 0 ? (
               <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">Aucune commande</td></tr>
             ) : (
@@ -164,7 +164,7 @@ export default function MerchantOrders() {
               <div className="space-y-1.5">
                 <div className="font-medium text-gray-800">{customerOf(selected.notes)}</div>
                 {phoneOf(selected.notes) && (
-                  <a href={`tel:${phoneOf(selected.notes)}`} className="flex items-center gap-2 text-indigo-600 text-xs"><Phone size={13} />{phoneOf(selected.notes)}</a>
+                  <a href={`tel:${phoneOf(selected.notes)}`} className="flex items-center gap-2 text-brand-600 text-xs"><Phone size={13} />{phoneOf(selected.notes)}</a>
                 )}
                 {selected.address && <div className="flex items-start gap-2 text-xs text-gray-500"><MapPin size={13} className="mt-0.5" />{selected.address}</div>}
               </div>
@@ -186,7 +186,7 @@ export default function MerchantOrders() {
                 </div>
               )}
               {selected.pickupOtp && !["Delivered", "Completed", "Cancelled", "Annule"].includes(selected.status) && (
-                <div className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 rounded-xl p-3">
+                <div className="flex items-center gap-2 text-xs text-brand-700 bg-sun-50 rounded-xl p-3">
                   <KeyRound size={14} /> Code de retrait à communiquer au livreur : <b className="text-base tracking-widest">{selected.pickupOtp}</b>
                 </div>
               )}

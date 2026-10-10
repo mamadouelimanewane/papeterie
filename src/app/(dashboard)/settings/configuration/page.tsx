@@ -23,7 +23,7 @@ const DEFAULTS = {
   userDeleteUrl: "", driverDeleteUrl: "",
   legalName: "", legalAddress: "", legalPhone: "", ninea: "", rccm: "",
   receiptFooter: "Merci pour votre confiance et bonne rentrée !",
-  logo: "", appTheme: "#4F46E5", screen1Text: "Tous vos livres et fournitures, livrés à Dakar",
+  logo: "", appTheme: "#C61620", screen1Text: "Tous vos livres et fournitures, livrés à Dakar",
 }
 
 export default function GeneralConfigurationPage() {

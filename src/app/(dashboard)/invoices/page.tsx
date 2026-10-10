@@ -19,7 +19,7 @@ function invoiceHtml(o: Order, store: Store | null, client: string) {
   // total = montant dû, livraison comprise (convention application mobile et boutique web)
   const discount = Math.max(0, (o.subtotal || 0) + (o.deliveryFee || 0) - (o.total || 0))
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Facture ${esc(o.orderId)}</title>
-<style>body{font-family:Arial,sans-serif;color:#1f2937;margin:40px;font-size:13px}h1{color:#4338ca;margin:0}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7280}.r{text-align:right}.head{display:flex;justify-content:space-between;gap:20px}.tot td{border:none;padding:4px 8px}.grand td{font-size:16px;font-weight:bold;color:#4338ca}.muted{color:#6b7280}@media print{button{display:none}}</style></head><body>
+<style>body{font-family:Arial,sans-serif;color:#1f2937;margin:40px;font-size:13px}h1{color:#A3121B;margin:0}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7280}.r{text-align:right}.head{display:flex;justify-content:space-between;gap:20px}.tot td{border:none;padding:4px 8px}.grand td{font-size:16px;font-weight:bold;color:#A3121B}.muted{color:#6b7280}@media print{button{display:none}}</style></head><body>
 <div class="head"><div><h1>${esc(store?.name ?? "Schoolmatik Librairie")}</h1><div class="muted">${esc(store?.address ?? "Dakar, Sénégal")}<br>${esc(store?.phone ?? "")} ${esc(store?.email ?? "")}</div></div>
 <div class="r"><h2 style="margin:0">FACTURE</h2><div>N° ${esc(o.orderId)}</div><div class="muted">${new Date(o.createdAt).toLocaleDateString("fr-FR")}</div></div></div>
 <p style="margin-top:24px"><b>Client :</b> ${esc(client)}<br><b>Adresse de livraison :</b> ${esc(o.address ?? "—")}</p>
@@ -30,7 +30,7 @@ ${discount ? `<tr><td>Remise</td><td class="r">-${money(discount)}</td></tr>` : 
 <tr><td>Livraison</td><td class="r">${money(o.deliveryFee)}</td></tr>
 <tr class="grand"><td>Total</td><td class="r">${money(o.total || 0)}</td></tr></tbody></table>
 <p class="muted">Paiement : ${esc(o.paymentMethod)} — ${esc(o.paymentStatus)}</p>
-<button onclick="window.print()" style="margin-top:20px;padding:10px 20px;background:#4338ca;color:#fff;border:0;border-radius:8px;cursor:pointer">Imprimer / Enregistrer en PDF</button>
+<button onclick="window.print()" style="margin-top:20px;padding:10px 20px;background:#A3121B;color:#fff;border:0;border-radius:8px;cursor:pointer">Imprimer / Enregistrer en PDF</button>
 </body></html>`
 }
 

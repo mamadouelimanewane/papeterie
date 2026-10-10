@@ -73,7 +73,7 @@ export default function SubAdminRolesPage() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
       {ALL_PERMISSIONS.map(p => (
         <label key={p} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50">
-          <input type="checkbox" checked={selected.includes(p)} onChange={() => togglePerm(p, isNew)} className="h-3.5 w-3.5 accent-indigo-600" />
+          <input type="checkbox" checked={selected.includes(p)} onChange={() => togglePerm(p, isNew)} className="h-3.5 w-3.5 accent-brand-600" />
           <span>{LABEL[p] ?? p}</span>
         </label>
       ))}
@@ -86,7 +86,7 @@ export default function SubAdminRolesPage() {
         <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2"><Shield size={18} className="text-purple-600" /> Rôles &amp; Permissions</h1>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg"><Plus size={14} /> Nouveau rôle</button>
       </div>
-      {msg && <div className="rounded-lg bg-indigo-50 p-3 text-sm text-indigo-700">{msg}</div>}
+      {msg && <div className="rounded-lg bg-sun-50 p-3 text-sm text-brand-700">{msg}</div>}
 
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
@@ -96,7 +96,7 @@ export default function SubAdminRolesPage() {
           </div>
           {permGrid(newRole.permissions, true)}
           <div className="flex gap-2">
-            <button onClick={addRole} className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Créer le rôle</button>
+            <button onClick={addRole} className="px-4 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-700">Créer le rôle</button>
             <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg">Annuler</button>
           </div>
         </div>

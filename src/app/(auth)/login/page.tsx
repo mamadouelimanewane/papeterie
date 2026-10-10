@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("admin@papeterie.sn")
+  const [email, setEmail] = useState("") // pas d'adresse pré-remplie : elle révélerait le compte super-admin
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -33,14 +33,15 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative"
-      style={{
-        background: "linear-gradient(135deg, #4A148C 0%, #6A1B9A 50%, #7B1FA2 100%)",
-      }}
+      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-sun-400"
     >
+      {/* Formes de la charte Schoolmatik : disque jaune clair et bandeau rouge (comme les flyers) */}
+      <div aria-hidden className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sun-300" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full border-[28px] border-brand-600/10" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-2 bg-brand-600" />
       {/* Background pattern overlay */}
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
@@ -48,19 +49,15 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-sm mx-4">
         {/* Card */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 p-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center border border-purple-100">
-              <div className="text-center">
-                <div className="text-purple-600 text-2xl">📚</div>
-                <div className="text-purple-700 font-bold text-[10px] mt-1 uppercase tracking-wider">SCHOOLMATIK</div>
-              </div>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/schoolmatik-logo-256.png" alt="Schoolmatik Solutions" className="h-24 w-24 rounded-2xl object-contain shadow-md ring-1 ring-black/5" />
           </div>
 
-          <h2 className="text-center text-gray-700 font-semibold mb-1">Espace Administration</h2>
-          <p className="text-center text-gray-400 text-xs mb-5">Schoolmatik Librairie · Fournitures &amp; livres scolaires</p>
+          <h2 className="text-center text-xl font-extrabold text-brand-700 mb-1">Espace Administration</h2>
+          <p className="text-center text-gray-500 text-xs mb-5">Schoolmatik Librairie · Fournitures &amp; livres scolaires</p>
 
           {/* Error */}
           {error && (
@@ -81,7 +78,7 @@ export default function LoginPage() {
               autoCapitalize="none"
               autoCorrect="off"
               inputMode="email"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base sm:text-sm text-gray-900 bg-gray-50"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 text-base sm:text-sm text-gray-900 bg-gray-50"
               required
             />
             <div className="relative">
@@ -93,13 +90,13 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 autoCapitalize="none"
                 autoCorrect="off"
-                className="w-full pl-4 pr-12 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base sm:text-sm text-gray-900 bg-gray-50"
+                className="w-full pl-4 pr-12 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 text-base sm:text-sm text-gray-900 bg-gray-50"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500 hover:text-purple-700"
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500 hover:text-brand-700"
                 aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
                 {showPassword ? (
@@ -112,7 +109,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 text-sm shadow-lg shadow-purple-200"
+              className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 text-sm shadow-md shadow-brand-600/20"
             >
               {loading ? "Connexion en cours..." : "Se connecter"}
             </button>
@@ -120,7 +117,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-white/70 text-xs mt-6">
+        <p className="text-center text-slate-800 text-xs font-medium mt-6">
           © 2026 Schoolmatik Librairie · Fournitures scolaires · Tous droits réservés.
         </p>
       </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import OneSignalProvider from "@/components/providers/OneSignalProvider"
 
@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Schoolmatik Admin",
   description: "Schoolmatik Librairie — Back-office Administration",
 }
+
+// Barre du navigateur mobile aux couleurs Schoolmatik (jaune)
+export const viewport: Viewport = { themeColor: "#F6E021" }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

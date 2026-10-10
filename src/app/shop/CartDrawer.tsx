@@ -150,7 +150,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             <div className="mt-16 text-center">
               <div className="text-5xl">{"🛒"}</div>
               <p className="mt-3 text-slate-400">Votre panier est vide.</p>
-              <button onClick={onClose} className="mt-4 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Parcourir la boutique</button>
+              <button onClick={onClose} className="mt-4 rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">Parcourir la boutique</button>
             </div>
           )}
           {cart.map((x) => (
@@ -163,7 +163,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                     if (unselectedIds.includes(x.id)) setUnselectedIds((prev) => prev.filter((id) => id !== x.id))
                     else setUnselectedIds((prev) => [...prev, x.id])
                   }}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-600 cursor-pointer"
                 />
               </div>
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
@@ -177,7 +177,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 {x.components && x.components.length > 0 && (
                   <div className="line-clamp-2 text-[11px] text-slate-400">{x.components.map((k) => (k.qty > 1 ? `${k.qty}x ` : "") + k.name).join(", ")}</div>
                 )}
-                <div className="text-xs text-indigo-700">{fmt(x.price)}</div>
+                <div className="text-xs text-brand-700">{fmt(x.price)}</div>
                 <div className="mt-1 flex items-center justify-between">
                   <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
                     <button onClick={() => dec(x.id)} className="text-slate-500 px-1">-</button>
@@ -198,16 +198,16 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone *" type="tel" inputMode="tel" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison *" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               {distanceMode && (
-                <div className="col-span-2 rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+                <div className="col-span-2 rounded-lg border border-sun-200 bg-sun-50 p-2.5">
                   <div className="flex gap-2">
-                    <button type="button" onClick={locateMe} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"📍"} Ma position</button>
-                    <button type="button" onClick={searchAddress} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"🔎"} Chercher mon adresse</button>
+                    <button type="button" onClick={locateMe} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-brand-700 ring-1 ring-sun-300 disabled:opacity-60">{"📍"} Ma position</button>
+                    <button type="button" onClick={searchAddress} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-brand-700 ring-1 ring-sun-300 disabled:opacity-60">{"🔎"} Chercher mon adresse</button>
                   </div>
                   {locBusy && <p className="mt-1 text-[11px] text-slate-500">Localisation en cours…</p>}
                   {hits.length > 0 && (
                     <ul className="mt-2 max-h-32 space-y-1 overflow-auto text-[11px]">
                       {hits.map((h, i) => (
-                        <li key={i}><button type="button" onClick={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }} className="w-full rounded bg-white px-2 py-1.5 text-left ring-1 ring-slate-200 hover:bg-indigo-100">{h.label}</button></li>
+                        <li key={i}><button type="button" onClick={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }} className="w-full rounded bg-white px-2 py-1.5 text-left ring-1 ring-slate-200 hover:bg-sun-100">{h.label}</button></li>
                       ))}
                     </ul>
                   )}
@@ -221,10 +221,10 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               </select>
             </div>
             {method !== "Cash" && (
-              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+              <div className="rounded-lg border border-sun-200 bg-sun-50 p-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                   <span>{"🔒"}</span> Paiement sécurisé via
-                  <img src="/versus-logo.png" alt="Schoolmatik" className="h-7 w-7 object-contain" />
+                  <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-8 w-8 rounded-md bg-white object-contain ring-1 ring-black/5" />
                   <span>Schoolmatik</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500">
@@ -239,7 +239,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <input value={promoInput} onChange={(e) => setPromoInput(e.target.value.toUpperCase())} placeholder="Code promo" className="flex-1 rounded-lg border px-3 py-2 text-sm uppercase" />
                 {promo
                   ? <button onClick={() => { setPromo(null); setPromoInput(""); setPromoMsg(null) }} className="rounded-lg bg-slate-200 px-3 text-sm font-medium">Retirer</button>
-                  : <button onClick={applyPromo} className="rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white">Appliquer</button>}
+                  : <button onClick={applyPromo} className="rounded-lg bg-brand-600 px-3 text-sm font-medium text-white">Appliquer</button>}
               </div>
               {promoMsg && <p className="mt-1 text-xs text-red-500">{promoMsg}</p>}
               {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} appliqué : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
@@ -247,7 +247,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total {unselectedIds.length > 0 && "(sélection)"}</span><span>{fmt(selectedTotal)}</span></div>
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison{quote?.distanceKm != null ? ` (${String(quote.distanceKm).replace(".", ",")} km)` : ""}</span><span>{deliveryFee === null ? "—" : deliveryFee === 0 ? "Offerte" : fmt(deliveryFee)}</span></div>
-            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(grandTotal)}</span></div>
+            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-brand-700">{fmt(grandTotal)}</span></div>
             <div className="flex gap-2">
               <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 + Ajouter d'autres articles
@@ -270,20 +270,20 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <div className="text-4xl">{"✅"}</div>
                 <p className="mt-2 font-bold text-emerald-700">Commande confirmée !</p>
                 <p className="text-sm text-slate-500">N° {result.orderId}</p>
-                <p className="mt-1 text-lg font-extrabold text-indigo-700">{fmt(Number(result.total ?? 0))}</p>
+                <p className="mt-1 text-lg font-extrabold text-brand-700">{fmt(Number(result.total ?? 0))}</p>
                 {result.paymentMethod === "Cash" && <p className="mt-2 text-sm text-slate-600">Vous paierez en espèces à la livraison.</p>}
                 {result.deliveryOtp && (
-                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
-                    <div className="text-xs text-indigo-700">Votre code de livraison</div>
-                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-indigo-800">{result.deliveryOtp}</div>
-                    <div className="mt-1 text-[11px] text-indigo-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
+                  <div className="mt-3 rounded-xl border border-sun-200 bg-sun-50 p-3">
+                    <div className="text-xs text-brand-700">Votre code de livraison</div>
+                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-brand-800">{result.deliveryOtp}</div>
+                    <div className="mt-1 text-[11px] text-brand-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
                   </div>
                 )}
                 {result.paymentError && (
                   <div className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
                     Le paiement en ligne n&apos;a pas pu démarrer : {result.paymentError}
                     <button disabled={retrying} onClick={async () => { setRetrying(true); setRetryMsg(await payOrder(result.orderId)); setRetrying(false) }}
-                      className="mt-2 block w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white disabled:opacity-60">
+                      className="mt-2 block w-full rounded-lg bg-brand-600 py-2 font-semibold text-white disabled:opacity-60">
                       {retrying ? "Ouverture du paiement…" : "Réessayer le paiement"}
                     </button>
                     {retryMsg && <p className="mt-1 text-red-600">{retryMsg}</p>}
@@ -292,9 +292,9 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 )}
                 {link && (
                   <>
-                    <a href={link} className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
+                    <a href={link} className="mt-3 inline-block rounded-xl bg-brand-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
                     <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
-                      Sécurisé par <img src="/versus-logo.png" alt="Schoolmatik" className="h-6 w-6 object-contain" />
+                      Sécurisé par <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-6 w-6 rounded bg-white object-contain ring-1 ring-black/5" />
                       <span className="font-semibold text-slate-500">Schoolmatik</span>
                     </div>
                   </>

@@ -106,7 +106,7 @@ export default function CategoriesPage() {
         <div className="flex items-center gap-2">
           <span>🎒</span>
           <h1 className="text-lg font-semibold text-gray-700">Catégories — Fournitures Scolaires</h1>
-          {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
+          {loading && <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
           <button onClick={() => exportCSV(categories)} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Exporter CSV"><Download size={16} /></button>
@@ -118,7 +118,7 @@ export default function CategoriesPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         {[
-          { label: "Total catégories", value: stats.total, color: "bg-indigo-500" },
+          { label: "Total catégories", value: stats.total, color: "bg-brand-500" },
           { label: "Catégories parentes", value: stats.parents, color: "bg-green-500" },
           { label: "Sous-catégories", value: stats.children, color: "bg-cyan-500" },
           { label: "Actives", value: stats.active, color: "bg-orange-500" },
@@ -137,10 +137,10 @@ export default function CategoriesPage() {
             placeholder="Rechercher une catégorie..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-64"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 w-64"
           />
           <button onClick={() => setSearch("")} className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"><RefreshCw size={16} /></button>
-          <button onClick={fetchCategories} className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"><Search size={16} /></button>
+          <button onClick={fetchCategories} className="p-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600"><Search size={16} /></button>
         </div>
       </div>
 
@@ -161,13 +161,13 @@ export default function CategoriesPage() {
               <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucune catégorie trouvée</td></tr>
             ) : (
               categories.map((cat, i) => (
-                <tr key={cat.id} className={`hover:bg-gray-50/80 ${!cat.parentCategory ? "bg-indigo-50/30" : ""}`}>
+                <tr key={cat.id} className={`hover:bg-gray-50/80 ${!cat.parentCategory ? "bg-sun-50/30" : ""}`}>
                   <td className="px-4 py-3 text-gray-500">{i + 1}</td>
                   <td className="px-4 py-3">
-                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{cat.segment}</span>
+                    <span className="text-xs bg-sun-100 text-brand-700 px-2 py-0.5 rounded-full font-medium">{cat.segment}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`font-medium ${!cat.parentCategory ? "text-gray-900" : "text-gray-700 pl-3 border-l-2 border-indigo-200"}`}>
+                    <span className={`font-medium ${!cat.parentCategory ? "text-gray-900" : "text-gray-700 pl-3 border-l-2 border-sun-300"}`}>
                       {cat.name}
                     </span>
                   </td>
@@ -201,7 +201,7 @@ export default function CategoriesPage() {
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Nom *</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Catégorie parente</label>
@@ -220,7 +220,7 @@ export default function CategoriesPage() {
             <div className="flex justify-end gap-2 p-4 border-t">
               <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">Annuler</button>
               <button onClick={addCategory} disabled={submitting || !form.name}
-                className="px-4 py-2 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50">
+                className="px-4 py-2 text-sm bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50">
                 {submitting ? "Création..." : "Créer"}
               </button>
             </div>

@@ -28,7 +28,7 @@ export default function WalletPage() {
     <div>
       <div className="mb-4 flex justify-end">
         <button onClick={async () => { await pick(party); setOpen(true) }}
-          className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+          className="flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
           <Plus size={14} /> Créditer / débiter un portefeuille
         </button>
       </div>

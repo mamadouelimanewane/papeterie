@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { Loader2, AlertCircle, Eye, EyeOff, BookOpen, KeyRound } from "lucide-react"
+import { Loader2, AlertCircle, Eye, EyeOff, KeyRound } from "lucide-react"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -20,7 +20,7 @@ function PasswordInput({ value, onChange, autoComplete, placeholder }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
-        className="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        className="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
         placeholder={placeholder ?? "••••••••"}
       />
       <button
@@ -101,20 +101,19 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-sun-400 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg mb-4">
-            <BookOpen size={32} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">SCHOOLMATIK</h1>
-          <p className="text-gray-500 text-sm mt-1">Espace marchand</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/schoolmatik-logo-256.png" alt="Schoolmatik Solutions" className="mx-auto mb-4 h-20 w-20 rounded-2xl bg-white object-contain shadow-md ring-1 ring-black/5" />
+          <h1 className="text-2xl font-extrabold text-brand-700">School<span className="text-slate-900">Matik</span></h1>
+          <p className="text-slate-800 text-sm font-medium mt-1">Espace marchand</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {mode === "checking" && (
             <div className="p-8 text-center">
-              <Loader2 size={40} className="text-indigo-500 animate-spin mx-auto mb-4" />
+              <Loader2 size={40} className="text-brand-500 animate-spin mx-auto mb-4" />
               <p className="text-gray-600 font-medium">Vérification du lien…</p>
             </div>
           )}
@@ -137,8 +136,8 @@ function LoginContent() {
           {mode === "invite" && invite && (
             <form onSubmit={handleActivate} className="p-6 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <KeyRound size={18} className="text-indigo-600" />
+                <div className="w-10 h-10 bg-sun-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <KeyRound size={18} className="text-brand-600" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800">Activer l&apos;accès — {invite.name}</h2>
@@ -160,7 +159,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" />Activation…</> : "Activer et se connecter"}
               </button>
@@ -180,7 +179,7 @@ function LoginContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="username"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
                   placeholder="contact@boutique.sn"
                 />
               </div>
@@ -192,7 +191,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" />Connexion…</> : "Se connecter"}
               </button>
@@ -203,7 +202,7 @@ function LoginContent() {
           )}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">© 2026 Schoolmatik</p>
+        <p className="text-center text-xs font-medium text-slate-800 mt-6">© 2026 Schoolmatik</p>
       </div>
     </div>
   )
@@ -212,8 +211,8 @@ function LoginContent() {
 export default function MerchantLoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center">
-        <Loader2 size={32} className="text-indigo-500 animate-spin" />
+      <div className="min-h-screen bg-sun-400 flex items-center justify-center">
+        <Loader2 size={32} className="text-brand-500 animate-spin" />
       </div>
     }>
       <LoginContent />
