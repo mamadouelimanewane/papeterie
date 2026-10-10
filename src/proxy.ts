@@ -61,6 +61,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname.startsWith("/api/images/")) return true // photos produits (vitrine)
     if (pathname === "/api/shop/config") return true // promos actives ? tarif de livraison
     if (pathname === "/api/shop/order-status") return true // suivi de commande sans donnees personnelles
+    if (pathname === "/api/shop/receipt") return true // recu : jeton signe verifie dans la route
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { fmt } from "./useCart"
 import { useMyOrders, payOrder } from "./useMyOrders"
 
-type Status = { orderId: string; status: string; paymentStatus: string; paymentMethod: string; total: number; createdAt: string; paid: boolean; deliveryCode?: string | null }
+type Status = { orderId: string; status: string; paymentStatus: string; paymentMethod: string; total: number; createdAt: string; paid: boolean; deliveryCode?: string | null; receiptToken?: string | null }
 
 const ORDER_LABEL: Record<string, string> = {
   Pending: "En attente", Accepted: "Acceptée par un livreur", Processing: "En préparation", PickedUp: "Récupérée",
@@ -92,7 +92,7 @@ export default function MyOrders() {
                 ) : (
                   <ul className="divide-y divide-slate-100">
                     {list.map((s) => {
-                      const canPay = !s.paid && s.status !== "Cancelled"
+                      const canPay = !s.paid && s.status !== "Cancelled" && s.status !== "Annule"
                       return (
                         <li key={s.orderId} className="py-3">
                           <div className="flex items-center justify-between gap-2">
@@ -112,6 +112,12 @@ export default function MyOrders() {
                               <span className="font-mono text-base font-extrabold tracking-[0.25em] text-indigo-800">{s.deliveryCode}</span>
                             </div>
                           )}
+                          {s.paid && s.receiptToken && (
+                            <a href={`/checkout/success?orderId=${encodeURIComponent(s.orderId)}&t=${encodeURIComponent(s.receiptToken)}`}
+                              className="mt-2 block w-full rounded-lg border border-indigo-200 py-2 text-center text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+                              Voir le reçu
+                            </a>
+                          )}
                           {canPay && (
                             <button disabled={paying === s.orderId}
                               onClick={async () => { setMsg(null); setPaying(s.orderId); const e = await payOrder(s.orderId); setPaying(null); if (e) setMsg(e) }}
@@ -127,7 +133,7 @@ export default function MyOrders() {
                 <button onClick={lock} className="mt-3 w-full rounded-lg border border-slate-200 py-2 text-sm text-slate-600 hover:bg-slate-50">{"🔒"} Verrouiller</button>
               </>
             )}
-            <p className="mt-3 text-[11px] text-slate-400">La liste se reverrouille à la fermeture de l&apos;application. Paiement à la livraison toujours possible.</p>
+            <p className="mt-3 text-[11px] text-slate-400">La liste se reverrouille à la fermeture de l&apos;application.</p>
           </div>
         </div>,
         document.body,

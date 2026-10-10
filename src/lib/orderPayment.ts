@@ -1,4 +1,5 @@
 import { createVersusPayment } from "@/lib/versus"
+import { receiptToken } from "@/lib/receiptToken"
 
 type OrderForPayment = { id: string; orderId: string; total: number; notes?: string | null }
 
@@ -39,7 +40,8 @@ export async function startOrderPayment(
     amount: order.total,
     currency: "XOF",
     phone_number: customer?.phone || fromNotes.phone || undefined,
-    success_url: `${base}/checkout/success?orderId=${encodeURIComponent(order.orderId)}`,
+    // Le jeton signé donne accès au reçu depuis la page de retour (voir lib/receipt.ts)
+    success_url: `${base}/checkout/success?orderId=${encodeURIComponent(order.orderId)}&t=${receiptToken(order.orderId)}`,
     failure_url: `${base}/checkout/failure?orderId=${encodeURIComponent(order.orderId)}`,
     ...(customer?.serviceId && customer?.accountNumber
       ? { service_id: customer.serviceId, payment_account_number: customer.accountNumber }

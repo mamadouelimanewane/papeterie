@@ -8,14 +8,14 @@ import { fmtDate, fmtMoney } from "@/lib/adminApi"
 
 type Row = { id: string; [k: string]: unknown }
 type Store = { name: string; address?: string | null; phone?: string | null; email?: string | null }
-type Order = { orderId: string; createdAt: string; items: { name: string; price: number; qty: number }[]; subtotal: number; deliveryFee: number; total: number; paymentMethod: string; paymentStatus: string; address?: string | null; notes?: string | null; status: string }
+type Order = { orderId: string; createdAt: string; items: { name: string; price: number; qty?: number; quantity?: number }[]; subtotal: number; deliveryFee: number; total: number; paymentMethod: string; paymentStatus: string; address?: string | null; notes?: string | null; status: string }
 
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!))
 const money = (n: number) => `${Number(n || 0).toLocaleString("fr-FR")} FCFA`
 
 /** HTML autonome de la facture (imprimable / enregistrable en PDF). */
 function invoiceHtml(o: Order, store: Store | null, client: string) {
-  const lines = (o.items ?? []).map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${i.qty ?? 1}</td><td class="r">${money(i.price)}</td><td class="r">${money((i.price || 0) * (i.qty || 1))}</td></tr>`).join("")
+  const lines = (o.items ?? []).map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${i.quantity ?? i.qty ?? 1}</td><td class="r">${money(i.price)}</td><td class="r">${money((i.price || 0) * (i.quantity ?? i.qty ?? 1))}</td></tr>`).join("")
   // total = montant dû, livraison comprise (convention application mobile et boutique web)
   const discount = Math.max(0, (o.subtotal || 0) + (o.deliveryFee || 0) - (o.total || 0))
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Facture ${esc(o.orderId)}</title>
