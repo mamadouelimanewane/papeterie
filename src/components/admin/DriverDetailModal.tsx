@@ -38,7 +38,7 @@ export default function DriverDetailModal({ id, onClose }: { id: string | null; 
         {d && (
           <div className="space-y-5 p-5 text-sm">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-700">{d.name.charAt(0)}</div>
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-sun-100 text-lg font-bold text-brand-700">{d.name.charAt(0)}</div>
               <div className="flex-1">
                 <div className="font-semibold text-gray-800">{d.name} <span className="text-xs text-gray-400">#{d.driverId}</span></div>
                 <div className="text-xs text-gray-500">{d.phone ?? "—"} · {d.email}</div>
@@ -64,7 +64,7 @@ export default function DriverDetailModal({ id, onClose }: { id: string | null; 
                     <li key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2">
                       <span>{doc.label} <span className="text-xs text-gray-400">{doc.expiresAt ? `· expire le ${fmtDate(doc.expiresAt).slice(0, 10)}` : ""}</span></span>
                       <span className="flex items-center gap-2">
-                        {doc.fileUrl && <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 underline">Ouvrir</a>}
+                        {doc.fileUrl && <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-brand-600 underline">Ouvrir</a>}
                         <StatusBadge status={doc.status} />
                       </span>
                     </li>

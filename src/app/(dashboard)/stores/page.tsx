@@ -125,7 +125,7 @@ export default function StoresPage() {
         <div className="flex items-center gap-2">
           <span className="text-gray-400">🏫</span>
           <h1 className="text-lg font-semibold text-gray-700">Boutiques Papeterie</h1>
-          {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
+          {loading && <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditing("new")} title="Ajouter une boutique" className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center">
@@ -137,11 +137,11 @@ export default function StoresPage() {
         </div>
       </div>
 
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+      <div className="bg-sun-50 border border-sun-300 rounded-xl p-4 mb-4 flex items-center gap-3">
         <span className="text-2xl">🎒</span>
         <div>
-          <p className="text-sm font-semibold text-indigo-800">Papeterie — Plateforme multi-boutiques</p>
-          <p className="text-xs text-indigo-600">{stores.length} boutique(s) active(s) — Papeterie & fournitures scolaires au Sénégal.</p>
+          <p className="text-sm font-semibold text-brand-800">Papeterie — Plateforme multi-boutiques</p>
+          <p className="text-xs text-brand-600">{stores.length} boutique(s) active(s) — Papeterie & fournitures scolaires au Sénégal.</p>
         </div>
       </div>
 
@@ -155,12 +155,12 @@ export default function StoresPage() {
                 placeholder={field === "name" ? "Ex: Schoolmatik Librairie" : field === "email" ? "contact@..." : "77..."}
                 value={search[field]}
                 onChange={(e) => setSearch({ ...search, [field]: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 w-full"
               />
             </div>
           ))}
           <div className="flex gap-2">
-            <button onClick={fetchStores} className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"><Search size={16} /></button>
+            <button onClick={fetchStores} className="p-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600"><Search size={16} /></button>
             <button onClick={() => { setSearch({ name: "", email: "", phone: "" }); fetchStores() }} className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"><RefreshCw size={16} /></button>
           </div>
         </div>
@@ -195,7 +195,7 @@ export default function StoresPage() {
                   <td className="px-4 py-3 text-xs font-medium text-teal-600">{store._count.products}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => openUrlModal(store)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white text-xs rounded-lg hover:bg-indigo-600">
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 text-white text-xs rounded-lg hover:bg-brand-600">
                       <KeyRound size={12} /> Accès marchand
                     </button>
                   </td>
@@ -266,8 +266,8 @@ export default function StoresPage() {
                   </p>
                 </div>
               ) : (
-                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                  <p className="text-xs text-indigo-700">
+                <div className="p-3 bg-sun-50 rounded-xl border border-sun-200">
+                  <p className="text-xs text-brand-700">
                     Générez un lien d&apos;invitation sécurisé (usage unique, 72 h) pour que le responsable définisse — ou
                     réinitialise — son mot de passe. Un nouveau lien annule le précédent.
                   </p>
@@ -277,13 +277,13 @@ export default function StoresPage() {
             <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3">
               {invite ? (
                 <button onClick={copyUrl}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium ${copied ? "bg-green-500 text-white" : "bg-indigo-500 hover:bg-indigo-600 text-white"}`}>
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium ${copied ? "bg-green-500 text-white" : "bg-brand-500 hover:bg-brand-600 text-white"}`}>
                   {copied ? <Check size={16} /> : <Copy size={16} />}
                   {copied ? "Copié !" : "Copier le lien"}
                 </button>
               ) : (
                 <button onClick={generateInvite} disabled={busy || !access}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white">
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300 text-white">
                   {busy ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
                   Générer un lien d&apos;invitation
                 </button>

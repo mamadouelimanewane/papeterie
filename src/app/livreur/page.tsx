@@ -13,7 +13,7 @@ const STEP_LABEL: Record<string, string> = { Accepted: "Accepté", PickedUp: "R�
 
 export default function LivreurPage() {
   const [token, setToken] = useState<string | null>(null)
-  const [login, setLogin] = useState("livreur@papeterie.sn")
+  const [login, setLogin] = useState("")
   const [password, setPassword] = useState("")
   const [driver, setDriver] = useState<any>(null)
   const [orders, setOrders] = useState<AvailOrder[]>([])
@@ -93,22 +93,21 @@ export default function LivreurPage() {
 
   if (!token) {
     return (
-      <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
+      <div className="grid min-h-screen place-items-center bg-sun-400 p-6">
         <main className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="mb-4 flex items-center gap-2">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-2xl">🛵</span>
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 text-2xl">🛵</span>
             <div>
-              <h1 className="text-lg font-extrabold text-indigo-700">Espace livreur</h1>
-              <p className="text-xs text-slate-400">Schoolmatik Librairie</p>
+              <h1 className="text-lg font-extrabold text-brand-700">Espace livreur</h1>
+              <p className="text-xs text-slate-500">Schoolmatik Librairie</p>
             </div>
           </div>
           <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="Email / téléphone" className="mb-2 w-full rounded-lg border px-3 py-2.5 text-sm" />
           <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Mot de passe" className="mb-3 w-full rounded-lg border px-3 py-2.5 text-sm" />
-          <button onClick={doLogin} disabled={busy} className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+          <button onClick={doLogin} disabled={busy} className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50">
             {busy ? "…" : "Se connecter"}
           </button>
           {msg && <p className="mt-2 text-sm text-red-600">{msg}</p>}
-          <p className="mt-3 rounded-lg bg-slate-50 p-2 text-center text-xs text-slate-400">Démo : livreur@papeterie.sn / Demo2024!</p>
         </main>
       </div>
     )
@@ -117,7 +116,7 @@ export default function LivreurPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto max-w-2xl p-4">
-        <header className="mb-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-white">
+        <header className="mb-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-brand-600 to-brand-700 p-4 text-white">
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/20 text-2xl">🛵</span>
             <div>
@@ -131,7 +130,7 @@ export default function LivreurPage() {
         <button onClick={loadAvailable} disabled={busy} className="mb-3 w-full rounded-xl bg-emerald-600 py-2.5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50">
           {busy ? "…" : "🔄 Rafraîchir les commandes disponibles"}
         </button>
-        {msg && <p className="mb-3 rounded-lg bg-indigo-50 p-2.5 text-sm text-indigo-700">{msg}</p>}
+        {msg && <p className="mb-3 rounded-lg bg-sun-50 p-2.5 text-sm text-brand-700">{msg}</p>}
 
         <div className="space-y-3">
           {orders.map((o) => (
@@ -144,7 +143,7 @@ export default function LivreurPage() {
               <p className="text-sm">📍 {o.deliveryAddress} · {o.customerName} ({o.customerPhone})</p>
               <p className="text-xs text-slate-400">Total {o.total} F · {o.distance}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={() => accept(o)} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700">Accepter</button>
+                <button onClick={() => accept(o)} className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700">Accepter</button>
                 {STEPS.map((s) => (
                   <button key={s} onClick={() => setStatus(o, s)} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-200">{STEP_LABEL[s] ?? s}</button>
                 ))}

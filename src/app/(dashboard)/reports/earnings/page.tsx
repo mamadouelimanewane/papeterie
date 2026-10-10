@@ -44,14 +44,14 @@ export default function EarningsPage() {
         { key: "deliveryFee", label: "Livraison", render: (r) => n(r.deliveryFee) },
         { key: "total", label: "Total", render: (r) => <span className="font-semibold">{n(r.total)}</span> },
         { key: "payment", label: "Paiement" },
-        { key: "platformEarning", label: "Commission", render: (r) => <span className="font-semibold text-indigo-600">{n(r.platformEarning)}</span> },
+        { key: "platformEarning", label: "Commission", render: (r) => <span className="font-semibold text-brand-600">{n(r.platformEarning)}</span> },
         { key: "storeEarning", label: "Part boutique", render: (r) => <span className="text-green-600">{n(r.storeEarning)}</span> },
         { key: "status", label: "Statut", render: (r) => <StatusBadge status={String(r.status)} /> },
         { key: "date", label: "Date", render: (r) => <span className="whitespace-nowrap text-xs text-gray-500">{fmtDate(r.date)}</span>, csv: (r) => fmtDate(r.date) },
       ]}
       kpis={(rows, d) => [
         { label: "Montant total des commandes", value: fmtMoney(rows.reduce((s, r) => s + Number(r.total), 0)), color: "bg-blue-500" },
-        { label: `Commission plateforme (${d.commissionPct ?? 10} %)`, value: fmtMoney(rows.reduce((s, r) => s + Number(r.platformEarning), 0)), color: "bg-indigo-500" },
+        { label: `Commission plateforme (${d.commissionPct ?? 10} %)`, value: fmtMoney(rows.reduce((s, r) => s + Number(r.platformEarning), 0)), color: "bg-brand-500" },
         { label: "Commandes livrées", value: rows.filter((r) => r.status === "Delivered" || r.status === "Completed").length, color: "bg-green-500" },
       ]}
     />

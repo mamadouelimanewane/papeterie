@@ -1,9 +1,9 @@
 export const COLORS = {
-  primary: "#4A148C",       // Violet Papeterie
-  primaryLight: "#7B1FA2",
-  primaryDark: "#311B92",
-  secondary: "#FFD600",     // Gold accent
-  accent: "#8E24AA",
+  primary: "#C61620",       // Rouge Schoolmatik
+  primaryLight: "#E2565E",
+  primaryDark: "#A3121B",
+  secondary: "#F6E021",     // Jaune Schoolmatik
+  accent: "#288028",        // Vert Schoolmatik
   background: "#F5F5F5",
   white: "#FFFFFF",
   black: "#1A1A1A",

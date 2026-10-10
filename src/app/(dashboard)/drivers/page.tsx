@@ -286,7 +286,7 @@ export default function DriversPage() {
                       <button title="Ajouter de l'argent" onClick={() => openModal("addMoney", d)} className="p-1 bg-cyan-500 text-white rounded hover:bg-cyan-600"><CreditCard size={12} /></button>
                       <button title="Historique portefeuille" onClick={() => openModal("walletHistory", d)} className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600"><FileText size={12} /></button>
                       <button title="Voir documents" onClick={() => openModal("documents", d)} className="p-1 bg-teal-500 text-white rounded hover:bg-teal-600"><FileText size={12} /></button>
-                      <button title="Adresses livrées" onClick={() => openAddresses(d)} className="p-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"><MapPin size={12} /></button>
+                      <button title="Adresses livrées" onClick={() => openAddresses(d)} className="p-1 bg-brand-500 text-white rounded hover:bg-brand-600"><MapPin size={12} /></button>
                       <button title="Détails appareil" onClick={() => openModal("deviceDetails", d)} className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"><Smartphone size={12} /></button>
                       <button title={d.approvalStatus === "Approved" ? "Révoquer approbation" : "Approuver"}
                         onClick={() => updateApproval(d, d.approvalStatus === "Approved" ? "Rejected" : "Approved")}
@@ -503,7 +503,7 @@ export default function DriversPage() {
                 : addresses.length === 0 ? <p className="text-center text-sm text-gray-400">Aucune livraison pour ce livreur.</p>
                 : <ul className="divide-y divide-gray-100">{addresses.map((a) => (
                   <li key={a.address} className="flex items-start justify-between gap-3 py-2 text-sm">
-                    <a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address)}`} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline" data-no-i18n>{a.address}</a>
+                    <a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address)}`} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline" data-no-i18n>{a.address}</a>
                     <span className="shrink-0 text-xs text-gray-400">{a.count} livraison(s) · {fmtDate(a.lastUsed)}</span>
                   </li>
                 ))}</ul>}

@@ -75,7 +75,7 @@ export default function DashboardPage() {
 
   const monEcoleStats = stats
     ? [
-        { label: "Ma boutique", value: fmt(stats.store.totalStores), iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
+        { label: "Ma boutique", value: fmt(stats.store.totalStores), iconBg: "bg-brand-500", icon: <Store size={20} />, href: "/stores" },
         { label: "Catégories actives", value: fmt(stats.store.totalCategories), iconBg: "bg-cyan-500", icon: <FolderOpen size={20} />, href: "/categories" },
         { label: "Total produits", value: fmt(stats.store.totalProducts), iconBg: "bg-teal-500", icon: <Package size={20} />, href: "/stores" },
         { label: "Total commandes", value: fmt(stats.store.totalOrders), iconBg: "bg-orange-500", icon: <ShoppingCart size={20} />, href: "/orders" },
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         { label: "Livres scolaires", value: "—", iconBg: "bg-blue-500", icon: <BookOpen size={20} />, href: "/categories" },
       ]
     : [
-        { label: "Ma boutique", value: "—", iconBg: "bg-indigo-500", icon: <Store size={20} />, href: "/stores" },
+        { label: "Ma boutique", value: "—", iconBg: "bg-brand-500", icon: <Store size={20} />, href: "/stores" },
         { label: "Catégories actives", value: "—", iconBg: "bg-cyan-500", icon: <FolderOpen size={20} />, href: "/categories" },
         { label: "Total produits", value: "—", iconBg: "bg-teal-500", icon: <Package size={20} />, href: "/stores" },
         { label: "Total commandes", value: "—", iconBg: "bg-orange-500", icon: <ShoppingCart size={20} />, href: "/orders" },
@@ -93,18 +93,19 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl p-6 text-white shadow-lg border border-indigo-700/30">
+      <div className="bg-sun-400 rounded-2xl p-6 text-slate-900 shadow-sm ring-1 ring-sun-500/40 shadow-[inset_0_-4px_0_0_var(--color-brand-600)]">
         <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-          <div className="text-4xl filter drop-shadow-md">📚</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/schoolmatik-logo-128.png" alt="" className="h-14 w-14 rounded-xl bg-white object-contain shadow-sm ring-1 ring-black/5" />
           <div>
-            <h1 className="text-xl md:text-2xl font-bold">Bienvenue sur Schoolmatik</h1>
-            <p className="text-indigo-100 text-xs md:text-sm mt-1 max-w-2xl opacity-90">
+            <h1 className="text-xl md:text-2xl font-extrabold text-brand-700">Bienvenue sur Schoolmatik</h1>
+            <p className="text-slate-800 text-xs md:text-sm mt-1 max-w-2xl">
               Boutique active : <strong>Schoolmatik Librairie</strong> · Fournitures &amp; livres scolaires au Sénégal
             </p>
           </div>
           {loading && (
-            <div className="ml-auto flex items-center gap-2 text-indigo-200 text-xs">
-              <div className="w-4 h-4 border-2 border-indigo-300 border-t-white rounded-full animate-spin" />
+            <div className="ml-auto flex items-center gap-2 text-slate-700 text-xs">
+              <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />
               Chargement...
             </div>
           )}
@@ -124,7 +125,7 @@ export default function DashboardPage() {
 
       <section className="animate-in fade-in duration-700">
         <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-100">
-          <h2 className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Analyses de Performance (7 derniers jours)</h2>
+          <h2 className="text-xs font-bold text-brand-600 uppercase tracking-widest">Analyses de Performance (7 derniers jours)</h2>
         </div>
         <DashboardCharts chartData={stats?.chartData} categoryStats={stats?.categoryStats} />
       </section>
@@ -149,7 +150,7 @@ export default function DashboardPage() {
                 { label: "En attente", value: stats.store.pendingOrders, color: "text-yellow-600 bg-yellow-50 border-yellow-100" },
                 { label: "Livrées", value: stats.store.completedOrders, color: "text-green-600 bg-green-50 border-green-100" },
                 { label: "Annulées", value: stats.store.cancelledOrders, color: "text-red-600 bg-red-50 border-red-100" },
-                { label: "Total", value: stats.store.totalOrders, color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+                { label: "Total", value: stats.store.totalOrders, color: "text-brand-600 bg-sun-50 border-sun-200" },
               ].map((s) => (
                 <div key={s.label} className={`rounded-xl border p-3 ${s.color}`}>
                   <p className="text-2xl font-bold">{fmt(s.value)}</p>
@@ -177,7 +178,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-red-600">Pcs: {item.stock}</p>
-                    <button onClick={() => setRestock(item)} className="text-[10px] text-indigo-600 font-bold hover:underline">Approvisionner →</button>
+                    <button onClick={() => setRestock(item)} className="text-[10px] text-brand-600 font-bold hover:underline">Approvisionner →</button>
                   </div>
                 </div>
               ))

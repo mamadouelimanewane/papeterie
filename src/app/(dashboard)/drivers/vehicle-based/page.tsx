@@ -55,7 +55,7 @@ export default function VehicleBasedDriversPage() {
                     <div className="mt-0.5 text-xs text-gray-500">{list.length} livreur(s) · {online} en ligne</div>
                   </div>
                 </div>
-                <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">{list.length} livreurs</span>
+                <span className="rounded-full bg-sun-100 px-3 py-1 text-xs font-semibold text-brand-700">{list.length} livreurs</span>
               </button>
               {open && (
                 <div className="overflow-x-auto border-t border-gray-100">

@@ -25,20 +25,14 @@ export default function Receipt({ r }: { r: ReceiptData }) {
       className="relative w-full overflow-hidden rounded-2xl bg-white text-left text-slate-800 shadow-sm ring-1 ring-slate-200 print:rounded-none print:shadow-none print:ring-0"
     >
       {/* Bandeau de couleur de la marque */}
-      <div className="h-1.5 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600" />
+      <div className="h-2 bg-sun-400 shadow-[inset_0_-2px_0_0_var(--color-brand-600)] print:h-1.5" />
 
       <div className="p-6 sm:p-10 print:p-0 print:pt-6">
         {/* En-tête : vendeur / titre du document */}
         <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between print:flex-row print:items-start print:justify-between">
           <div className="flex items-start gap-3">
-            {s.logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.logo} alt="" className="h-12 w-12 shrink-0 rounded-xl object-contain" />
-            ) : (
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-xl font-black text-white">
-                {s.name.charAt(0)}
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={s.logo ?? "/brand/schoolmatik-logo-256.png"} alt="" className="h-14 w-14 shrink-0 rounded-xl object-contain ring-1 ring-black/5" />
             <div className="text-sm leading-relaxed">
               <p className="text-lg font-extrabold tracking-tight text-slate-900">{s.name}</p>
               {s.legalName && s.legalName !== s.name && <p className="text-slate-600">{s.legalName}</p>}
@@ -48,7 +42,7 @@ export default function Receipt({ r }: { r: ReceiptData }) {
           </div>
 
           <div className="sm:text-right print:text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-600">Reçu de paiement</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">Reçu de paiement</p>
             <p className="mt-1 font-mono text-base font-bold text-slate-900">{r.receiptNo}</p>
             <p className="text-sm text-slate-500">{dateTime(r.paidAt)}</p>
             <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
@@ -106,7 +100,7 @@ export default function Receipt({ r }: { r: ReceiptData }) {
             <div className="flex justify-between"><dt className="text-slate-500">Livraison</dt><dd className="tabular-nums">{r.deliveryFee > 0 ? money(r.deliveryFee, cur) : "Offerte"}</dd></div>
             <div className="mt-2 flex items-baseline justify-between border-t-2 border-slate-900 pt-3">
               <dt className="font-bold text-slate-900">Total payé</dt>
-              <dd className="text-xl font-extrabold tabular-nums text-indigo-700 print:text-slate-900">{money(r.total, cur)}</dd>
+              <dd className="text-xl font-extrabold tabular-nums text-brand-700">{money(r.total, cur)}</dd>
             </div>
           </dl>
         </div>

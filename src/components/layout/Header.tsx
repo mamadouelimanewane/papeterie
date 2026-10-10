@@ -66,25 +66,25 @@ export default function Header() {
   ].filter((i) => i.n > 0) : []
   const user = session?.user as { name?: string | null; email?: string | null; role?: string } | undefined
 
-  const iconBtn = "rounded-full p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+  const iconBtn = "rounded-full p-2 text-slate-800 transition-colors hover:bg-black/5 hover:text-brand-700"
   const panel = "absolute right-0 top-full z-[60] mt-2 rounded-xl bg-white text-gray-700 shadow-xl ring-1 ring-black/5"
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center justify-between gap-2 bg-[#1A237E] px-3 shadow-md sm:px-4">
+    <header className="sticky top-0 z-50 flex h-14 items-center justify-between gap-2 bg-sun-400 px-3 shadow-[inset_0_-3px_0_0_var(--color-brand-600)] sm:px-4">
       {/* Gauche */}
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-        <button onClick={toggle} aria-label="Menu" className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white md:hidden">
+        <button onClick={toggle} aria-label="Menu" className="rounded-lg p-1.5 text-slate-800 transition-colors hover:bg-black/5 hover:text-brand-700 md:hidden">
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow"><span className="text-sm font-bold text-indigo-900">S</span></div>
+          <img src="/brand/schoolmatik-logo-128.png" alt="" className="h-9 w-9 rounded-lg bg-white object-contain shadow-sm ring-1 ring-black/5" />
           {/* Nom masqué sur très petit écran (sinon l'en-tête déborde et la page défile en largeur) */}
-          <span className="hidden text-base font-bold tracking-wide text-white min-[400px]:inline md:text-lg" data-no-i18n>SCHOOLMATIK</span>
-          <span className="ml-1 hidden rounded bg-yellow-400 px-1.5 py-0.5 text-[10px] font-black uppercase text-indigo-900 lg:inline-block">Admin</span>
+          <span className="hidden text-base font-extrabold tracking-tight text-slate-900 min-[400px]:inline md:text-lg" data-no-i18n>School<span className="text-brand-600">Matik</span></span>
+          <span className="ml-1 hidden rounded bg-brand-600 px-1.5 py-0.5 text-[10px] font-black uppercase text-white lg:inline-block">Admin</span>
         </Link>
-        <div className="ml-4 hidden items-center gap-1 border-l border-white/20 pl-4 md:flex">
-          <button onClick={() => router.back()} title="Page précédente" className="rounded p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"><ArrowLeft size={18} /></button>
-          <button onClick={toggleFullscreen} title={fullscreen ? "Quitter le plein écran" : "Plein écran"} className="rounded p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white">
+        <div className="ml-4 hidden items-center gap-1 border-l border-black/10 pl-4 md:flex">
+          <button onClick={() => router.back()} title="Page précédente" className="rounded p-1.5 text-slate-800 transition-colors hover:bg-black/5 hover:text-brand-700"><ArrowLeft size={18} /></button>
+          <button onClick={toggleFullscreen} title={fullscreen ? "Quitter le plein écran" : "Plein écran"} className="rounded p-1.5 text-slate-800 transition-colors hover:bg-black/5 hover:text-brand-700">
             {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
@@ -96,7 +96,7 @@ export default function Header() {
         <div className="relative" ref={bellRef}>
           <button onClick={() => { setBellOpen(!bellOpen); if (!bellOpen) loadAlerts() }} title="Alertes" aria-label="Alertes" className={`${iconBtn} relative`}>
             <Bell size={18} />
-            {total > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full border border-[#1A237E] bg-red-500 px-1 text-[10px] font-bold text-white">{total > 99 ? "99+" : total}</span>}
+            {total > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full border border-sun-400 bg-brand-600 px-1 text-[10px] font-bold text-white">{total > 99 ? "99+" : total}</span>}
           </button>
           {bellOpen && (
             <div className={`${panel} w-80`}>
@@ -115,7 +115,7 @@ export default function Header() {
                   <p className="px-4 pb-1 pt-2 text-[11px] font-semibold uppercase text-gray-400">Dernières commandes en attente</p>
                   {alerts.latest.map((o) => (
                     <Link key={o.id} href="/orders" onClick={() => setBellOpen(false)} className="flex justify-between px-4 py-1.5 text-xs hover:bg-gray-50">
-                      <span className="font-mono text-indigo-600">#{o.orderId}</span>
+                      <span className="font-mono text-brand-600">#{o.orderId}</span>
                       <span>{o.total.toLocaleString("fr-FR")} FCFA</span>
                     </Link>
                   ))}
@@ -127,14 +127,14 @@ export default function Header() {
 
         {/* Langue */}
         <div className="relative" ref={langRef}>
-          <button onClick={() => setLangOpen(!langOpen)} aria-label="Langue" className="flex items-center gap-1 rounded px-2 py-1 text-sm text-white/90 transition-colors hover:bg-white/10 hover:text-white">
+          <button onClick={() => setLangOpen(!langOpen)} aria-label="Langue" className="flex items-center gap-1 rounded px-2 py-1 text-sm text-slate-900 transition-colors hover:bg-black/5 hover:text-brand-700">
             <Globe size={14} /><span className="hidden sm:inline" data-no-i18n>{lang === "en" ? "English" : "Français"}</span><span className="sm:hidden" data-no-i18n>{lang.toUpperCase()}</span><ChevronDown size={12} />
           </button>
           {langOpen && (
             <div className={`${panel} w-40 py-1`} data-no-i18n>
               {([["fr", "🇫🇷 Français"], ["en", "🇬🇧 English"]] as [Lang, string][]).map(([l, label]) => (
                 <button key={l} onClick={() => { setLang(l); setLangOpen(false) }} className="flex w-full items-center justify-between px-4 py-2 text-left text-sm hover:bg-gray-50">
-                  {label}{lang === l && <Check size={14} className="text-indigo-600" />}
+                  {label}{lang === l && <Check size={14} className="text-brand-600" />}
                 </button>
               ))}
             </div>
@@ -144,7 +144,7 @@ export default function Header() {
         {/* Profil */}
         <div className="relative" ref={userRef}>
           <button onClick={() => setUserOpen(!userOpen)} aria-label="Mon compte" title={user?.name ?? "Mon compte"}
-            className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/20 bg-green-500 text-xs font-bold text-white shadow-lg">
+            className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-leaf-600 text-xs font-bold text-white shadow-lg">
             <span data-no-i18n>{initials(user?.name)}</span>
           </button>
           {userOpen && (
@@ -152,7 +152,7 @@ export default function Header() {
               <div className="border-b border-gray-100 px-4 py-3">
                 <p className="truncate text-sm font-semibold" data-no-i18n>{user?.name ?? "—"}</p>
                 <p className="truncate text-xs text-gray-400" data-no-i18n>{user?.email ?? ""}</p>
-                {user?.role && <span className="mt-1 inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">{user.role}</span>}
+                {user?.role && <span className="mt-1 inline-block rounded bg-sun-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">{user.role}</span>}
               </div>
               <Link href="/settings/profile" onClick={() => setUserOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50"><User size={15} /> Mon profil</Link>
               <button onClick={() => signOut({ callbackUrl: "/login" })} className="flex w-full items-center gap-2 border-t border-gray-100 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"><LogOut size={15} /> Déconnexion</button>

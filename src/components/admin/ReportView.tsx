@@ -74,7 +74,7 @@ export default function ReportView({ title, icon, kind, params, columns, kpis, c
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {kpis(rows, data).map((k) => (
             <div key={k.label} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className={`mb-3 h-8 w-2 rounded-full ${k.color ?? "bg-indigo-500"}`} />
+              <div className={`mb-3 h-8 w-2 rounded-full ${k.color ?? "bg-brand-500"}`} />
               <p className="text-xs text-gray-500">{k.label}</p>
               <p className="mt-1 text-xl font-bold text-gray-800">{k.value}</p>
             </div>
@@ -91,7 +91,7 @@ export default function ReportView({ title, icon, kind, params, columns, kpis, c
               <XAxis dataKey="label" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip formatter={(v) => [`${Number(v).toLocaleString("fr-FR")} FCFA`, "Montant"]} />
-              <Bar dataKey="earning" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="earning" fill="#C61620" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -100,13 +100,13 @@ export default function ReportView({ title, icon, kind, params, columns, kpis, c
       <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
           <div><label className="mb-1 block text-xs text-gray-500">Du</label>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" /></div>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" /></div>
           <div><label className="mb-1 block text-xs text-gray-500">Au</label>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" /></div>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" /></div>
           {extraFilters?.(data?.rows ?? [], (f) => setExtra(() => f))}
           <div className="relative"><label className="mb-1 block text-xs text-gray-500">Recherche</label>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} className="w-56 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" /></div>
-          <button onClick={() => setApplied({ from, to })} className="flex items-center gap-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"><Search size={14} /> Filtrer</button>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} className="w-56 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" /></div>
+          <button onClick={() => setApplied({ from, to })} className="flex items-center gap-1 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700"><Search size={14} /> Filtrer</button>
           <button onClick={reset} title="Réinitialiser" className="rounded-lg bg-gray-100 p-2.5 text-gray-600 hover:bg-gray-200"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></button>
         </div>
       </div>

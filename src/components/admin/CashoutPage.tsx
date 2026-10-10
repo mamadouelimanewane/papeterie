@@ -57,7 +57,7 @@ export default function CashoutPage({ party }: { party: "driver" | "store" }) {
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[["Pending", "En attente", "bg-yellow-500"], ["Completed", "Approuvées", "bg-green-500"], ["Rejected", "Rejetées", "bg-red-500"]].map(([k, l, c]) => (
           <button key={k} onClick={() => setTab(tab === k ? "all" : k)}
-            className={`flex items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition ${tab === k ? "border-indigo-300 ring-2 ring-indigo-100" : "border-gray-100"}`}>
+            className={`flex items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition ${tab === k ? "border-brand-300 ring-2 ring-sun-200" : "border-gray-100"}`}>
             <div className={`h-10 w-3 rounded-full ${c}`} />
             <div><p className="text-xs text-gray-500">{l}</p><p className="text-2xl font-bold text-gray-800">{count(k)}</p></div>
           </button>

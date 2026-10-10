@@ -63,7 +63,7 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
       <div className="rounded-lg bg-gray-50 p-3">
         <div className="text-xs font-semibold uppercase text-gray-400">Client</div>
         <div className="font-medium text-gray-800" data-no-i18n>{client || "—"}</div>
-        {phone && <a href={`tel:${phone.replace(/\s/g, "")}`} className="text-indigo-600 underline" data-no-i18n>{phone}</a>}
+        {phone && <a href={`tel:${phone.replace(/\s/g, "")}`} className="text-brand-600 underline" data-no-i18n>{phone}</a>}
         {!!d.items?.length && (
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600" data-no-i18n>
             {d.items.map((i, k) => <li key={k}>{i.qty ?? 1} × {i.name}</li>)}
@@ -98,7 +98,7 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
         </div>
         <ol className="mb-3 flex gap-1">
           {STEPS.map((s, i) => (
-            <li key={s.status} className={`flex-1 rounded px-1 py-1 text-center text-[11px] font-medium ${d.status === "Cancelled" ? "bg-gray-100 text-gray-400" : i <= stepIdx ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"}`}>{s.label}</li>
+            <li key={s.status} className={`flex-1 rounded px-1 py-1 text-center text-[11px] font-medium ${d.status === "Cancelled" ? "bg-gray-100 text-gray-400" : i <= stepIdx ? "bg-brand-600 text-white" : "bg-gray-100 text-gray-500"}`}>{s.label}</li>
           ))}
         </ol>
         <div className="flex flex-wrap gap-2">
@@ -106,7 +106,7 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
             <button disabled={busy} onClick={async () => {
               if (next.status === "Delivered" && !(await confirm({ title: "Marquer la commande comme livrée ?", message: paid ? undefined : "Pensez à enregistrer l'encaissement si le client a payé en espèces.", confirmLabel: "Livrée" }))) return
               patch({ status: next.status }, `Commande : ${next.label.toLowerCase()}`)
-            }} className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
+            }} className="flex-1 rounded-lg bg-brand-600 px-3 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
               → {next.label}
             </button>
           )}

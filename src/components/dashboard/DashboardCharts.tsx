@@ -33,7 +33,7 @@ const fallbackChartData: ChartDataPoint[] = [
 ]
 
 const fallbackCategories: CategoryStat[] = [
-  { name: "Livres", value: 0, color: "#4F46E5" },
+  { name: "Livres", value: 0, color: "#C61620" },
   { name: "Cahiers", value: 0, color: "#06B6D4" },
   { name: "Art", value: 0, color: "#10B981" },
   { name: "Calcul", value: 0, color: "#F59E0B" },
@@ -63,7 +63,7 @@ export default function DashboardCharts({ chartData, categoryStats }: Props) {
                   name === "commandes" ? "Commandes" : "Revenus",
                 ]}
               />
-              <Line yAxisId="left" type="monotone" dataKey="commandes" stroke="#4F46E5" strokeWidth={3} dot={{ r: 4, fill: "#4F46E5" }} activeDot={{ r: 6 }} />
+              <Line yAxisId="left" type="monotone" dataKey="commandes" stroke="#C61620" strokeWidth={3} dot={{ r: 4, fill: "#C61620" }} activeDot={{ r: 6 }} />
               <Line yAxisId="right" type="monotone" dataKey="revenus" stroke="#F59E0B" strokeWidth={2} strokeDasharray="5 5" dot={false} />
             </LineChart>
           </ResponsiveContainer>

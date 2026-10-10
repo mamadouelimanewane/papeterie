@@ -23,7 +23,7 @@ const optValue = (o: FieldOption) => (typeof o === "string" ? o : o.value)
 const optLabel = (o: FieldOption) => (typeof o === "string" ? o : o.label)
 export const STATUS_OPTIONS: FieldOption[] = [{ value: "Active", label: "Actif" }, { value: "Inactive", label: "Inactif" }]
 
-const input = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+const input = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-300"
 
 /** Champ de formulaire unique (réutilisé par FormModal et les pages de configuration). */
 export function FieldInput({ field: f, value, onChange }: { field: Field; value: unknown; onChange: (v: unknown) => void }) {
@@ -42,7 +42,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
     case "checkbox":
       return (
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="h-4 w-4 accent-indigo-600" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />
+          <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />
           {f.placeholder ?? "Activé"}
         </label>
       )
@@ -54,7 +54,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
             const on = sel.includes(i)
             return (
               <button type="button" key={d} onClick={() => onChange(on ? sel.filter((x) => x !== i) : [...sel, i].sort())}
-                className={`rounded-md px-2.5 py-1 text-xs font-semibold ${on ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{d}</button>
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold ${on ? "bg-brand-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{d}</button>
             )
           })}
         </div>
@@ -142,7 +142,7 @@ export default function FormModal({ open, title, fields, initial, submitLabel = 
         </div>
         <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-3">
           <button type="button" onClick={onClose} className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
-          <button type="submit" disabled={busy} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+          <button type="submit" disabled={busy} className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
             {busy ? "Enregistrement…" : submitLabel}
           </button>
         </div>

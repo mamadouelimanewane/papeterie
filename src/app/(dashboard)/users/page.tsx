@@ -149,7 +149,7 @@ export default function UsersPage() {
         <div className="flex items-center gap-2">
           <span>👥</span>
           <h1 className="text-lg font-semibold text-gray-700">Gestion des utilisateurs</h1>
-          {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
+          {loading && <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditing("new")} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Ajouter"><Plus size={16} /></button>
@@ -413,7 +413,7 @@ export default function UsersPage() {
             </div>
             <div className="p-4 space-y-3 text-sm">
               <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-700">{viewUser.name.charAt(0)}</div>
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-sun-100 text-lg font-bold text-brand-700">{viewUser.name.charAt(0)}</div>
                 <div><div className="font-semibold text-gray-800" data-no-i18n>{viewUser.name}</div><div className="text-xs text-gray-400">#{viewUser.userId}</div></div>
                 <span className="ml-auto"><StatusBadge status={viewUser.status} /></span>
               </div>
@@ -439,7 +439,7 @@ export default function UsersPage() {
                 : addresses.length === 0 ? <p className="text-center text-sm text-gray-400">Aucune adresse : ce client n&apos;a pas encore été livré.</p>
                 : <ul className="divide-y divide-gray-100">{addresses.map((a) => (
                   <li key={a.address} className="flex items-start justify-between gap-3 py-2 text-sm">
-                    <a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address)}`} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline" data-no-i18n>{a.address}</a>
+                    <a href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address)}`} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline" data-no-i18n>{a.address}</a>
                     <span className="shrink-0 text-xs text-gray-400">{a.count} commande(s) · {fmtDate(a.lastUsed)}</span>
                   </li>
                 ))}</ul>}

@@ -36,10 +36,10 @@ export default function MerchantDashboard() {
   }, [])
 
   if (error) return <p className="text-sm text-red-600">{error}</p>
-  if (!stats) return <div className="flex justify-center py-20"><Loader2 size={28} className="text-indigo-500 animate-spin" /></div>
+  if (!stats) return <div className="flex justify-center py-20"><Loader2 size={28} className="text-brand-500 animate-spin" /></div>
 
   const cards = [
-    { label: "Commandes du jour", value: String(stats.todayOrders), icon: ShoppingBag, color: "bg-indigo-500" },
+    { label: "Commandes du jour", value: String(stats.todayOrders), icon: ShoppingBag, color: "bg-brand-500" },
     { label: "Ventes du jour", value: fmtFcfa(stats.todayRevenue), icon: TrendingUp, color: "bg-green-500" },
     { label: "Note moyenne", value: `${stats.rating.toFixed(1)} / 5`, icon: Star, color: "bg-amber-500" },
     { label: "Solde portefeuille", value: fmtFcfa(stats.walletMoney), icon: Wallet, color: "bg-purple-500" },
@@ -84,7 +84,7 @@ export default function MerchantDashboard() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">Commandes récentes</h2>
-            <Link href="/merchant/orders" className="text-xs text-indigo-600 hover:underline">Tout voir</Link>
+            <Link href="/merchant/orders" className="text-xs text-brand-600 hover:underline">Tout voir</Link>
           </div>
           {stats.recent.length === 0 ? (
             <p className="p-6 text-center text-sm text-gray-400">Aucune commande pour le moment</p>
@@ -119,7 +119,7 @@ export default function MerchantDashboard() {
               <div className="divide-y divide-gray-50">
                 {stats.topProducts.map((p, i) => (
                   <div key={p.name} className="px-5 py-3 flex items-center gap-3">
-                    <span className="w-6 h-6 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                    <span className="w-6 h-6 bg-sun-50 text-brand-600 rounded-full text-xs font-bold flex items-center justify-center">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-gray-800 truncate">{p.name}</div>
                       <div className="text-xs text-gray-400">{p.quantity} vendu(s)</div>

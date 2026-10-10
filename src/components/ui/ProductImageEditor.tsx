@@ -103,18 +103,18 @@ export default function ProductImageEditor({ src, uploadUrl, onChanged, onPick, 
           onDragOver={(e) => { e.preventDefault(); if (!disabled) setDrag(true) }}
           onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); if (!disabled && !busy) handleFile(e.dataTransfer.files?.[0]) }}
-          className={`relative flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed ${drag ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-gray-50"}`}
+          className={`relative flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed ${drag ? "border-brand-500 bg-sun-50" : "border-gray-200 bg-gray-50"}`}
         >
           {shown
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={shown} alt="Photo du produit" className="h-full w-full object-cover" />
             : <Package size={28} className="text-gray-300" />}
-          {busy && <div className="absolute inset-0 flex items-center justify-center bg-white/70"><Loader2 size={22} className="animate-spin text-indigo-600" /></div>}
+          {busy && <div className="absolute inset-0 flex items-center justify-center bg-white/70"><Loader2 size={22} className="animate-spin text-brand-600" /></div>}
         </div>
         <div className="space-y-2">
           <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
           <button type="button" disabled={disabled || busy} onClick={() => input.current?.click()}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-indigo-300">
+            className="flex items-center gap-2 rounded-xl bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-brand-300">
             <ImagePlus size={15} /> {shown ? "Changer la photo" : "Ajouter une photo"}
           </button>
           {shown && (

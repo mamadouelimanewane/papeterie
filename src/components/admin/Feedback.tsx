@@ -55,7 +55,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
             <div className="mt-6 flex justify-end gap-2">
               <button onClick={() => close(false)} className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
               <button onClick={() => close(true)} autoFocus
-                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${dialog.danger ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"}`}>
+                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${dialog.danger ? "bg-red-600 hover:bg-red-700" : "bg-brand-600 hover:bg-brand-700"}`}>
                 {dialog.confirmLabel ?? "Confirmer"}
               </button>
             </div>
