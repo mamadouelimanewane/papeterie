@@ -120,7 +120,7 @@ export default function KitsPage() {
                       <div className="mt-auto flex items-end justify-between pt-2">
                         <div className="leading-tight">
                           {(k.discountPct ?? 0) > 0 && <div className="text-[11px] text-slate-400 line-through">{fmt(k.price)}</div>}
-                          <div className="font-extrabold text-brand-700">{fmt(packPrice(k))}</div>
+                          <div className="font-extrabold text-price">{fmt(packPrice(k))}</div>
                         </div>
                         <span className="rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition group-hover:bg-brand-700">Personnaliser</span>
                       </div>
@@ -175,7 +175,7 @@ export default function KitsPage() {
                 )}
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-600">Total du kit</span>
-                  <span className="text-xl font-extrabold text-brand-700">{fmt(kitTotal)}</span>
+                  <span className="text-xl font-extrabold text-price">{fmt(kitTotal)}</span>
                 </div>
               </div>
               <button onClick={addKitConfigured} disabled={chosenCount === 0} className="mt-3 w-full rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">

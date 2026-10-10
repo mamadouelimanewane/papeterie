@@ -104,7 +104,7 @@ export default function CheckoutResult({ mode }: { mode: "success" | "failure" }
             <div className="mt-6 text-5xl">{icon}</div>
             <h1 className="mt-3 text-xl font-extrabold">{title}</h1>
             <p className="mt-2 text-sm text-slate-500">Commande N° <span className="font-mono">{s.orderId}</span></p>
-            <p className="mt-1 text-2xl font-extrabold text-brand-700">{fmt(s.total)}</p>
+            <p className="mt-1 text-2xl font-extrabold text-price">{fmt(s.total)}</p>
             {paid && <p className="mt-3 text-sm text-slate-600">Votre commande est confirmée et sera préparée puis livrée. Vous serez contacté par le livreur.</p>}
             {waiting && <p className="mt-3 text-sm text-slate-500">Nous attendons la confirmation de l&apos;opérateur (Wave, Orange Money…). Cette page se met à jour automatiquement.</p>}
             {!paid && !waiting && (

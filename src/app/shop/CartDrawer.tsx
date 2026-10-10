@@ -177,7 +177,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 {x.components && x.components.length > 0 && (
                   <div className="line-clamp-2 text-[11px] text-slate-400">{x.components.map((k) => (k.qty > 1 ? `${k.qty}x ` : "") + k.name).join(", ")}</div>
                 )}
-                <div className="text-xs text-brand-700">{fmt(x.price)}</div>
+                <div className="text-xs text-price">{fmt(x.price)}</div>
                 <div className="mt-1 flex items-center justify-between">
                   <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
                     <button onClick={() => dec(x.id)} className="text-slate-500 px-1">-</button>
@@ -247,7 +247,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total {unselectedIds.length > 0 && "(sélection)"}</span><span>{fmt(selectedTotal)}</span></div>
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison{quote?.distanceKm != null ? ` (${String(quote.distanceKm).replace(".", ",")} km)` : ""}</span><span>{deliveryFee === null ? "—" : deliveryFee === 0 ? "Offerte" : fmt(deliveryFee)}</span></div>
-            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-brand-700">{fmt(grandTotal)}</span></div>
+            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-price">{fmt(grandTotal)}</span></div>
             <div className="flex gap-2">
               <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 + Ajouter d'autres articles
@@ -270,7 +270,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <div className="text-4xl">{"✅"}</div>
                 <p className="mt-2 font-bold text-emerald-700">Commande confirmée !</p>
                 <p className="text-sm text-slate-500">N° {result.orderId}</p>
-                <p className="mt-1 text-lg font-extrabold text-brand-700">{fmt(Number(result.total ?? 0))}</p>
+                <p className="mt-1 text-lg font-extrabold text-price">{fmt(Number(result.total ?? 0))}</p>
                 {result.paymentMethod === "Cash" && <p className="mt-2 text-sm text-slate-600">Vous paierez en espèces à la livraison.</p>}
                 {result.deliveryOtp && (
                   <div className="mt-3 rounded-xl border border-sun-200 bg-sun-50 p-3">

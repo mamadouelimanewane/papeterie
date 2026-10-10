@@ -42,6 +42,9 @@
   --color-brand-800: #821017;
   --color-brand-900: #5e0c11;
 
+  /* Prix : on garde l'ancien violet de l'application (indigo-700), demandé pour tous les montants */
+  --color-price: #4338ca;
+
   --color-leaf-50: #effaef;
   --color-leaf-100: #d6f1d6;
   --color-leaf-500: #349a34;

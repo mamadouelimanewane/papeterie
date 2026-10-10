@@ -208,7 +208,7 @@ export default function ShopPage() {
               <div className="flex flex-1 flex-col p-3">
                 <div className="line-clamp-2 text-sm font-medium leading-tight">{p.name}</div>
                 <div className="mt-auto flex items-center justify-between pt-2">
-                  <span className="font-extrabold text-brand-700">{fmt(p.price)}</span>
+                  <span className="font-extrabold text-price">{fmt(p.price)}</span>
                   <button onClick={(e) => { e.stopPropagation(); addProduct(p) }} className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700" aria-label="Ajouter">+</button>
                 </div>
               </div>
@@ -257,7 +257,7 @@ export default function ShopPage() {
               <h3 className="text-lg font-bold leading-tight">{detail.name}</h3>
               {detail.description && <p className="mt-1 text-sm text-slate-500">{detail.description}</p>}
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-2xl font-extrabold text-brand-700">{fmt(detail.price)}</span>
+                <span className="text-2xl font-extrabold text-price">{fmt(detail.price)}</span>
                 {typeof detail.stock === "number" && (detail.stock > 0
                   ? <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">En stock ({detail.stock})</span>
                   : <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">Rupture de stock</span>)}
