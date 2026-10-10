@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { verify } from "jsonwebtoken"
+import { randomInt } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
 import { assertSessionActive } from "@/lib/mobileSession"
 import { creditDriverForDelivery, DELIVERED } from "@/lib/delivery"
 import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
+import { errorResponse } from "@/lib/adminAuth"
 
 /**
  * Qui appelle ? Session back-office (cookie NextAuth) ou application mobile (Bearer JWT vérifié).
@@ -69,8 +71,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         return NextResponse.json({ ...order, pickupOtp: undefined, deliveryOtp: undefined })
     }
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/orders/[id]]")
   }
 }
 
@@ -101,14 +102,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Vérification des codes (ramassage à la boutique, remise au client)
     if (data.status === "Processing" && caller.kind === "driver") {
-      if (tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
+      if (await tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
       if (!data.otp) return NextResponse.json({ error: "OTP de ramassage requis" }, { status: 400 })
-      if (data.otp !== order.pickupOtp) { recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de ramassage incorrect" }, { status: 400 }) }
+      if (data.otp !== order.pickupOtp) { await recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de ramassage incorrect" }, { status: 400 }) }
     }
     if (data.status === "Delivered" && caller.kind === "driver") {
-      if (tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
+      if (await tooManyFailures(`otp:${order.id}`, 5, 15 * 60_000)) return NextResponse.json({ error: "Trop de codes erronés : réessayez dans 15 minutes" }, { status: 429 })
       if (!data.otp) return NextResponse.json({ error: "OTP de livraison requis" }, { status: 400 })
-      if (data.otp !== order.deliveryOtp) { recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de livraison incorrect" }, { status: 400 }) }
+      if (data.otp !== order.deliveryOtp) { await recordFailure(`otp:${order.id}`, 15 * 60_000); return NextResponse.json({ error: "OTP de livraison incorrect" }, { status: 400 }) }
       if (!data.signature) return NextResponse.json({ error: "Signature client requise" }, { status: 400 })
     }
 
@@ -119,7 +120,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     // Livreur attribué depuis le back-office : il lui faut aussi un code de ramassage (sinon il resterait bloqué à la boutique)
     if (caller.kind === "admin" && update.driverId && !order.pickupOtp) {
-      update.pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
+      update.pickupOtp = randomInt(100000, 1000000).toString()
     }
 
     const updated = await prisma.order.update({
@@ -146,8 +147,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json(caller.kind === "driver" ? { ...updated, pickupOtp: undefined, deliveryOtp: undefined } : updated)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/orders/[id]]")
   }
 }
 
@@ -160,7 +160,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await prisma.order.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/orders/[id]]")
   }
 }

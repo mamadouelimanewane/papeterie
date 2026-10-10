@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendPushNotification } from "@/lib/onesignal"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { title, message, segments, playerIds, externalIds, imageUrl, notificationId } = await req.json()
 
@@ -56,7 +59,6 @@ export async function POST(req: NextRequest) {
       onesignalConfigured: !!(appId && restApiKey),
     })
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erreur inconnue"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(err, "Erreur serveur", "[api/notifications/send]")
   }
 }

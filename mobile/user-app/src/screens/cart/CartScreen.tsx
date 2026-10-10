@@ -7,12 +7,9 @@ import { useStore } from "../../store/useStore"
 import { Ionicons } from "@expo/vector-icons"
 import { ordersAPI } from "../../services/api"
 
+// Paiement en ligne uniquement : le serveur refuse le paiement a la livraison et le portefeuille.
 const PAYMENT_OPTIONS = [
-  { id: "Cash", label: "Especes", subtitle: "Payer a la livraison", icon: "cash", color: "#27AE60" },
-  { id: "Wallet", label: "Portefeuille", subtitle: "Paiement instantane", icon: "wallet", color: "#8B5CF6" },
-  { id: "Versus", label: "Paiement Mobile (Versus)", subtitle: "Wave, Orange Money...", icon: "phone-portrait", color: "#1B74E4" },
-  // { id: "Wave", label: "Wave", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#1B74E4" },
-  // { id: "Orange", label: "Orange Money", subtitle: "Paiement mobile", icon: "phone-portrait", color: "#FF6600" },
+  { id: "Versus", label: "Paiement Mobile", subtitle: "Wave, Orange Money...", icon: "phone-portrait", color: "#1B74E4" },
 ]
 
 export default function CartScreen({ navigation }: any) {
@@ -25,7 +22,7 @@ export default function CartScreen({ navigation }: any) {
   const isGroupOrder = useStore((s) => s.isGroupOrder)
   const setGroupOrder = useStore((s) => s.setGroupOrder)
 
-  const [paymentMethod, setPaymentMethod] = useState("Cash")
+  const [paymentMethod, setPaymentMethod] = useState("Versus")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -38,18 +35,6 @@ export default function CartScreen({ navigation }: any) {
   const handleCheckout = async () => {
     if (cart.length === 0) return
 
-    // Verifier solde wallet si paiement par wallet
-    if (paymentMethod === "Wallet") {
-      const walletBalance = (user as any)?.walletMoney ?? (user as any)?.walletBalance ?? 0
-      if (walletBalance < cartTotal + deliveryFee) {
-        Alert.alert("Solde insuffisant", `Votre solde est de ${walletBalance.toLocaleString()} FCFA. Rechargez votre portefeuille.`, [
-          { text: "Recharger", onPress: () => navigation.navigate("Wallet") },
-          { text: "Annuler", style: "cancel" },
-        ])
-        return
-      }
-    }
-
     setIsLoading(true)
     try {
       const orderData = {
@@ -58,30 +43,32 @@ export default function CartScreen({ navigation }: any) {
         subtotal: cartTotal,
         deliveryFee,
         paymentMethod,
-        paymentStatus: paymentMethod === "Cash" ? "En attente" : "Paye",
         items: cart.map(i => ({ productId: i.id, name: i.name, price: i.price, quantity: i.quantity })),
         address: "Dakar, " + ((user as any)?.address || "Adresse du profil"),
       }
 
       const res = await ordersAPI.create(orderData)
 
-      if (res.data.paymentData?.success && res.data.paymentData.data?.link) {
-        try {
-          await Linking.openURL(res.data.paymentData.data.link)
-        } catch (e) {
-          console.error("Impossible d'ouvrir le lien de paiement", e)
-        }
-      } else if (res.data.paymentData?.success && res.data.paymentData.data?.payment_links) {
-         // Si c'est dans payment_links
-         const links = Object.values(res.data.paymentData.data.payment_links);
-         if (links.length > 0) {
-            await Linking.openURL(links[0] as string);
-         }
+      // Lien de paiement (la forme de la reponse varie selon l'API : data.link ou data.data.link)
+      const pd = res.data.paymentData
+      const link: string | undefined = pd?.data?.data?.link ?? pd?.data?.link
+        ?? (pd?.data?.payment_links ? (Object.values(pd.data.payment_links)[0] as string) : undefined)
+      if (!link) {
+        Alert.alert(
+          "Paiement indisponible",
+          res.data.paymentError || "Le paiement en ligne n'a pas pu demarrer. Reessayez dans quelques instants.",
+        )
+        return
+      }
+      try {
+        await Linking.openURL(link)
+      } catch (e) {
+        console.error("Impossible d'ouvrir le lien de paiement", e)
       }
 
       Alert.alert(
-        "Commande confirmee !",
-        `Commande ${res.data.orderId}\nTotal : ${(cartTotal + deliveryFee).toLocaleString()} FCFA\nPaiement : ${selectedPayment.label}\n\nVotre livreur va bientot accepter la commande.`,
+        "Commande enregistree",
+        `Commande ${res.data.orderId}\nTotal : ${Number(res.data.total ?? cartTotal + deliveryFee).toLocaleString()} FCFA\n\nFinalisez le paiement sur la page qui vient de s'ouvrir. La commande est preparee des reception du paiement.`,
         [{ text: "Voir mes commandes", onPress: () => { clearCart(); navigation.navigate("Orders") } }]
       )
     } catch (error: any) {
