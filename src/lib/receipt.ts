@@ -88,8 +88,6 @@ export type ReceiptData = {
   customer: { name: string | null; phone: string | null; address: string | null }
   lines: ReceiptLine[]
   subtotal: number
-  discount: number
-  promoCode: string | null
   deliveryFee: number
   total: number
   totalInWords: string
@@ -159,11 +157,11 @@ export async function buildReceipt(orderId: string): Promise<ReceiptData | null>
     return { name: String(i.name ?? "Article"), quantity, unitPrice, total: unitPrice * quantity, details }
   })
 
-  const subtotal = order.subtotal || lines.reduce((s, l) => s + l.total, 0)
-  const discount = Math.max(0, Math.round(subtotal + order.deliveryFee - order.total))
+  // Pas de ligne « remise » sur le reçu : le sous-total affiché est le montant réellement payé pour les
+  // articles (total − livraison), ce qui reste juste même pour une ancienne commande passée avec un code promo.
+  const subtotal = Math.max(0, order.total - order.deliveryFee)
   const fromNotes = customerFromNotes(order.notes)
   const notesName = order.notes?.match(/Client:\s*([^|]+)/)?.[1]?.trim() || null
-  const promoCode = order.notes?.match(/\[Promo:\s*([^\]]+)\]/)?.[1]?.trim() ?? null
   const currency = str(general.currency) ?? "FCFA"
 
   return {
@@ -194,8 +192,6 @@ export async function buildReceipt(orderId: string): Promise<ReceiptData | null>
     },
     lines,
     subtotal,
-    discount,
-    promoCode,
     deliveryFee: order.deliveryFee,
     total: order.total,
     totalInWords: numberToFrenchWords(order.total),

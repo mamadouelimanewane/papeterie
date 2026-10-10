@@ -103,11 +103,6 @@ export default function Receipt({ r }: { r: ReceiptData }) {
         <div className="mt-6 flex justify-end">
           <dl className="w-full max-w-xs space-y-1.5 text-sm">
             <div className="flex justify-between"><dt className="text-slate-500">Sous-total articles</dt><dd className="tabular-nums">{money(r.subtotal, cur)}</dd></div>
-            {r.discount > 0 && (
-              <div className="flex justify-between text-emerald-700">
-                <dt>Remise{r.promoCode ? ` (${r.promoCode})` : ""}</dt><dd className="tabular-nums">− {money(r.discount, cur)}</dd>
-              </div>
-            )}
             <div className="flex justify-between"><dt className="text-slate-500">Livraison</dt><dd className="tabular-nums">{r.deliveryFee > 0 ? money(r.deliveryFee, cur) : "Offerte"}</dd></div>
             <div className="mt-2 flex items-baseline justify-between border-t-2 border-slate-900 pt-3">
               <dt className="font-bold text-slate-900">Total payé</dt>
