@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {  if (!rateLimit("shop-pay:" + cl
     if (order.status === "Cancelled") return NextResponse.json({ error: "Cette commande a été annulée" }, { status: 409 })
     if (!(order.total > 0)) return NextResponse.json({ error: "Montant de commande invalide" }, { status: 400 })
 
-    const r = await startOrderPayment(order, req.headers.get("host") ?? "librairieschoolmatik.com")
+    const r = await startOrderPayment(order, req.headers.get("host") ?? "www.librairieschoolmatik.com")
     if (!r.ok || !r.link) return NextResponse.json({ error: r.ok ? "Lien de paiement indisponible" : r.error }, { status: 502 })
 
     // La commande passe en paiement en ligne (utile si elle était prévue à la livraison)

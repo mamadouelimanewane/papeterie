@@ -2,12 +2,12 @@
 // Aucune ecriture, meme sur un ancien build : chaque requete POST est construite pour etre rejetee
 // par la validation (kind inconnu, total absent) avant tout acces en ecriture.
 //
-//   node scripts/verify-deploy.mjs                              -> https://librairieschoolmatik.com
+//   node scripts/verify-deploy.mjs                              -> https://www.librairieschoolmatik.com
 //   node scripts/verify-deploy.mjs https://xxx.vercel.app       -> apercu de la branche
 //   WEBHOOK_SECRET=... node scripts/verify-deploy.mjs           -> teste aussi le webhook avec le bon secret
 //
 // Code de sortie 0 si tout est OK, 1 sinon.
-const BASE = (process.argv[2] ?? "https://librairieschoolmatik.com").replace(/[/]+$/, "")
+const BASE = (process.argv[2] ?? "https://www.librairieschoolmatik.com").replace(/[/]+$/, "")
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 const MIN_PRODUCTS = 790
 

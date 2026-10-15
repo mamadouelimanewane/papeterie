@@ -7,7 +7,7 @@ import { STATUS_OPTIONS } from "@/components/admin/FormModal"
 import type { Row } from "@/hooks/useAdminData"
 
 const EVENTS = ["user_register", "order_placed", "order_delivered", "order_cancelled", "password_reset", "driver_register", "driver_approved", "driver_rejected"]
-const SAMPLE: Record<string, string> = { name: "Awa Diop", order_id: "SCH-1042", total: "12 500 FCFA", store: "Schoolmatik Librairie", link: "https://librairieschoolmatik.com/shop" }
+const SAMPLE: Record<string, string> = { name: "Awa Diop", order_id: "SCH-1042", total: "12 500 FCFA", store: "Schoolmatik Librairie", link: "https://www.librairieschoolmatik.com/shop" }
 const fill = (s: unknown) => String(s ?? "").replace(/\{(\w+)\}/g, (_, k) => SAMPLE[k] ?? `{${k}}`)
 
 const SEED = [

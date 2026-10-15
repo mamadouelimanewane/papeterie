@@ -4,8 +4,8 @@ import SettingsPage from "@/components/admin/SettingsPage"
 
 const DEFAULTS = {
   androidUserApp: "", iosUserApp: "", androidDriverApp: "", iosDriverApp: "",
-  websiteUrl: "https://librairieschoolmatik.com/shop", adminPanelUrl: "https://librairieschoolmatik.com/dashboard",
-  apiBaseUrl: "https://librairieschoolmatik.com/api", supportWhatsapp: "",
+  websiteUrl: "https://www.librairieschoolmatik.com/shop", adminPanelUrl: "https://www.librairieschoolmatik.com/dashboard",
+  apiBaseUrl: "https://www.librairieschoolmatik.com/api", supportWhatsapp: "",
 }
 
 export default function AppUrlPage() {

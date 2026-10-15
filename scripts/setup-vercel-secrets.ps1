@@ -85,7 +85,7 @@ foreach ($name in $names) {
 
 Write-Host ""
 Write-Host "Termine. Prochaines etapes :"
-Write-Host " 1. Communiquer VERSUS_WEBHOOK_SECRET (dans .env) a Versus pour https://librairieschoolmatik.com/api/webhooks/versus"
+Write-Host " 1. Communiquer VERSUS_WEBHOOK_SECRET (dans .env) a Versus pour https://www.librairieschoolmatik.com/api/webhooks/versus"
 Write-Host "    en-tete 'x-versus-signature' ou 'Authorization: Bearer <secret>'."
 Write-Host " 2. Donner MERCHANT_CODE (dans .env) au marchand pour /gestion."
 Write-Host " 3. Redeployer : fusionner la branche, ou 'vercel --prod' (Production), pour que les variables s'appliquent."

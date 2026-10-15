@@ -63,8 +63,8 @@ async function main() {
     order_reference: "ORD-" + ref,
     phone_number: "770000000",
     email: "test@papeterie.sn",
-    success_url: "https://librairieschoolmatik.com/checkout/success",
-    failure_url: "https://librairieschoolmatik.com/checkout/failure",
+    success_url: "https://www.librairieschoolmatik.com/checkout/success",
+    failure_url: "https://www.librairieschoolmatik.com/checkout/failure",
     amount: 100,
     currency: "XOF",
   })
