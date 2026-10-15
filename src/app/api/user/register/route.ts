@@ -3,11 +3,12 @@ import { prisma } from "@/lib/prisma"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import bcrypt from "bcryptjs"
 import { sign } from "jsonwebtoken"
+import { errorResponse } from "@/lib/adminAuth"
 
 const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
 
 export async function POST(req: Request) {
-  if (!rateLimit("user-register:" + clientIp(req), 5, 60 * 60_000)) {
+  if (!await rateLimit("user-register:" + clientIp(req), 5, 60 * 60_000)) {
     return NextResponse.json({ error: "Trop de tentatives, reessayez plus tard" }, { status: 429, headers: { "Retry-After": "900" } })
   }
   try {
@@ -76,7 +77,6 @@ export async function POST(req: Request) {
     )
   } catch (error) {
     console.error("[register]", error)
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/user/register]")
   }
 }

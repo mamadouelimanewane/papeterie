@@ -47,7 +47,7 @@ function ModuleCard({ m, onSave, onToggle }: { m: Row; onSave: (strings: Str[]) 
             <button onClick={() => { setStrings((l) => [...l, { key: `${String(m.key).replace("module.", "")}.`, value: "" }]); setDirty(true) }}
               className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"><Plus size={12} /> Ajouter un texte</button>
             <button disabled={!dirty} onClick={async () => { if (await onSave(strings.filter((s) => s.key.trim()))) setDirty(false) }}
-              className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-40"><Save size={12} /> Enregistrer</button>
+              className="flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40"><Save size={12} /> Enregistrer</button>
           </div>
         </div>
       )}

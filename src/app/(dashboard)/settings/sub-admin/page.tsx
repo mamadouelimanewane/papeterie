@@ -56,7 +56,7 @@ export default function SubAdminPage() {
         <h1 className="text-lg font-semibold text-gray-700 flex items-center gap-2"><span>👤</span> Utilisateurs &amp; rôles</h1>
         <Link href="/settings/sub-admin/new" className="flex items-center gap-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg"><Plus size={14} /> Ajouter un admin</Link>
       </div>
-      {msg && <div className="mb-4 rounded-lg bg-indigo-50 p-3 text-sm text-indigo-700">{msg}</div>}
+      {msg && <div className="mb-4 rounded-lg bg-sun-50 p-3 text-sm text-brand-700">{msg}</div>}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">

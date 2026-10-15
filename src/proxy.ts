@@ -55,12 +55,14 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   if (method === "GET" && pathname === "/api/merchant/invite") return true
 
   if (method === "GET") {
+    if (pathname === "/api/cron/expire-orders") return true // protege par CRON_SECRET dans la route
     if (pathname === "/api/slider") return true
     if (pathname === "/api/store") return true // boutique active (vitrine mono-boutique)
     if (pathname === "/api/kits") return true // kits par classe (vitrine)
     if (pathname.startsWith("/api/images/")) return true // photos produits (vitrine)
     if (pathname === "/api/shop/config") return true // promos actives ? tarif de livraison
     if (pathname === "/api/shop/order-status") return true // suivi de commande sans donnees personnelles
+    if (pathname === "/api/shop/receipt") return true // recu : jeton signe verifie dans la route
     if (pathname.startsWith("/api/stores")) return true
     if (pathname.startsWith("/api/categories")) return true
     if (pathname === "/api/countries" || pathname === "/api/service-areas") return true

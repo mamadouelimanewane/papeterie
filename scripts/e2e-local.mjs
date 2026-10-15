@@ -104,14 +104,20 @@ const pA = products[10], pB = products[200], pC = products[300]
 
 // ---- commandes
 section("2. Commandes")
+// Paiement en ligne obligatoire (plus d'especes) : la commande est reglee par un avis Versus signe,
+// sauf `unpaid: true` (scenarios de paiement refuse / en attente).
 async function order(items, extra = {}, headers = {}) {
-  const r = await req("POST", "/api/orders", { body: { items, paymentMethod: "Cash", firstName: "Awa", phone_number: "771110000", address: "Dakar, Plateau", ...extra }, headers })
+  const { unpaid, ...body } = extra
+  const r = await req("POST", "/api/orders", { body: { items, paymentMethod: "Wave", firstName: "Awa", phone_number: "771110000", address: "Dakar, Plateau", ...body }, headers })
+  if (r.status === 201 && !unpaid) {
+    await req("POST", "/api/webhooks/versus", { body: { type: "TRANSACTION_STATUS", external_reference: r.json.id, status: "COMPLETED", amount: String(r.json.total), reference: "E2E-" + r.json.orderId }, headers: { "x-versus-signature": WH } })
+  }
   return r
 }
 const sumItems = (arr) => arr.reduce((s, [p, n]) => s + p.price * n, 0)
 const itemsA = [[pA, 2], [pB, 1]]; const sA = sumItems(itemsA)
 const oA = await order(itemsA.map(([p, n]) => ({ id: p.id, qty: n })))
-ok("A : commande invite, espèces", oA.status === 201 && oA.json.total === sA + 500, `articles ${fcfa(sA)} + livraison 500 = ${fcfa(oA.json?.total)}`)
+ok("A : commande invite, payee en ligne (Wave)", oA.status === 201 && oA.json.total === sA + 500, `articles ${fcfa(sA)} + livraison 500 = ${fcfa(oA.json?.total)}`)
 // commande avec code promo alors que les promos sont desactivees : refusee
 const offTry = await order([{ id: pB.id, qty: 1 }], { promoCode: "RENTREE2026" })
 ok("commande avec code promo refusee quand les promos sont desactivees", offTry.status === 400 && /d.sactiv/i.test(offTry.json?.error ?? ""), `HTTP ${offTry.status} ${offTry.json?.error ?? ""}`)
@@ -128,11 +134,11 @@ const oB = await order(itemsB.map(([p, n]) => ({ id: p.id, qty: n })), { promoCo
 const discB = Math.round((sB * 15) / 100)
 ok("B : client connecte + promo 15 %", oB.status === 201 && oB.json.total === sB - discB + 500, `articles ${fcfa(sB)} - remise ${fcfa(discB)} + 500 = ${fcfa(oB.json?.total)}`)
 const itemsC = [[pC, 2]]; const sC = sumItems(itemsC)
-const oC = await order(itemsC.map(([p, n]) => ({ id: p.id, qty: n })), { paymentMethod: "Wave" })
+const oC = await order(itemsC.map(([p, n]) => ({ id: p.id, qty: n })), { paymentMethod: "Wave", unpaid: true })
 ok("C : commande payee en ligne (Wave)", oC.status === 201, `${fcfa(oC.json?.total)} · paiement initie : ${oC.json?.paymentInitiated} (${oC.json?.paymentError ? "Versus non configure en local" : "ok"})`)
 const wh = (b) => req("POST", "/api/webhooks/versus", { body: b, headers: { "x-versus-signature": WH } })
 await wh({ type: "TRANSACTION_STATUS", external_reference: oC.json.id, status: "COMPLETED", amount: String(oC.json.total), reference: "WAVE-E2E-1" })
-const oD = await order([{ id: pC.id, qty: 1 }], { paymentMethod: "Wave" })
+const oD = await order([{ id: pC.id, qty: 1 }], { paymentMethod: "Wave", unpaid: true })
 await wh({ type: "TRANSACTION_STATUS", external_reference: oD.json.id, status: "FAILED", reference: "WAVE-E2E-2" })
 const stateD = (await q(`SELECT status, "paymentStatus" FROM "Order" WHERE id=$1`, [oD.json.id]))[0]
 ok("D : paiement refuse -> commande annulee", stateD.status === "Annule", JSON.stringify(stateD))

@@ -22,7 +22,7 @@ export default function ServiceAreasPage() {
         { key: "name", label: "Zone", className: "px-4 py-3 font-medium text-gray-800" },
         { key: "country", label: "Pays" },
         { key: "lat", label: "Coordonnées", render: (r) => r.lat != null ? (
-          <a className="font-mono text-xs text-indigo-600 underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=13/${r.lat}/${r.lng}`}>{String(r.lat)}, {String(r.lng)}</a>
+          <a className="font-mono text-xs text-brand-600 underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=13/${r.lat}/${r.lng}`}>{String(r.lat)}, {String(r.lng)}</a>
         ) : "—", csv: (r) => (r.lat != null ? `${r.lat}, ${r.lng}` : "") },
         { key: "radiusKm", label: "Rayon (km)" },
         { key: "deliveryFee", label: "Frais de livraison (FCFA)", render: (r) => r.deliveryFee != null ? Number(r.deliveryFee).toLocaleString("fr-FR") : "—" },

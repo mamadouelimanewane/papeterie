@@ -35,9 +35,11 @@ export function useCart() {
     })
   const dec = (id: string) => setCart((c) => c.flatMap((x) => (x.id === id ? (x.qty > 1 ? [{ ...x, qty: x.qty - 1 }] : []) : [x])))
   const inc = (id: string) => setCart((c) => c.map((x) => (x.id === id ? { ...x, qty: x.qty + 1 } : x)))
+  const remove = (id: string) => setCart((c) => c.filter((x) => x.id !== id))
+  const removeMultiple = (ids: string[]) => setCart((c) => c.filter((x) => !ids.includes(x.id)))
   const clear = () => setCart([])
   const count = cart.reduce((s, x) => s + x.qty, 0)
   const total = cart.reduce((s, x) => s + x.price * x.qty, 0)
 
-  return { cart, add, dec, inc, clear, count, total }
+  return { cart, add, dec, inc, remove, removeMultiple, clear, count, total }
 }

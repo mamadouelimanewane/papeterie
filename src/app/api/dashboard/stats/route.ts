@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const [
       totalUsers,
@@ -125,11 +128,10 @@ export async function GET() {
       categoryStats: categoryStats.map((c, i) => ({
         name: c.name,
         value: Math.floor(Math.random() * 300 + 50), // Replace with real sales data when available
-        color: ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"][i % 6],
+        color: ["#C61620", "#E2C80C", "#288028", "#F97316", "#0EA5E9", "#821017"][i % 6],
       })),
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/dashboard/stats]")
   }
 }

@@ -192,7 +192,7 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
           className={cn(
             "w-full flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors",
             depth > 0 ? "pl-8" : "",
-            hasActiveChild ? "text-indigo-600 bg-indigo-50" : "text-gray-700 hover:bg-gray-50"
+            hasActiveChild ? "text-brand-600 bg-sun-50" : "text-gray-700 hover:bg-gray-50"
           )}
         >
           <span className="flex items-center gap-2">
@@ -219,7 +219,7 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
         "flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors",
         depth > 0 ? "pl-8" : "",
         isActive
-          ? "bg-indigo-50 text-indigo-600 font-medium"
+          ? "bg-sun-50 text-brand-600 font-medium"
           : "text-gray-700 hover:bg-gray-50"
       )}
     >
@@ -281,10 +281,10 @@ export default function Sidebar() {
 
         {/* Bottom icons */}
         <div className="border-t border-gray-100 p-3 flex items-center justify-around bg-gray-50/50">
-          <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
+          <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-brand-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
             <Settings size={18} />
           </Link>
-          <Link href="/settings/profile" className="p-2 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
+          <Link href="/settings/profile" className="p-2 text-gray-500 hover:text-brand-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
             <Users size={18} />
           </Link>
           <button

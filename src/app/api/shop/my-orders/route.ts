@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { PAID_STATUSES } from "@/lib/orderPayment"
+import { receiptToken } from "@/lib/receiptToken"
 
 /** 9 derniers chiffres : « +221 77 123 45 67 », « 771234567 » et « 00221771234567 » sont équivalents. */
 const normPhone = (s: unknown) => String(s ?? "").replace(/\D/g, "").slice(-9)
@@ -11,7 +12,8 @@ const normPhone = (s: unknown) => String(s ?? "").replace(/\D/g, "").slice(-9)
  * Corps : { phone, orderIds } — ne renvoie QUE les commandes passées avec ce numéro
  * (téléphone saisi à la commande, ou téléphone du compte client). Aucune donnée personnelle renvoyée.
  */
-export async function POST(req: NextRequest) {  if (!rateLimit("shop-my-orders:" + clientIp(req), 15, 10 * 60_000)) {
+export async function POST(req: NextRequest) {
+  if (!await rateLimit("shop-my-orders:" + clientIp(req), 15, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de requetes, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
   }
 
@@ -40,6 +42,8 @@ export async function POST(req: NextRequest) {  if (!rateLimit("shop-my-orders:
         total: o.total, createdAt: o.createdAt, paid: PAID_STATUSES.includes(o.paymentStatus),
         // Code à donner au livreur : seulement au titulaire du numéro, et tant que la commande est en cours
         deliveryCode: ["Delivered", "Completed", "Cancelled"].includes(o.status) ? null : o.deliveryOtp,
+        // Accès au reçu (commandes payées seulement), réservé au titulaire du numéro
+        receiptToken: PAID_STATUSES.includes(o.paymentStatus) ? receiptToken(o.orderId) : null,
       })),
     })
   } catch (e) {

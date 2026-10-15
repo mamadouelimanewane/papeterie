@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { isResponse, requireAdminApi } from "@/lib/adminAuth"
 
 // Initialisation de l'IA (clé à configurer dans les variables d'env)
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "")
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { image } = await req.json()
     

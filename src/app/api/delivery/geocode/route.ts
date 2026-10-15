@@ -12,7 +12,7 @@ const TTL_MS = 10 * 60_000
  * (usage modéré : 1 requête/s maximum selon leurs conditions — d'où la limitation et le cache ci-dessous).
  */
 export async function POST(req: Request) {
-  if (!rateLimit("geocode:" + clientIp(req), 30, 10 * 60_000)) {
+  if (!await rateLimit("geocode:" + clientIp(req), 30, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de recherches, reessayez dans quelques minutes" }, { status: 429, headers: { "Retry-After": "600" } })
   }
   const { q } = await req.json().catch(() => ({ q: "" }))

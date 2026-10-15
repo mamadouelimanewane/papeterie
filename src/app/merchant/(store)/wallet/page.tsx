@@ -53,7 +53,7 @@ export default function MerchantWallet() {
   }
 
   if (error) return <p className="text-sm text-red-600">{error}</p>
-  if (!data) return <div className="flex justify-center py-20"><Loader2 size={28} className="text-indigo-500 animate-spin" /></div>
+  if (!data) return <div className="flex justify-center py-20"><Loader2 size={28} className="text-brand-500 animate-spin" /></div>
 
   const available = Math.max(data.walletMoney - data.pendingCashout, 0)
 
@@ -65,12 +65,12 @@ export default function MerchantWallet() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-5 text-white md:col-span-2">
-          <div className="flex items-center gap-2 text-indigo-100 text-sm"><Wallet size={16} /> Solde actuel</div>
+        <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-5 text-white md:col-span-2">
+          <div className="flex items-center gap-2 text-brand-100 text-sm"><Wallet size={16} /> Solde actuel</div>
           <div className="text-3xl font-bold mt-2">{fmtFcfa(data.walletMoney)}</div>
-          <div className="text-xs text-indigo-100 mt-1">Disponible au retrait : {fmtFcfa(available)}</div>
+          <div className="text-xs text-brand-100 mt-1">Disponible au retrait : {fmtFcfa(available)}</div>
           <button onClick={() => { setOpen(true); setFormError("") }} disabled={available <= 0}
-            className="mt-4 px-4 py-2 bg-white text-indigo-700 disabled:opacity-60 rounded-xl text-sm font-semibold">
+            className="mt-4 px-4 py-2 bg-white text-brand-700 disabled:opacity-60 rounded-xl text-sm font-semibold">
             Demander un retrait
           </button>
         </div>
@@ -122,7 +122,7 @@ export default function MerchantWallet() {
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">Montant (max {fmtFcfa(available)})</label>
                 <input type="number" min={1} max={available} step={1} required inputMode="numeric" value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">Recevoir par</label>
@@ -134,13 +134,13 @@ export default function MerchantWallet() {
               <div>
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">{form.method === "Virement" ? "IBAN / RIB" : "Numéro de téléphone"}</label>
                 <input required value={form.account} onChange={(e) => setForm({ ...form, account: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
               </div>
               {formError && <p className="text-xs text-red-600">{formError}</p>}
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm">Annuler</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
+              <button type="submit" disabled={saving} className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
                 {saving && <Loader2 size={14} className="animate-spin" />} Envoyer la demande
               </button>
             </div>

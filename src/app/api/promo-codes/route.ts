@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get("search") ?? ""
@@ -14,12 +17,13 @@ export async function GET(req: NextRequest) {
     const codes = await prisma.promoCode.findMany({ where, orderBy: { createdAt: "desc" } })
     return NextResponse.json(codes)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/promo-codes]")
   }
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const data = await req.json()
     if (!data.code || data.discount === undefined) {
@@ -37,7 +41,6 @@ export async function POST(req: Request) {
     })
     return NextResponse.json(promo, { status: 201 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/promo-codes]")
   }
 }

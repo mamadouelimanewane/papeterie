@@ -13,14 +13,16 @@ type Props = {
   total: number
   dec: (id: string) => void
   inc: (id: string) => void
+  remove: (id: string) => void
+  removeMultiple: (ids: string[]) => void
   clear: () => void
 }
 
-export default function CartDrawer({ open, onClose, cart, count, total, dec, inc, clear }: Props) {
+export default function CartDrawer({ open, onClose, cart, count, total, dec, inc, remove, removeMultiple, clear }: Props) {
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
-  const [method, setMethod] = useState("Cash")
+  const [method, setMethod] = useState("Versus")
   const [result, setResult] = useState<any>(null)
   const [placing, setPlacing] = useState(false)
   const [retrying, setRetrying] = useState(false)
@@ -29,6 +31,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [promo, setPromo] = useState<{ code: string; discount: number; type: string } | null>(null)
   const [promoMsg, setPromoMsg] = useState<string | null>(null)
   const { client } = useClient()
+  const [unselectedIds, setUnselectedIds] = useState<string[]>([])
 
   // Configuration publique : codes promo actifs ? livraison fixe ou selon la distance ?
   type ShopConfig = { promotionsEnabled: boolean; delivery: { mode: "Fixed" | "Distance"; baseFee: number; freeAbove: number; maxKm: number } }
@@ -47,8 +50,10 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
     setPhone((p) => p || client.phone)
   }, [client])
 
-  const discountAmount = promo ? Math.min(total, promo.type === "Percentage" ? Math.round((total * promo.discount) / 100) : promo.discount) : 0
-  const goods = total - discountAmount
+  const selectedCart = cart.filter(x => !unselectedIds.includes(x.id))
+  const selectedTotal = selectedCart.reduce((s, x) => s + x.price * x.qty, 0)
+  const discountAmount = promo ? Math.min(selectedTotal, promo.type === "Percentage" ? Math.round((selectedTotal * promo.discount) / 100) : promo.discount) : 0
+  const goods = selectedTotal - discountAmount
   const distanceMode = cfg?.delivery.mode === "Distance"
   const fixedFee = cfg ? (cfg.delivery.freeAbove > 0 && goods >= cfg.delivery.freeAbove ? 0 : cfg.delivery.baseFee) : 500
   const deliveryFee = distanceMode ? quote?.fee ?? null : fixedFee
@@ -99,7 +104,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   }
 
   async function placeOrder() {
-    if (cart.length === 0) return
+    if (selectedCart.length === 0) { setResult({ error: "Sélectionnez au moins un article." }); return }
     // Téléphone obligatoire : indispensable à la livraison et au déverrouillage de « Mes commandes »
     if (phone.replace(/\D/g, "").length < 9) { setResult({ error: "Indiquez votre numéro de téléphone (9 chiffres) pour la livraison." }); return }
     if (!address.trim()) { setResult({ error: "Indiquez votre adresse de livraison." }); return }
@@ -112,9 +117,9 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           // Le serveur recalcule montant, promo et livraison depuis la base : ces champs ne sont qu'indicatifs.
-          total: grandTotal, subtotal: total, deliveryFee: deliveryFee ?? 0, paymentMethod: method,
+          total: grandTotal, subtotal: selectedTotal, deliveryFee: deliveryFee ?? 0, paymentMethod: method,
           ...(point ? { deliveryLat: point.lat, deliveryLng: point.lng } : {}),
-          items: cart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
+          items: selectedCart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
           notes: "Commande web (/shop)",
@@ -125,7 +130,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
       // Le panier n'est vidé que si la commande a bien été créée
       if (res.ok && d.orderId) {
         rememberOrder({ orderId: d.orderId, total: grandTotal, method, date: new Date().toISOString() })
-        clear()
+        removeMultiple(selectedCart.map(c => c.id))
       }
     } catch (e: any) { setResult({ error: e?.message ?? "Erreur" }) } finally { setPlacing(false) }
   }
@@ -145,27 +150,43 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
             <div className="mt-16 text-center">
               <div className="text-5xl">{"🛒"}</div>
               <p className="mt-3 text-slate-400">Votre panier est vide.</p>
-              <button onClick={onClose} className="mt-4 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Parcourir la boutique</button>
+              <button onClick={onClose} className="mt-4 rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">Parcourir la boutique</button>
             </div>
           )}
           {cart.map((x) => (
-            <div key={x.id} className="mb-3 flex gap-3">
-              <div className="h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
+            <div key={x.id} className={`mb-3 flex items-start gap-3 rounded-lg p-2 transition-colors ${unselectedIds.includes(x.id) ? 'bg-slate-50 opacity-60' : 'bg-white'}`}>
+              <div className="pt-2">
+                <input
+                  type="checkbox"
+                  checked={!unselectedIds.includes(x.id)}
+                  onChange={() => {
+                    if (unselectedIds.includes(x.id)) setUnselectedIds((prev) => prev.filter((id) => id !== x.id))
+                    else setUnselectedIds((prev) => [...prev, x.id])
+                  }}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-600 cursor-pointer"
+                />
+              </div>
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 {x.image ? <img src={x.image} className="h-full w-full object-cover" alt="" /> : <div className="grid h-full place-items-center">{"📦"}</div>}
               </div>
               <div className="flex-1">
-                <div className="line-clamp-1 text-sm font-medium">{x.name}</div>
+                <div className="flex items-start justify-between">
+                  <div className="line-clamp-1 text-sm font-medium pr-2">{x.name}</div>
+                  <button onClick={() => remove(x.id)} className="text-slate-400 hover:text-red-500 flex-shrink-0" title="Supprimer cet article">✕</button>
+                </div>
                 {x.components && x.components.length > 0 && (
                   <div className="line-clamp-2 text-[11px] text-slate-400">{x.components.map((k) => (k.qty > 1 ? `${k.qty}x ` : "") + k.name).join(", ")}</div>
                 )}
-                <div className="text-xs text-indigo-700">{fmt(x.price)}</div>
-                <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
-                  <button onClick={() => dec(x.id)} className="text-slate-500">-</button>
-                  <span className="min-w-4 text-center">{x.qty}</span>
-                  <button onClick={() => inc(x.id)} className="text-slate-500">+</button>
+                <div className="text-xs text-price">{fmt(x.price)}</div>
+                <div className="mt-1 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2 py-0.5 text-sm">
+                    <button onClick={() => dec(x.id)} className="text-slate-500 px-1">-</button>
+                    <span className="min-w-4 text-center">{x.qty}</span>
+                    <button onClick={() => inc(x.id)} className="text-slate-500 px-1">+</button>
+                  </div>
+                  <div className="text-sm font-semibold">{fmt(x.price * x.qty)}</div>
                 </div>
               </div>
-              <div className="text-sm font-semibold">{fmt(x.price * x.qty)}</div>
             </div>
           ))}
         </div>
@@ -177,16 +198,16 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Téléphone *" type="tel" inputMode="tel" className="rounded-lg border px-3 py-2 text-sm" />
               <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Adresse de livraison *" className="col-span-2 rounded-lg border px-3 py-2 text-sm" />
               {distanceMode && (
-                <div className="col-span-2 rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+                <div className="col-span-2 rounded-lg border border-sun-200 bg-sun-50 p-2.5">
                   <div className="flex gap-2">
-                    <button type="button" onClick={locateMe} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"📍"} Ma position</button>
-                    <button type="button" onClick={searchAddress} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 disabled:opacity-60">{"🔎"} Chercher mon adresse</button>
+                    <button type="button" onClick={locateMe} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-brand-700 ring-1 ring-sun-300 disabled:opacity-60">{"📍"} Ma position</button>
+                    <button type="button" onClick={searchAddress} disabled={locBusy} className="flex-1 rounded-lg bg-white px-2 py-2 text-xs font-semibold text-brand-700 ring-1 ring-sun-300 disabled:opacity-60">{"🔎"} Chercher mon adresse</button>
                   </div>
                   {locBusy && <p className="mt-1 text-[11px] text-slate-500">Localisation en cours…</p>}
                   {hits.length > 0 && (
                     <ul className="mt-2 max-h-32 space-y-1 overflow-auto text-[11px]">
                       {hits.map((h, i) => (
-                        <li key={i}><button type="button" onClick={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }} className="w-full rounded bg-white px-2 py-1.5 text-left ring-1 ring-slate-200 hover:bg-indigo-100">{h.label}</button></li>
+                        <li key={i}><button type="button" onClick={() => { setPoint({ lat: h.lat, lng: h.lng, label: h.label }); setHits([]) }} className="w-full rounded bg-white px-2 py-1.5 text-left ring-1 ring-slate-200 hover:bg-sun-100">{h.label}</button></li>
                       ))}
                     </ul>
                   )}
@@ -196,15 +217,15 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 </div>
               )}
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
-                <option value="Cash">Paiement à la livraison (Cash)</option><option value="Versus">Payer par Wave, Orange Money via VERSUS</option>
+                <option value="Versus">Payer par Wave, Orange Money via Schoolmatik</option>
               </select>
             </div>
             {method !== "Cash" && (
-              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-2.5">
+              <div className="rounded-lg border border-sun-200 bg-sun-50 p-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                   <span>{"🔒"}</span> Paiement sécurisé via
-                  <img src="/versus-logo.png" alt="Versus" className="h-7 w-7 object-contain" />
-                  <span>Versus Fintech</span>
+                  <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-8 w-8 rounded-md bg-white object-contain ring-1 ring-black/5" />
+                  <span>Schoolmatik</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500">
                   {["Wave", "Orange Money", "Carte bancaire", "Mixx"].map((m) => (
@@ -218,20 +239,20 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <input value={promoInput} onChange={(e) => setPromoInput(e.target.value.toUpperCase())} placeholder="Code promo" className="flex-1 rounded-lg border px-3 py-2 text-sm uppercase" />
                 {promo
                   ? <button onClick={() => { setPromo(null); setPromoInput(""); setPromoMsg(null) }} className="rounded-lg bg-slate-200 px-3 text-sm font-medium">Retirer</button>
-                  : <button onClick={applyPromo} className="rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white">Appliquer</button>}
+                  : <button onClick={applyPromo} className="rounded-lg bg-brand-600 px-3 text-sm font-medium text-white">Appliquer</button>}
               </div>
               {promoMsg && <p className="mt-1 text-xs text-red-500">{promoMsg}</p>}
               {promo && <p className="mt-1 text-xs text-emerald-600">Code {promo.code} appliqué : -{promo.type === "Percentage" ? promo.discount + "%" : fmt(promo.discount)}</p>}
             </div>)}
-            <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total</span><span>{fmt(total)}</span></div>
+            <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Sous-total {unselectedIds.length > 0 && "(sélection)"}</span><span>{fmt(selectedTotal)}</span></div>
             {discountAmount > 0 && <div className="flex items-center justify-between text-sm font-medium text-emerald-600"><span>Remise ({promo?.code})</span><span>-{fmt(discountAmount)}</span></div>}
             <div className="flex items-center justify-between py-1 text-sm text-slate-500"><span>Livraison{quote?.distanceKm != null ? ` (${String(quote.distanceKm).replace(".", ",")} km)` : ""}</span><span>{deliveryFee === null ? "—" : deliveryFee === 0 ? "Offerte" : fmt(deliveryFee)}</span></div>
-            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-indigo-700">{fmt(grandTotal)}</span></div>
+            <div className="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span className="text-price">{fmt(grandTotal)}</span></div>
             <div className="flex gap-2">
               <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 + Ajouter d'autres articles
               </button>
-              <button onClick={placeOrder} disabled={placing || (distanceMode && quote === null)} className="flex-[1.4] rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
+              <button onClick={placeOrder} disabled={placing || selectedCart.length === 0 || (distanceMode && quote === null)} className="flex-[1.4] rounded-xl bg-emerald-600 py-3 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50">
                 {placing ? "Envoi..." : "Valider la commande"}
               </button>
             </div>
@@ -249,20 +270,20 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 <div className="text-4xl">{"✅"}</div>
                 <p className="mt-2 font-bold text-emerald-700">Commande confirmée !</p>
                 <p className="text-sm text-slate-500">N° {result.orderId}</p>
-                <p className="mt-1 text-lg font-extrabold text-indigo-700">{fmt(Number(result.total ?? 0))}</p>
+                <p className="mt-1 text-lg font-extrabold text-price">{fmt(Number(result.total ?? 0))}</p>
                 {result.paymentMethod === "Cash" && <p className="mt-2 text-sm text-slate-600">Vous paierez en espèces à la livraison.</p>}
                 {result.deliveryOtp && (
-                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
-                    <div className="text-xs text-indigo-700">Votre code de livraison</div>
-                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-indigo-800">{result.deliveryOtp}</div>
-                    <div className="mt-1 text-[11px] text-indigo-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
+                  <div className="mt-3 rounded-xl border border-sun-200 bg-sun-50 p-3">
+                    <div className="text-xs text-brand-700">Votre code de livraison</div>
+                    <div className="font-mono text-2xl font-extrabold tracking-[0.3em] text-brand-800">{result.deliveryOtp}</div>
+                    <div className="mt-1 text-[11px] text-brand-600">À donner au livreur à la réception, et à personne d&apos;autre. Retrouvable dans « Mes commandes ».</div>
                   </div>
                 )}
                 {result.paymentError && (
                   <div className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
                     Le paiement en ligne n&apos;a pas pu démarrer : {result.paymentError}
                     <button disabled={retrying} onClick={async () => { setRetrying(true); setRetryMsg(await payOrder(result.orderId)); setRetrying(false) }}
-                      className="mt-2 block w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white disabled:opacity-60">
+                      className="mt-2 block w-full rounded-lg bg-brand-600 py-2 font-semibold text-white disabled:opacity-60">
                       {retrying ? "Ouverture du paiement…" : "Réessayer le paiement"}
                     </button>
                     {retryMsg && <p className="mt-1 text-red-600">{retryMsg}</p>}
@@ -271,10 +292,10 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                 )}
                 {link && (
                   <>
-                    <a href={link} className="mt-3 inline-block rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
+                    <a href={link} className="mt-3 inline-block rounded-xl bg-brand-600 px-5 py-2 font-semibold text-white">Payer maintenant</a>
                     <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-400">
-                      Sécurisé par <img src="/versus-logo.png" alt="Versus" className="h-6 w-6 object-contain" />
-                      <span className="font-semibold text-slate-500">Versus Fintech</span>
+                      Sécurisé par <img src="/brand/schoolmatik-logo-128.png" alt="Schoolmatik" className="h-6 w-6 rounded bg-white object-contain ring-1 ring-black/5" />
+                      <span className="font-semibold text-slate-500">Schoolmatik</span>
                     </div>
                   </>
                 )}

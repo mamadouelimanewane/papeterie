@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const { searchParams } = new URL(req.url)
     const page = Math.max(1, Number(searchParams.get("page") ?? "1"))
@@ -39,12 +42,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ drivers, total, page, perPage, totalPages: Math.ceil(total / perPage) })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/drivers]")
   }
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi(req)
+  if (isResponse(auth)) return auth
   try {
     const data = await req.json()
     if (!data.name || !data.email) {
@@ -70,7 +74,6 @@ export async function POST(req: Request) {
     })
     return NextResponse.json(driver, { status: 201 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/drivers]")
   }
 }

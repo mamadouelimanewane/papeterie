@@ -31,7 +31,7 @@ export default function MapMarkersPage() {
         { key: "color", label: "Couleur", type: "color" },
         { key: "status", label: "Statut", type: "select", options: STATUS_OPTIONS, required: true },
       ]}
-      defaults={{ color: "#4F46E5", type: "User" }}
+      defaults={{ color: "#C61620", type: "User" }}
     />
   )
 }

@@ -40,7 +40,7 @@ export default function NotificationsPage() {
               toast(res.onesignalConfigured ? `Notification envoyée (${res.recipients} destinataires)` : "Enregistrée comme envoyée — OneSignal n'est pas configuré, aucun push réel", res.onesignalConfigured ? "success" : "info")
             }
           }}
-          className="rounded bg-indigo-500 p-1.5 text-white hover:bg-indigo-600"><Send size={12} /></button>
+          className="rounded bg-brand-500 p-1.5 text-white hover:bg-brand-600"><Send size={12} /></button>
       )}
       fields={[
         { key: "title", label: "Titre", required: true, full: true, placeholder: "Rentrée 2026 : -15 % sur les kits" },

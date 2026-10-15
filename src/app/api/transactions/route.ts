@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAdmin, isResponse } from "@/lib/adminAuth"
+import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
@@ -30,8 +30,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ transactions, total, page, perPage, totalPages: Math.ceil(total / perPage) })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return errorResponse(error, "Erreur serveur", "[api/transactions]")
   }
 }
 
@@ -75,7 +74,9 @@ export async function POST(req: NextRequest) {
     })
     return NextResponse.json(tx, { status: 201 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erreur serveur"
-    return NextResponse.json({ error: msg }, { status: msg.startsWith("Compte") ? 400 : 500 })
+    if (error instanceof Error && error.message.startsWith("Compte")) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    return errorResponse(error, "Erreur serveur", "[api/transactions]")
   }
 }

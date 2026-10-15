@@ -82,7 +82,7 @@ export default function ProductsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom ou code-barres…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
         </div>
         <select value={category} onChange={(e) => { setPage(1); setCategory(e.target.value) }} className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm">
@@ -101,7 +101,7 @@ export default function ProductsPage() {
 
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading && !data ? (
-          <div className="flex justify-center py-16"><Loader2 size={26} className="animate-spin text-indigo-500" /></div>
+          <div className="flex justify-center py-16"><Loader2 size={26} className="animate-spin text-brand-500" /></div>
         ) : data && data.products.length === 0 ? (
           <p className="py-16 text-center text-sm text-gray-400">Aucun produit</p>
         ) : (
@@ -124,7 +124,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <span className={`hidden rounded-full px-2.5 py-1 text-xs font-medium sm:inline ${kind.cls}`}>{kind.label}</span>
-                  <button onClick={() => setEditing(p)} className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
+                  <button onClick={() => setEditing(p)} className="flex items-center gap-1.5 rounded-lg bg-sun-50 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-sun-100">
                     <ImagePlus size={14} /> Photo
                   </button>
                 </div>

@@ -10,7 +10,7 @@ import { findClientInvite, splitName, type ClientInviteData } from "@/lib/client
  * Aucune connexion au compte, aucune autre donnée renvoyée.
  */
 export async function POST(req: Request) {
-  if (!rateLimit("shop-invite:" + clientIp(req), 30, 10 * 60_000)) {
+  if (!await rateLimit("shop-invite:" + clientIp(req), 30, 10 * 60_000)) {
     return NextResponse.json({ error: "Trop de requêtes, réessayez dans quelques minutes" }, { status: 429 })
   }
   try {

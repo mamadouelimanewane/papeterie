@@ -1,22 +1,12 @@
 import { createVersusPayment } from "@/lib/versus"
+import { receiptToken } from "@/lib/receiptToken"
 
 type OrderForPayment = { id: string; orderId: string; total: number; notes?: string | null }
 
 /** Statuts de paiement considérés comme réglés (webhook Versus : "Complete" ; saisie manuelle : "Payé"). */
 export const PAID_STATUSES = ["Complete", "Completed", "Paye", "Payé", "Paid"]
 
-/** Moyens de paiement réglés en ligne par Versus (les autres sont payés à la livraison). */
-export const ONLINE_METHODS = ["Versus", "Wave", "Orange", "Orange Money"]
-
-/**
- * Commandes qu'un livreur peut prendre : payées à la livraison, ou déjà réglées en ligne.
- * Une commande en ligne non payée ne doit pas partir en livraison.
- */
-export const DELIVERABLE_PAYMENT = {
-  OR: [{ paymentMethod: { notIn: ONLINE_METHODS } }, { paymentStatus: { in: PAID_STATUSES } }],
-}
-
-/** Lien de paiement renvoyé par Versus (la forme de la réponse varie selon l'API). */
+/** Lien de paiement renvoyé par Schoolmatik (la forme de la réponse varie selon l'API). */
 export function paymentLink(paymentData: unknown): string | null {
   const d = paymentData as { data?: { link?: string; data?: { link?: string } } } | null
   return d?.data?.data?.link ?? d?.data?.link ?? null
@@ -31,7 +21,7 @@ export function customerFromNotes(notes?: string | null) {
 }
 
 /**
- * Initie un paiement Versus (Wave, Orange Money, carte, Mixx) pour une commande.
+ * Initie un paiement Schoolmatik (Wave, Orange Money, carte, Mixx) pour une commande.
  * Le montant payé est `order.total`, qui inclut les frais de livraison.
  */
 export async function startOrderPayment(
@@ -50,7 +40,8 @@ export async function startOrderPayment(
     amount: order.total,
     currency: "XOF",
     phone_number: customer?.phone || fromNotes.phone || undefined,
-    success_url: `${base}/checkout/success?orderId=${encodeURIComponent(order.orderId)}`,
+    // Le jeton signé donne accès au reçu depuis la page de retour (voir lib/receipt.ts)
+    success_url: `${base}/checkout/success?orderId=${encodeURIComponent(order.orderId)}&t=${receiptToken(order.orderId)}`,
     failure_url: `${base}/checkout/failure?orderId=${encodeURIComponent(order.orderId)}`,
     ...(customer?.serviceId && customer?.accountNumber
       ? { service_id: customer.serviceId, payment_account_number: customer.accountNumber }
@@ -58,5 +49,5 @@ export async function startOrderPayment(
   })
   return result.success
     ? { ok: true as const, paymentData: result, link: paymentLink(result) }
-    : { ok: false as const, error: result.message ?? "Échec de l'initialisation du paiement Versus" }
+    : { ok: false as const, error: result.message ?? "Échec de l'initialisation du paiement Schoolmatik" }
 }

@@ -30,7 +30,7 @@ export function useMyOrders() {
   return orders
 }
 
-/** Ouvre la page de paiement Versus d'une commande (Wave, Orange Money, carte). Renvoie un message d'erreur éventuel. */
+/** Ouvre la page de paiement Schoolmatik d'une commande (Wave, Orange Money, carte). Renvoie un message d'erreur éventuel. */
 export async function payOrder(orderId: string): Promise<string | null> {
   try {
     const res = await fetch("/api/shop/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId }) })

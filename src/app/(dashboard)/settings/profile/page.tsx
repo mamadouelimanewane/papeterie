@@ -8,7 +8,7 @@ import { adminFetch, fmtDate } from "@/lib/adminApi"
 
 type Profile = { id: string; name: string; email: string; phone: string | null; role: string; editable: boolean; createdAt?: string }
 
-const input = "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-50 disabled:text-gray-400"
+const input = "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 disabled:bg-gray-50 disabled:text-gray-400"
 
 function PasswordInput({ value, onChange, autoComplete, disabled }: { value: string; onChange: (v: string) => void; autoComplete: string; disabled?: boolean }) {
   const [show, setShow] = useState(false)
@@ -69,7 +69,7 @@ export default function ProfilePage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center gap-4">
-        <div className="grid h-14 w-14 place-items-center rounded-full bg-indigo-600 text-xl font-bold text-white">
+        <div className="grid h-14 w-14 place-items-center rounded-full bg-brand-600 text-xl font-bold text-white">
           {(profile?.name ?? "?").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase()}
         </div>
         <div>
@@ -96,7 +96,7 @@ export default function ProfilePage() {
             <div><label className="mb-1 block text-xs text-gray-500">Téléphone</label>
               <input type="tel" autoComplete="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+221 77 000 00 00" disabled={locked} className={input} /></div>
             <div className="flex gap-2">
-              <button type="submit" disabled={locked || !dirty || savingInfo} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
+              <button type="submit" disabled={locked || !dirty || savingInfo} className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                 <Save size={14} /> {savingInfo ? "Enregistrement…" : "Enregistrer"}
               </button>
               {dirty && <button type="button" onClick={() => profile && setForm({ name: profile.name, email: profile.email, phone: profile.phone ?? "" })} className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>}

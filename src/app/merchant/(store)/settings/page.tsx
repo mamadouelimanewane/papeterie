@@ -37,7 +37,7 @@ export default function MerchantSettings() {
       <label className="text-xs font-semibold text-gray-600 mb-1 block">{label}</label>
       <input type="password" value={form[key]} autoComplete={autoComplete} required
         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
     </div>
   )
 
@@ -57,7 +57,7 @@ export default function MerchantSettings() {
         {error && <p className="text-xs text-red-600">{error}</p>}
         <div className="flex items-center gap-3">
           <button type="submit" disabled={saving}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
             {saving && <Loader2 size={14} className="animate-spin" />} Mettre à jour
           </button>
           {done && <span className="text-xs text-green-600 flex items-center gap-1"><Check size={14} /> Mot de passe modifié</span>}

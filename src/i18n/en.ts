@@ -239,7 +239,7 @@ export const EN: Record<string, string> = {
   "Options de paiement (affichage)": "Payment options (display)", "Libellé": "Label", "Ordre d'affichage": "Display order",
   "Libellés et ordre des moyens de paiement présentés au client. Cliquez sur le statut pour activer / désactiver.": "Labels and order of the payment methods shown to customers. Click the status to enable / disable.",
   "Option": "Option", "Espèces à la livraison": "Cash on delivery", "Paiement à la livraison": "Cash on delivery",
-  "Moyens de paiement proposés au client. Les paiements en ligne passent par Versus Fintech.": "Payment methods offered to customers. Online payments go through Versus Fintech.",
+  "Moyens de paiement proposés au client. Les paiements en ligne passent par Schoolmatik.": "Payment methods offered to customers. Online payments go through Schoolmatik.",
   "Carte": "Card", "Mobile Money": "Mobile Money", "Types de service": "Service types", "Service": "Service",
   "Fournitures scolaires": "School supplies", "Livres & manuels": "Books & textbooks", "Kits par classe": "Kits by class",
   "Impression & photocopie": "Printing & photocopying", "Drapeau": "Flag", "Indicatif": "Dialling code",

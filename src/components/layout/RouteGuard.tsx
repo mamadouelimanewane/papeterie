@@ -21,7 +21,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
             <ShieldAlert size={48} className="mx-auto text-amber-500" />
             <h2 className="mt-4 text-lg font-bold text-gray-700">Accès non autorisé</h2>
             <p className="mt-1 text-sm text-gray-500">Votre rôle ne vous permet pas d'accéder à cette section.</p>
-            <button onClick={() => router.push("/dashboard")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Retour au tableau de bord</button>
+            <button onClick={() => router.push("/dashboard")} className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Retour au tableau de bord</button>
           </div>
         </div>
       )

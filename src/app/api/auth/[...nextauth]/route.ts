@@ -82,7 +82,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) return null
 
         const ip = clientIp({ headers: new Headers(req?.headers as Record<string, string> | undefined) })
-        if (!rateLimit("admin-login:ip:" + ip, 10, 15 * 60_000) || !rateLimit("admin-login:email:" + credentials.email.toLowerCase(), 10, 15 * 60_000)) return null
+        if (!await rateLimit("admin-login:ip:" + ip, 10, 15 * 60_000) || !await rateLimit("admin-login:email:" + credentials.email.toLowerCase(), 10, 15 * 60_000)) return null
 
         // Check env-based super admin first (no DB required for initial setup)
         const adminEmail = process.env.ADMIN_EMAIL

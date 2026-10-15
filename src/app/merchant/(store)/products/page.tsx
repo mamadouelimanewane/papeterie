@@ -121,7 +121,7 @@ export default function MerchantProducts() {
       <input
         value={draft[key]}
         onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
-        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
         {...props}
       />
     </div>
@@ -134,7 +134,7 @@ export default function MerchantProducts() {
           <h1 className="text-xl font-bold text-gray-800">Catalogue produits</h1>
           <p className="text-sm text-gray-500">{products.length} produit(s) · {products.filter((p) => p.status === "Active").length} en vente</p>
         </div>
-        <button onClick={() => openEdit("new")} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium">
+        <button onClick={() => openEdit("new")} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium">
           <Plus size={16} /> Ajouter un produit
         </button>
       </div>
@@ -145,13 +145,13 @@ export default function MerchantProducts() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un produit ou une catégorie…"
-          className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+          className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
         />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 size={26} className="animate-spin text-indigo-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 size={26} className="animate-spin text-brand-500" /></div>
       ) : grouped.length === 0 ? (
         <p className="text-center text-sm text-gray-400 py-16">Aucun produit</p>
       ) : (
@@ -177,7 +177,7 @@ export default function MerchantProducts() {
                     </div>
                   </div>
                   <button onClick={() => toggleStatus(p)} title={p.status === "Active" ? "Masquer de la vitrine" : "Remettre en vente"}
-                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                    className="p-2 text-gray-400 hover:text-brand-600 hover:bg-sun-50 rounded-lg">
                     {p.status === "Active" ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                   <button onClick={() => openEdit(p)} title="Modifier" className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg">
@@ -229,13 +229,13 @@ export default function MerchantProducts() {
               <div className="sm:col-span-2">
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">Description</label>
                 <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} rows={3}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
               </div>
               {formError && <p className="sm:col-span-2 text-xs text-red-600">{formError}</p>}
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-end">
               <button type="button" onClick={() => setEditing(null)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm">Annuler</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
+              <button type="submit" disabled={saving} className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white rounded-xl text-sm font-medium flex items-center gap-2">
                 {saving && <Loader2 size={14} className="animate-spin" />} Enregistrer
               </button>
             </div>

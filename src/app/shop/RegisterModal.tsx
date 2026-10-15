@@ -46,14 +46,14 @@ export default function RegisterModal({ open, onClose, onDone }: Props) {
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="text-sm font-medium text-slate-600">Prénom
             <input required autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={60}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400" placeholder="Awa" />
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400" placeholder="Awa" />
           </label>
           <label className="text-sm font-medium text-slate-600">Nom
             <input required autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={60}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400" placeholder="Diop" />
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400" placeholder="Diop" />
           </label>
           <label className="text-sm font-medium text-slate-600 sm:col-span-2">Numéro de téléphone
-            <div className="mt-1 flex rounded-lg border border-slate-200 focus-within:border-indigo-400">
+            <div className="mt-1 flex rounded-lg border border-slate-200 focus-within:border-brand-400">
               <span className="grid place-items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+221</span>
               <input required type="tel" inputMode="tel" autoComplete="tel-national" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20}
                 className="w-full rounded-r-lg px-3 py-2.5 text-sm outline-none" placeholder="77 123 45 67" />
@@ -67,7 +67,7 @@ export default function RegisterModal({ open, onClose, onDone }: Props) {
         {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
         <button type="submit" disabled={sending}
-          className="mt-5 w-full rounded-xl bg-indigo-600 py-3 font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+          className="mt-5 w-full rounded-xl bg-brand-600 py-3 font-bold text-white transition hover:bg-brand-700 disabled:opacity-50">
           {sending ? "Inscription..." : "S'inscrire"}
         </button>
         <p className="mt-3 text-center text-[11px] text-slate-400">Vos informations servent uniquement au suivi de vos commandes Schoolmatik.</p>

@@ -62,12 +62,12 @@ export default function DriversDocumentsPage() {
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {([["expiring", "Expirant sous 30 jours"], ["pending", "À vérifier"], ["all", "Tous"]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tab === k ? "bg-indigo-600 text-white" : "bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50"}`}>
+          <button key={k} onClick={() => setTab(k)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${tab === k ? "bg-brand-600 text-white" : "bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50"}`}>
             {l} ({counts[k]})
           </button>
         ))}
         <input placeholder="Nom du livreur ou document..." value={q} onChange={(e) => setQ(e.target.value)}
-          className="ml-auto w-60 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+          className="ml-auto w-60 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300" />
         <button onClick={reload} title="Actualiser" className="rounded-lg bg-white p-2 text-gray-500 ring-1 ring-gray-200 hover:bg-gray-50"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></button>
       </div>
 
