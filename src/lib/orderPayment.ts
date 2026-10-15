@@ -6,6 +6,16 @@ type OrderForPayment = { id: string; orderId: string; total: number; notes?: str
 /** Statuts de paiement considérés comme réglés (webhook Versus : "Complete" ; saisie manuelle : "Payé"). */
 export const PAID_STATUSES = ["Complete", "Completed", "Paye", "Payé", "Paid"]
 
+/**
+ * Référence envoyée à Versus pour une tentative de paiement : `<id commande>.<suffixe>`.
+ * Versus refuse deux paiements avec la même référence ; un suffixe par tentative permet au client
+ * de relancer le paiement (page fermée, lien expiré) sans être bloqué.
+ */
+export const paymentReference = (orderDbId: string) => `${orderDbId}.${Date.now().toString(36)}`
+
+/** Identifiant de la commande à partir de la référence Versus (anciennes références sans suffixe acceptées). */
+export const orderIdFromPaymentReference = (ref: string) => String(ref).split(".")[0]
+
 /** Lien de paiement renvoyé par Schoolmatik (la forme de la réponse varie selon l'API). */
 export function paymentLink(paymentData: unknown): string | null {
   const d = paymentData as { data?: { link?: string; data?: { link?: string } } } | null
@@ -35,7 +45,7 @@ export async function startOrderPayment(
     name: "Commande Schoolmatik " + order.orderId,
     first_name: customer?.firstName || fromNotes.firstName,
     last_name: customer?.lastName || fromNotes.lastName,
-    external_reference: order.id, // retrouvé par le webhook
+    external_reference: paymentReference(order.id), // retrouvé par le webhook (orderIdFromPaymentReference)
     order_reference: order.orderId,
     amount: order.total,
     currency: "XOF",

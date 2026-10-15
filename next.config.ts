@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   // Adresses d'entrée courtes, à donner aux utilisateurs : /client, /livreur, /admin (et /installer pour les trois)
   async redirects() {
     return [
+      // Page d'accueil du domaine : la boutique (l'administration reste sur /admin et /login)
+      { source: "/", destination: "/shop", permanent: false },
       { source: "/client", destination: "/shop?source=pwa", permanent: false },
       // Lien d'installation à diffuser aux parents (/app) et lien personnel d'un client (/i/<code>)
       { source: "/app", destination: "/shop/installer", permanent: false },

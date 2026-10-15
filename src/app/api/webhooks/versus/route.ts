@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { safeEqual } from "@/lib/auth"
-import { PAID_STATUSES } from "@/lib/orderPayment"
+import { PAID_STATUSES, orderIdFromPaymentReference } from "@/lib/orderPayment"
 import { CANCELLED_STATUSES, REFUND_STATUS, reserveStockAgain, restoreStock } from "@/lib/orderExpiry"
 
 /**
@@ -38,11 +38,12 @@ export async function POST(req: Request) {
     if (body.type === "TRANSACTION_STATUS") {
       const { external_reference, status, message, amount, reference } = body
 
-      if (!external_reference) {
+      if (!external_reference || typeof external_reference !== "string") {
         return NextResponse.json({ error: "external_reference manquant" }, { status: 400 })
       }
 
-      const existingOrder = await prisma.order.findUnique({ where: { id: external_reference } })
+      const orderDbId = orderIdFromPaymentReference(external_reference)
+      const existingOrder = await prisma.order.findUnique({ where: { id: orderDbId } })
       if (!existingOrder) {
         return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
       }
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
       // libere le stock : la confirmer telle quelle revendrait des articles plus en stock).
       const { count } = await prisma.order.updateMany({
         where: {
-          id: external_reference,
+          id: orderDbId,
           status: existingOrder.status,
           paymentStatus: existingOrder.paymentStatus,
         },
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
       if (count === 0) {
         // Stock re-reserve pour rien : on le rend
         if (wasCancelled && orderStatus === "Pending") await restoreStock(existingOrder.items)
-        const now = await prisma.order.findUnique({ where: { id: external_reference }, select: { paymentStatus: true } })
+        const now = await prisma.order.findUnique({ where: { id: orderDbId }, select: { paymentStatus: true } })
         if (now && (PAID_STATUSES.includes(now.paymentStatus) || now.paymentStatus === REFUND_STATUS)) {
           return NextResponse.json({ success: true, message: "Commande deja reglee, avis ignore" }, { status: 200 })
         }
