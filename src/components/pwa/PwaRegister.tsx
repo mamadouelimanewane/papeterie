@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { reportInstalled } from "@/app/shop/inviteTracking"
 
 type App = "client" | "livreur" | "admin"
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> }
@@ -18,6 +20,8 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
   const [event, setEvent] = useState<InstallEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [visible, setVisible] = useState(false)
+  const pathname = usePathname()
+  const onInstallPage = pathname?.startsWith("/shop/installer") ?? false // la page d'installation a son propre bouton
 
   useEffect(() => {
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
@@ -25,7 +29,10 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     }
 
     const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true
-    if (standalone) return
+    if (standalone) {
+      if (app === "client") reportInstalled() // invitation personnelle : application lancée depuis l'écran d'accueil
+      return
+    }
     try {
       const at = Number(localStorage.getItem(`pwa-dismissed-${app}`) ?? 0)
       if (at && Date.now() - at < DISMISS_DAYS * 86400_000) return
@@ -55,7 +62,7 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     if (choice.outcome === "accepted") setVisible(false); else dismiss()
   }
 
-  if (!visible || (!event && !ios)) return null
+  if (onInstallPage || !visible || (!event && !ios)) return null
   return (
     <div role="dialog" aria-label={`Installer ${label}`} className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-md rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/10" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
       <div className="flex items-start gap-3">

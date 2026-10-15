@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Download, Info, Edit, Trash2, Bell, CreditCard, FileText, Eye, MapPin, Smartphone, LogOut, Settings, RefreshCw, Search } from "lucide-react"
+import { Plus, Download, Info, Edit, Trash2, Bell, CreditCard, FileText, Eye, MapPin, Smartphone, LogOut, Settings, RefreshCw, Search, Link2, QrCode } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import FormModal from "@/components/admin/FormModal"
+import InviteLinkModal from "@/components/admin/InviteLinkModal"
 import { useFeedback, useAction } from "@/components/admin/Feedback"
 import { adminFetch, fmtDate, fmtMoney } from "@/lib/adminApi"
 
@@ -56,6 +57,7 @@ export default function UsersPage() {
   const [viewUser, setViewUser] = useState<User | null>(null)
   const [addrUser, setAddrUser] = useState<User | null>(null)
   const [addresses, setAddresses] = useState<{ address: string; count: number; lastUsed: string }[] | null>(null)
+  const [inviteFor, setInviteFor] = useState<User | "all" | null>(null)
   const { toast, confirm } = useFeedback()
   const run = useAction()
 
@@ -152,6 +154,7 @@ export default function UsersPage() {
           {loading && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setInviteFor("all")} className="h-8 px-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg flex items-center gap-1.5 text-xs font-medium" title="Lien d'installation de l'application à envoyer aux parents"><QrCode size={14} /> Lien d&apos;installation</button>
           <button onClick={() => setEditing("new")} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Ajouter"><Plus size={16} /></button>
           <button onClick={() => exportCSV(users)} className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center" title="Exporter CSV"><Download size={16} /></button>
           <button onClick={() => toast("Clients inscrits via l'application ou la boutique en ligne. Actions par ligne : fiche, modification, suppression, notification, portefeuille, adresses, activation, déconnexion forcée.", "info")} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center" title="Aide"><Info size={16} /></button>
@@ -239,6 +242,7 @@ export default function UsersPage() {
                       <button title="Adresses" onClick={() => openAddresses(user)} className="p-1 bg-teal-500 text-white rounded hover:bg-teal-600"><MapPin size={12} /></button>
                       <button title="Appareil" onClick={() => openModal("deviceDetails", user)} className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"><Smartphone size={12} /></button>
                       <button title={user.status === "Active" ? "Désactiver" : "Activer"} onClick={() => toggleStatus(user)} className={`p-1 ${user.status === "Active" ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-500 hover:bg-green-600"} text-white rounded`}><Settings size={12} /></button>
+                      <button title="Lien d'invitation (installation)" onClick={() => setInviteFor(user)} className="p-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"><Link2 size={12} /></button>
                       <button title="Déconnexion forcée" onClick={() => forceLogout(user)} className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"><LogOut size={12} /></button>
                     </div>
                   </td>
@@ -262,6 +266,8 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
+
+      {inviteFor && <InviteLinkModal user={inviteFor === "all" ? undefined : inviteFor} onClose={() => setInviteFor(null)} />}
 
       {/* Modal: Notification */}
       {modal === "notification" && selectedUser && (

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 type AppCard = { key: "client" | "livreur" | "admin"; name: string; who: string; desc: string; path: string; color: string }
 
 const APPS: AppCard[] = [
-  { key: "client", name: "Schoolmatik — Client", who: "Parents, élèves, étudiants", desc: "Commander livres et fournitures, suivre sa livraison.", path: "/client", color: "#4F46E5" },
+  { key: "client", name: "Schoolmatik — Client", who: "Parents, élèves, étudiants", desc: "Commander livres et fournitures, suivre sa livraison.", path: "/app", color: "#4F46E5" },
   { key: "livreur", name: "Schoolmatik — Livreur", who: "Livreurs", desc: "Voir les commandes, livrer avec les codes, naviguer vers le client.", path: "/livreur", color: "#059669" },
   { key: "admin", name: "Schoolmatik — Admin", who: "Équipe de la librairie", desc: "Commandes, produits, livreurs, finances et réglages.", path: "/admin", color: "#111827" },
 ]

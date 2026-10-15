@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/client", destination: "/shop?source=pwa", permanent: false },
+      // Lien d'installation à diffuser aux parents (/app) et lien personnel d'un client (/i/<code>)
+      { source: "/app", destination: "/shop/installer", permanent: false },
+      { source: "/i/:code", destination: "/shop/installer?code=:code", permanent: false },
       { source: "/admin", destination: "/dashboard?source=pwa", permanent: false },
     ];
   },
