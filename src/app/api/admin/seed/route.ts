@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { safeEqual } from "@/lib/auth"
 import bcrypt from "bcryptjs"
 
 const SEED_KEY = (process.env.SEED_SECRET as string)
@@ -36,7 +37,7 @@ const PRODUCT_IMAGES: Record<string, string> = {
 export async function POST(req: Request) {
   try {
     const { key } = await req.json()
-    if (!SEED_KEY || key !== SEED_KEY) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
+    if (!SEED_KEY || !safeEqual(typeof key === "string" ? key : null, SEED_KEY)) return NextResponse.json({ error: "Non autorise" }, { status: 401 })
 
     const results: Record<string, unknown> = {}
 

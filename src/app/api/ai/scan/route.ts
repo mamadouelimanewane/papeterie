@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     // Préparation de l'invite pour Gemini
     const prompt = `Analyses cette photo de liste scolaire et extrais les articles sous forme de JSON. 

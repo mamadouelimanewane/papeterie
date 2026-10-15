@@ -62,3 +62,6 @@ out.txt
 docs/acces/
 *.docx
 /audit-prive/
+
+# document d architecture (decrit des points sensibles) : garde en local, jamais publie
+/docs/Architecture-Technique-*.pdf

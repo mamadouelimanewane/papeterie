@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { safeEqual } from "@/lib/auth"
 
 const IMAGES: Record<string, string> = {
   "Cahier 100 pages grands carreaux": "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400",
@@ -33,7 +34,7 @@ const IMAGES: Record<string, string> = {
 export async function POST(req: Request) {
   try {
     const { key } = await req.json()
-    if (!process.env.SEED_SECRET || key !== process.env.SEED_SECRET) {
+    if (!process.env.SEED_SECRET || !safeEqual(typeof key === "string" ? key : null, process.env.SEED_SECRET)) {
       return NextResponse.json({ error: "Non autorise" }, { status: 401 })
     }
     let updated = 0

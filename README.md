@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Schoolmatik / NDUGUMi — Papeterie
 
-## Getting Started
+Plateforme de vente et de livraison de fournitures scolaires (Dakar) : vitrine client, back-office
+d'administration, espace marchand, espace livreur, applications installables (PWA) et applications
+Android (client et livreur).
 
-First, run the development server:
+## Pile technique
+
+- **Web / API** : Next.js 16 (App Router, route handlers), React 19, Tailwind CSS 4
+- **Données** : PostgreSQL (Neon) via Prisma 7 (`@prisma/adapter-pg`)
+- **Authentification** : NextAuth (admin et marchand, cookie) ; JWT Bearer 7 jours (apps mobiles)
+- **Paiement** : Versus (Wave, Orange Money, carte, Mixx) avec webhook signé
+- **Services** : LocationIQ (géocodage, cartes), OneSignal (push), Google Gemini (lecture de listes)
+- **Mobile** : Expo / React Native (`mobile/user-app`, `mobile/driver-app`)
+- **Hébergement** : Vercel ; build Android par GitHub Actions
+
+## Démarrage
 
 ```bash
+npm install
+npx prisma migrate deploy
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variables d'environnement (`.env`, jamais versionné) :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Rôle |
+|---|---|
+| `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | PostgreSQL (pooling / migrations) |
+| `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | Sessions NextAuth et signature des JWT mobiles |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Compte administrateur de secours |
+| `VERSUS_BASE_URL`, `VERSUS_LOGIN`, `VERSUS_PASSWORD`, `VERSUS_WEBHOOK_SECRET` | Paiement en ligne |
+| `LOCATIONIQ_KEY`, `NEXT_PUBLIC_LOCATIONIQ_KEY` | Géocodage et cartes |
+| `ONESIGNAL_APP_ID`, `ONESIGNAL_REST_API_KEY`, `NEXT_PUBLIC_ONESIGNAL_APP_ID` | Notifications push |
+| `GOOGLE_API_KEY` | Lecture de listes scolaires (Gemini) |
+| `ACTIVE_STORE_ID` | Boutique servie par la vitrine (mode mono-boutique) |
+| `MERCHANT_CODE`, `SEED_SECRET` | Routes de gestion et d'initialisation protégées |
+| `CORS_ORIGINS` | Origines autorisées (séparées par des virgules) |
+| `NEXT_PUBLIC_APP_URL` | URL publique (liens de paiement) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Entrées
 
-## Learn More
+- `/shop` (ou `/client`) : vitrine client
+- `/dashboard` (ou `/admin`) : back-office
+- `/merchant` : espace boutique
+- `/livreur` : espace livreur
+- `/installer` : installation des trois applications (PWA)
 
-To learn more about Next.js, take a look at the following resources:
+## Build Android (CI)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Le workflow `.github/workflows/build-apks.yml` lit le keystore depuis le secret
+`ANDROID_KEYSTORE_BASE64` (valeur : `base64 -w0 papeterie-release.keystore`). Aucun keystore ne doit
+être versionné.
