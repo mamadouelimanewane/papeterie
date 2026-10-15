@@ -5,6 +5,17 @@ type OrderForPayment = { id: string; orderId: string; total: number; notes?: str
 /** Statuts de paiement considérés comme réglés (webhook Versus : "Complete" ; saisie manuelle : "Payé"). */
 export const PAID_STATUSES = ["Complete", "Completed", "Paye", "Payé", "Paid"]
 
+/** Moyens de paiement réglés en ligne par Versus (les autres sont payés à la livraison). */
+export const ONLINE_METHODS = ["Versus", "Wave", "Orange", "Orange Money"]
+
+/**
+ * Commandes qu'un livreur peut prendre : payées à la livraison, ou déjà réglées en ligne.
+ * Une commande en ligne non payée ne doit pas partir en livraison.
+ */
+export const DELIVERABLE_PAYMENT = {
+  OR: [{ paymentMethod: { notIn: ONLINE_METHODS } }, { paymentStatus: { in: PAID_STATUSES } }],
+}
+
 /** Lien de paiement renvoyé par Versus (la forme de la réponse varie selon l'API). */
 export function paymentLink(paymentData: unknown): string | null {
   const d = paymentData as { data?: { link?: string; data?: { link?: string } } } | null

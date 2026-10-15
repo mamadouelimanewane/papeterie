@@ -56,10 +56,10 @@ export async function POST(req: Request) {
       let orderStatus = existingOrder.status
       const paidAmount = parseFloat(amount)
       if (status === "COMPLETED") {
-        if (Number.isFinite(paidAmount) && paidAmount + 1 < existingOrder.total) {
-          // Montant recu inferieur au total : pas de confirmation automatique, a traiter a la main
+        if (!Number.isFinite(paidAmount) || paidAmount + 1 < existingOrder.total) {
+          // Montant absent ou inferieur au total : pas de confirmation automatique, a traiter a la main
           paymentStatus = "Partiel"
-          console.error("[versus-webhook] montant insuffisant", { order: existingOrder.orderId, paid: paidAmount, total: existingOrder.total })
+          console.error("[versus-webhook] montant absent ou insuffisant", { order: existingOrder.orderId, paid: amount, total: existingOrder.total })
         } else {
           paymentStatus = "Complete"
           // Le paiement est suivi par paymentStatus ; le statut de livraison reste « Pending » pour que

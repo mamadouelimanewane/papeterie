@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
 import { readDeliveryTag } from "@/lib/deliveryPricing"
+import { DELIVERABLE_PAYMENT } from "@/lib/orderPayment"
 
 /**
  * POST /api/driver/orders/[id]/accept → un livreur approuvé accepte une commande libre.
@@ -20,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
     const { count } = await prisma.order.updateMany({
-      where: { id: order.id, status: { in: ["Pending", "Confirme"] }, driverId: null },
+      where: { id: order.id, status: { in: ["Pending", "Confirme"] }, driverId: null, ...DELIVERABLE_PAYMENT },
       data: { status: "Accepted", driverId: driver.id, pickupOtp },
     })
     if (count === 0) return NextResponse.json({ error: "Commande déjà prise par un autre livreur ou plus disponible" }, { status: 409 })

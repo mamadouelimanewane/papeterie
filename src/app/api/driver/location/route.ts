@@ -1,32 +1,24 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { assertSessionActive } from "@/lib/mobileSession"
-import { verify } from "jsonwebtoken"
+import { requireDriver, isDriverError } from "@/lib/driverAuth"
 
-const JWT_SECRET = (process.env.NEXTAUTH_SECRET as string)
-
+/** PUT { lat, lng } : position GPS du livreur (suivi par le client et la carte de l'administration). */
 export async function PUT(req: Request) {
+  const driver = await requireDriver(req)
+  if (isDriverError(driver)) return driver
   try {
-    const authHeader = req.headers.get("authorization")
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    const { lat, lng } = await req.json().catch(() => ({}))
+    const la = Number(lat), lo = Number(lng)
+    if (lat === null || lng === null || lat === "" || lng === "" || !Number.isFinite(la) || !Number.isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) {
+      return NextResponse.json({ error: "Position invalide" }, { status: 400 })
     }
-
-    const token = authHeader.split(" ")[1]
-    const decoded = verify(token, JWT_SECRET) as { id: string }
-    await assertSessionActive("driver", decoded)
-
-    const { lat, lng } = await req.json()
-    const lastLocation = `${lat},${lng}`
-
-    const driver = await prisma.driver.update({
-      where: { id: decoded.id },
-      data: { lastLocation }
+    const updated = await prisma.driver.update({
+      where: { id: driver.id },
+      data: { lastLocation: `${la},${lo}` },
     })
-
-    return NextResponse.json({ success: true, lastLocation: driver.lastLocation })
+    return NextResponse.json({ success: true, lastLocation: updated.lastLocation })
   } catch (error) {
     console.error("[driver-location-put]", error)
-    return NextResponse.json({ error: "Erreur serveur ou token invalide" }, { status: 500 })
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }

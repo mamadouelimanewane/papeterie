@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
-import { creditDriverForDelivery } from "@/lib/delivery"
+import { creditDriverForDelivery, driverTransitionError } from "@/lib/delivery"
 import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 
 /** Statuts qu'un livreur peut poser sur SA commande. */
@@ -25,6 +25,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!order) return NextResponse.json({ error: "Commande introuvable" }, { status: 404 })
     if (order.driverId !== driver.id) return NextResponse.json({ error: "Commande non attribuée à ce livreur" }, { status: 403 })
     if (["Delivered", "Completed", "Cancelled"].includes(order.status)) return NextResponse.json({ error: "Commande déjà clôturée" }, { status: 409 })
+    const stepError = driverTransitionError(order.status, status)
+    if (stepError) return NextResponse.json({ error: stepError }, { status: 409 })
 
     // Codes a 6 chiffres : 5 essais errones par commande et par 15 min (sinon 1 million de combinaisons testables)
     const otpKey = `otp:${order.id}`

@@ -5,6 +5,7 @@ import { randomInt } from "crypto"
 import { verifyBearer } from "@/lib/auth"
 import { getCommissionPct } from "@/lib/commission"
 import { PricingError, priceItems, promoDiscount } from "@/lib/pricing"
+import { ONLINE_METHODS } from "@/lib/orderPayment"
 import { getDeliveryConfig } from "@/lib/shopConfig"
 import { deliveryTag, parsePoint, quoteDelivery } from "@/lib/deliveryPricing"
 
@@ -140,7 +141,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
 
     let paymentData: unknown = null;
     let paymentError: string | null = null;
-    const versusMethods = ["Versus", "Wave", "Orange", "Orange Money"];
+    const versusMethods = ONLINE_METHODS;
     const wantsVersus =
       versusMethods.includes(order.paymentMethod) || versusMethods.includes(data.paymentMethod);
     if (wantsVersus) {

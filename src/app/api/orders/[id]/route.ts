@@ -4,7 +4,7 @@ import { verify } from "jsonwebtoken"
 import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
 import { assertSessionActive } from "@/lib/mobileSession"
-import { creditDriverForDelivery, DELIVERED } from "@/lib/delivery"
+import { creditDriverForDelivery, DELIVERED, driverTransitionError } from "@/lib/delivery"
 import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 
 /**
@@ -95,6 +95,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (caller.kind === "driver") {
       if (order.driverId !== caller.id) return forbidden()
       if (!DRIVER_STATUSES.includes(data.status)) return NextResponse.json({ error: "Statut non autorisé" }, { status: 400 })
+      if (DELIVERED.includes(order.status)) return NextResponse.json({ error: "Commande déjà livrée" }, { status: 409 })
+      const stepError = driverTransitionError(order.status, data.status)
+      if (stepError) return NextResponse.json({ error: stepError }, { status: 409 })
     }
 
     const update: Record<string, unknown> = {}

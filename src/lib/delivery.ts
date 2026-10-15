@@ -55,3 +55,18 @@ export async function settleDeliveredOrder(orderDbId: string) {
 export const creditDriverForDelivery = settleDeliveredOrder
 
 export const DELIVERED = ["Delivered", "Completed"]
+
+/** Statuts « ramassage » posés par le livreur avec le code de la boutique (app Android : Processing ; web : PickedUp). */
+const PICKUP_STATUSES = ["Processing", "PickedUp", "Picked"]
+/** Statuts atteints une fois la commande récupérée en boutique. */
+const AFTER_PICKUP = [...PICKUP_STATUSES, "OnTheWay", "Delivering"]
+
+/**
+ * Enchaînement imposé au livreur : ramassage (code boutique) puis route, puis livraison (code client).
+ * Renvoie un message d'erreur si le passage `from` -> `to` saute le ramassage, sinon null.
+ */
+export function driverTransitionError(from: string, to: string): string | null {
+  if (PICKUP_STATUSES.includes(to)) return from === "Accepted" || AFTER_PICKUP.includes(from) ? null : "Commande non disponible pour le ramassage"
+  if (!AFTER_PICKUP.includes(from)) return "Ramassage non validé : saisissez d'abord le code donné par la boutique"
+  return null
+}
