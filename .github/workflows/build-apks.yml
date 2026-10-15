@@ -46,7 +46,7 @@ jobs:
       - name: Expo Prebuild
         working-directory: ./mobile/${{ matrix.app }}
         env:
-          EXPO_PUBLIC_API_URL: "https://papeterie.vercel.app/api"
+          EXPO_PUBLIC_API_URL: "https://librairieschoolmatik.com/api"
           CI: "1"
         run: npx expo prebuild --platform android --clean
 
@@ -103,7 +103,7 @@ jobs:
       - name: Compilation APK Release
         working-directory: ./mobile/${{ matrix.app }}/android
         env:
-          EXPO_PUBLIC_API_URL: "https://papeterie.vercel.app/api"
+          EXPO_PUBLIC_API_URL: "https://librairieschoolmatik.com/api"
         run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tail -150
 
       - name: Upload APK

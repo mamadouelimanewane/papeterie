@@ -4,8 +4,8 @@ import SettingsPage from "@/components/admin/SettingsPage"
 
 const DEFAULTS = {
   androidUserApp: "", iosUserApp: "", androidDriverApp: "", iosDriverApp: "",
-  websiteUrl: "https://papeterie.vercel.app/shop", adminPanelUrl: "https://papeterie.vercel.app/dashboard",
-  apiBaseUrl: "https://papeterie.vercel.app/api", supportWhatsapp: "",
+  websiteUrl: "https://librairieschoolmatik.com/shop", adminPanelUrl: "https://librairieschoolmatik.com/dashboard",
+  apiBaseUrl: "https://librairieschoolmatik.com/api", supportWhatsapp: "",
 }
 
 export default function AppUrlPage() {

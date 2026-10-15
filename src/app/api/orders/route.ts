@@ -147,7 +147,7 @@ export async function POST(req: Request) {  if (!rateLimit("orders-post:" + cli
     if (wantsVersus) {
       try {
         const { startOrderPayment } = await import("@/lib/orderPayment");
-        const r = await startOrderPayment(order, req.headers.get("host") ?? "papeterie.vercel.app", {
+        const r = await startOrderPayment(order, req.headers.get("host") ?? "librairieschoolmatik.com", {
           firstName: data.firstName,
           lastName: data.lastName,
           phone: data.phone_number,
