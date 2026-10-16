@@ -85,14 +85,14 @@ export default function InstallLanding({ code }: { code: string | null }) {
   const hello = client?.firstName ? `Bonjour ${client.firstName} 👋` : "Bienvenue 👋"
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-600 to-indigo-800 px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-brand-600 to-brand-700 px-4 py-8">
       <main className="mx-auto max-w-md">
         <div className="text-center text-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/pwa/client-192.png" alt="" width={88} height={88} className="mx-auto h-[88px] w-[88px] rounded-3xl shadow-xl ring-4 ring-white/20" />
+          <img src="/brand/schoolmatik-logo-256.png" alt="" width={88} height={88} className="mx-auto h-[88px] w-[88px] rounded-3xl shadow-xl ring-4 ring-white/20" />
           <h1 className="mt-4 text-2xl font-extrabold">{hello}</h1>
-          <p className="mt-2 text-sm text-indigo-100">Installez <b>Schoolmatik</b> : livres et fournitures scolaires livrés à Dakar, kits complets par classe, paiement Wave, Orange Money ou à la livraison.</p>
-          {inviteError && <p className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-indigo-100">Ce lien d&apos;invitation a expiré : vous pouvez tout de même installer l&apos;application.</p>}
+          <p className="mt-2 text-sm text-brand-50">Installez <b>Schoolmatik</b> : livres et fournitures scolaires livrés à Dakar, kits complets par classe, paiement sécurisé par Wave ou Orange Money.</p>
+          {inviteError && <p className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-brand-50">Ce lien d&apos;invitation a expiré : vous pouvez tout de même installer l&apos;application.</p>}
         </div>
 
         <section className="mt-6 rounded-3xl bg-white p-5 shadow-2xl">
@@ -104,7 +104,7 @@ export default function InstallLanding({ code }: { code: string | null }) {
             </div>
           ) : device === "android" ? (
             prompt ? (
-              <button onClick={install} className="w-full rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white shadow-lg active:scale-[.98]">📲 Installer l&apos;application</button>
+              <button onClick={install} className="w-full rounded-2xl bg-brand-600 py-4 text-lg font-bold text-white shadow-lg active:scale-[.98]">📲 Installer l&apos;application</button>
             ) : (
               <Steps title="Installer sur Android" steps={[<>Ouvrez ce lien dans <b>Chrome</b>.</>, <>Touchez le menu <b>⋮</b> en haut à droite.</>, <>Choisissez <b>« Installer l&apos;application »</b> (ou « Ajouter à l&apos;écran d&apos;accueil »).</>]} />
             )
@@ -113,7 +113,7 @@ export default function InstallLanding({ code }: { code: string | null }) {
           ) : device === "ios-other" || device === "in-app" ? (
             <div>
               <Steps title="Ouvrez ce lien dans votre navigateur" steps={[<>Copiez le lien ci-dessous.</>, <>Collez-le dans <b>{device === "ios-other" ? "Safari" : "Chrome ou Safari"}</b>.</>, <>Suivez ensuite les étapes d&apos;installation.</>]} />
-              <button onClick={copy} className="mt-3 w-full rounded-2xl bg-indigo-600 py-3 font-bold text-white">{copied ? "Lien copié ✓" : "Copier le lien"}</button>
+              <button onClick={copy} className="mt-3 w-full rounded-2xl bg-brand-600 py-3 font-bold text-white">{copied ? "Lien copié ✓" : "Copier le lien"}</button>
             </div>
           ) : device === "desktop" ? (
             <div className="text-center">
@@ -130,7 +130,7 @@ export default function InstallLanding({ code }: { code: string | null }) {
           </Link>
         </section>
 
-        <ul className="mt-6 space-y-2 text-sm text-indigo-100">
+        <ul className="mt-6 space-y-2 text-sm text-brand-50">
           <li>📚 Livres et fournitures de la CI à la Terminale</li>
           <li>🎒 Kits complets par classe, prêts à commander</li>
           <li>🛵 Livraison à domicile à Dakar, suivi du livreur</li>
@@ -148,7 +148,7 @@ function Steps({ title, steps }: { title: string; steps: React.ReactNode[] }) {
       <ol className="mt-3 space-y-3">
         {steps.map((s, i) => (
           <li key={i} className="flex gap-3 text-sm text-slate-600">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{i + 1}</span>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{i + 1}</span>
             <span>{s}</span>
           </li>
         ))}

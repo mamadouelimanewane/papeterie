@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Schoolmatik Livreur",
   description: "Espace livreur : commandes disponibles, livraison en cours, navigation et gains.",
   manifest: "/pwa/livreur.webmanifest",
-  icons: { icon: "/pwa/livreur-192.png", apple: "/pwa/livreur-180.png" },
+  icons: { icon: "/pwa/livreur-192.png?v=2", apple: "/pwa/livreur-180.png?v=2" },
   appleWebApp: { capable: true, title: "Livreur", statusBarStyle: "default" },
 }
 export const viewport: Viewport = { themeColor: "#059669" }

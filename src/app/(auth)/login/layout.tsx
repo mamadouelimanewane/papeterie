@@ -5,7 +5,7 @@ import PwaRegister from "@/components/pwa/PwaRegister"
 export const metadata: Metadata = {
   title: "Schoolmatik Admin — Connexion",
   manifest: "/pwa/admin.webmanifest",
-  icons: { icon: "/pwa/admin-192.png", apple: "/pwa/admin-180.png" },
+  icons: { icon: "/pwa/admin-192.png?v=2", apple: "/pwa/admin-180.png?v=2" },
   appleWebApp: { capable: true, title: "Admin", statusBarStyle: "black-translucent" },
 }
 export const viewport: Viewport = { themeColor: "#111827" }

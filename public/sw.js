@@ -8,7 +8,7 @@
  */
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js") } catch (e) { /* hors ligne : push indisponible, le reste fonctionne */ }
 
-const VERSION = "v1"
+const VERSION = "v2"
 const CACHE = "schoolmatik-static-" + VERSION
 const OFFLINE_URL = "/offline.html"
 const PRECACHE = [OFFLINE_URL, "/pwa/client-192.png", "/pwa/livreur-192.png", "/pwa/admin-192.png"]

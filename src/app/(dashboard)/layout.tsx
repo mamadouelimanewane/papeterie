@@ -11,7 +11,7 @@ import { I18nProvider } from "@/i18n/I18nProvider"
 // Application installable « Admin » (raccourci sur l'écran d'accueil)
 export const metadata: Metadata = {
   manifest: "/pwa/admin.webmanifest",
-  icons: { icon: "/pwa/admin-192.png", apple: "/pwa/admin-180.png" },
+  icons: { icon: "/pwa/admin-192.png?v=2", apple: "/pwa/admin-180.png?v=2" },
   appleWebApp: { capable: true, title: "Admin", statusBarStyle: "black-translucent" },
 }
 export const viewport: Viewport = { themeColor: "#111827" }

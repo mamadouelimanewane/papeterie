@@ -1,25 +1,30 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { reportInstalled } from "@/app/shop/inviteTracking"
 
 type App = "client" | "livreur" | "admin"
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> }
 
-const COLORS: Record<App, string> = { client: "#4F46E5", livreur: "#059669", admin: "#111827" }
-const DISMISS_DAYS = 7
+const COLORS: Record<App, string> = { client: "#C61620", livreur: "#059669", admin: "#111827" }
+// Boutique : l'invitation revient chaque jour tant que l'application n'est pas installée ; ailleurs, 7 jours
+const DISMISS_DAYS: Record<App, number> = { client: 1, livreur: 7, admin: 7 }
 
 /**
  * Enregistre le service worker et propose d'installer l'application sur l'écran d'accueil :
  *  - Android / Chrome : bouton « Installer » (événement beforeinstallprompt) ;
  *  - iPhone / Safari : mode d'emploi (« Partager » puis « Sur l'écran d'accueil »), car iOS n'a pas d'invite automatique.
- * Rien ne s'affiche si l'application est déjà installée (mode « standalone ») ou si l'invite a été fermée il y a moins de 7 jours.
+ * Rien ne s'affiche si l'application est déjà installée (mode « standalone ») ou si l'invite a été fermée récemment.
+ * Boutique sur téléphone : fenêtre au centre dès l'ouverture, avant de continuer ; si le navigateur ne propose pas
+ * l'installation lui-même (Android sans invite), « Installer » mène au mode d'emploi (/shop/installer).
  */
 export default function PwaRegister({ app, label }: { app: App; label: string }) {
   const [event, setEvent] = useState<InstallEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [visible, setVisible] = useState(false)
+  const [phone, setPhone] = useState(false)
+  const router = useRouter()
   const pathname = usePathname()
   const onInstallPage = pathname?.startsWith("/shop/installer") ?? false // la page d'installation a son propre bouton
 
@@ -35,13 +40,15 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     }
     try {
       const at = Number(localStorage.getItem(`pwa-dismissed-${app}`) ?? 0)
-      if (at && Date.now() - at < DISMISS_DAYS * 86400_000) return
+      if (at && Date.now() - at < DISMISS_DAYS[app] * 86400_000) return
     } catch { /* stockage indisponible */ }
 
     const ua = navigator.userAgent
     const isIos = /iphone|ipad|ipod/i.test(ua) && !/crios|fxios|edgios/i.test(ua) // Safari uniquement
     // eslint-disable-next-line react-hooks/set-state-in-effect -- detection du navigateur apres l hydratation
     if (isIos) { setIos(true); setVisible(true) }
+    // Boutique sur un téléphone Android : invitation affichée même sans invite du navigateur
+    if (app === "client" && /android/i.test(ua)) { setPhone(true); setVisible(true) }
 
     const onPrompt = (e: Event) => { e.preventDefault(); setEvent(e as InstallEvent); setVisible(true) }
     const onInstalled = () => setVisible(false)
@@ -55,19 +62,38 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     try { localStorage.setItem(`pwa-dismissed-${app}`, String(Date.now())) } catch { /* ignoré */ }
   }
   const install = async () => {
-    if (!event) return
+    if (!event) { setVisible(false); router.push("/shop/installer"); return }
     await event.prompt()
     const choice = await event.userChoice
     setEvent(null)
     if (choice.outcome === "accepted") setVisible(false); else dismiss()
   }
 
-  if (onInstallPage || !visible || (!event && !ios)) return null
+  if (onInstallPage || !visible || (!event && !ios && !phone)) return null
+
+  // Boutique : fenêtre centrée, avant de continuer
+  if (app === "client") return (
+    <div role="dialog" aria-modal="true" aria-label={`Installer ${label}`} className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/schoolmatik-logo-256.png" alt="Schoolmatik" width={96} height={96} className="mx-auto h-24 w-24 rounded-2xl shadow" />
+        <h2 className="mt-4 text-lg font-extrabold text-slate-900">Installer Schoolmatik sur votre téléphone ?</h2>
+        <p className="mt-1 text-sm text-slate-500">Un raccourci sur l&apos;écran d&apos;accueil pour commander vos fournitures en un geste, comme une application.</p>
+        {ios ? (
+          <p className="mt-4 rounded-xl bg-slate-50 p-3 text-left text-sm text-slate-600">Touchez <b>Partager</b> <span aria-hidden>⬆️</span> en bas de Safari, puis <b>« Sur l&apos;écran d&apos;accueil »</b> et <b>Ajouter</b>.</p>
+        ) : (
+          <button onClick={install} className="mt-5 w-full rounded-2xl py-3.5 text-base font-bold text-white shadow" style={{ backgroundColor: COLORS[app] }}>📲 Installer</button>
+        )}
+        <button onClick={dismiss} className="mt-3 w-full rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-600">{ios ? "J'ai compris" : "Plus tard"}</button>
+      </div>
+    </div>
+  )
+
   return (
     <div role="dialog" aria-label={`Installer ${label}`} className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-md rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/10" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
       <div className="flex items-start gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/pwa/${app}-192.png`} alt="" width={48} height={48} className="h-12 w-12 rounded-xl" />
+        <img src={`/pwa/${app}-192.png?v=2`} alt="" width={48} height={48} className="h-12 w-12 rounded-xl" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-800">Installer {label}</p>
           {ios ? (
