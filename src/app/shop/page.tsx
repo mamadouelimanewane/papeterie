@@ -43,7 +43,9 @@ export default function ShopPage() {
   const [registerOpen, setRegisterOpen] = useState(false)
   // Recherche intelligente : la réponse de l'assistant vaut pour la question posée (effacée si la recherche change)
   const [aiEnabled, setAiEnabled] = useState(false)
-  const [ai, setAi] = useState<{ q: string; loading: boolean; message?: string; ids?: string[]; error?: string } | null>(null)
+  const [ai, setAi] = useState<{ q: string; loading: boolean; message?: string; ids?: string[] } | null>(null)
+  // Assistant en panne (erreur, délai dépassé, réseau) : la recherche classique prend le relais pour le reste de la visite
+  const [aiDown, setAiDown] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/store?products=1&view=shop").then((r) => r.json()).then(setStore).catch(() => setStore(null)).finally(() => setLoading(false))
@@ -55,10 +57,18 @@ export default function ShopPage() {
     if (!q) return
     setAi({ q, loading: true })
     try {
-      const r = await fetch("/api/shop/ai-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q }) })
-      const j = await r.json().catch(() => ({}))
-      setAi(r.ok ? { q, loading: false, message: j.message, ids: j.productIds ?? [] } : { q, loading: false, error: j.error ?? "L'assistant ne répond pas, réessayez" })
-    } catch { setAi({ q, loading: false, error: "Connexion impossible, réessayez" }) }
+      const r = await fetch("/api/shop/ai-search", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q }),
+        signal: AbortSignal.timeout(15_000), // jamais plus de 15 s d'attente
+      })
+      const j = await r.json()
+      if (!r.ok || !Array.isArray(j.productIds)) throw new Error(j.error ?? "Assistant indisponible")
+      setAi({ q, loading: false, message: j.message, ids: j.productIds })
+    } catch {
+      // Quelle que soit la panne : on reste sur la recherche classique, sans bloquer le parent
+      setAi(null)
+      setAiDown(q)
+    }
   }
 
   useEffect(() => {
@@ -90,9 +100,11 @@ export default function ShopPage() {
     const text = norm(`${p.name} ${p.category ?? ""}`)
     return words.every((w) => text.includes(w))
   })
-  const aiActive = !!ai && ai.q === query.trim() && !ai.loading && !ai.error
+  const aiAnswered = !!ai && ai.q === query.trim() && !ai.loading
   const byId = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
-  const aiProducts = aiActive ? (ai!.ids ?? []).map((id) => byId.get(id)).filter((p): p is Product => !!p) : []
+  const aiProducts = aiAnswered ? (ai!.ids ?? []).map((id) => byId.get(id)).filter((p): p is Product => !!p) : []
+  // L'assistant ne trouve rien alors que la recherche classique trouve : on garde la recherche classique
+  const aiActive = aiAnswered && (aiProducts.length > 0 || filtered.length === 0)
   const list = aiActive ? aiProducts : filtered
   const [visible, setVisible] = useState(PAGE_SIZE)
   useEffect(() => { setVisible(PAGE_SIZE) }, [activeCat, query])
@@ -228,7 +240,13 @@ export default function ShopPage() {
               </h2>
               <button onClick={() => { setQuery(""); setAi(null) }} className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-slate-200">Effacer ✕</button>
             </div>
-            {aiEnabled && (
+            {aiDown === query.trim() && (
+              <p className="mb-3 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-500">L&apos;assistant n&apos;est pas disponible pour le moment : voici les résultats de la recherche simple.</p>
+            )}
+            {aiAnswered && !aiActive && (
+              <p className="mb-3 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-500">L&apos;assistant n&apos;a pas trouvé mieux : voici les résultats de la recherche simple.</p>
+            )}
+            {aiEnabled && !aiDown && !(aiAnswered && !aiActive) && (
               aiActive ? (
                 <div className="mb-4 rounded-2xl bg-white p-4 ring-1 ring-brand-100">
                   <p className="text-sm text-slate-700"><span className="mr-1">✨</span>{ai!.message || (aiProducts.length ? "Voici ce que je vous propose." : "Je n'ai rien trouvé qui corresponde dans le catalogue.")}</p>
@@ -237,7 +255,7 @@ export default function ShopPage() {
               ) : (
                 <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-sun-100 to-white p-3 ring-1 ring-sun-200">
                   <span className="text-2xl" aria-hidden>✨</span>
-                  <p className="flex-1 text-xs text-slate-700">{ai?.error && ai.q === query.trim() ? ai.error : filtered.length ? "Pas exactement ce que vous cherchez ? Décrivez votre besoin, l'assistant vous conseille." : "Rien trouvé : demandez à l'assistant (ex. « fournitures CM2 », « livre maths terminale »)."}</p>
+                  <p className="flex-1 text-xs text-slate-700">{filtered.length ? "Pas exactement ce que vous cherchez ? Décrivez votre besoin, l'assistant vous conseille." : "Rien trouvé : demandez à l'assistant (ex. « fournitures CM2 », « livre maths terminale »)."}</p>
                   <button onClick={askAssistant} disabled={ai?.loading} className="shrink-0 rounded-full bg-brand-600 px-3.5 py-2 text-xs font-bold text-white disabled:opacity-60">
                     {ai?.loading ? "Je cherche…" : "Demander à l'assistant"}
                   </button>
