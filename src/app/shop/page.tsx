@@ -27,6 +27,8 @@ const CAT_ORDER = [
 ]
 const catRank = (c?: string | null) => { const i = CAT_ORDER.indexOf(c ?? ""); return i === -1 ? CAT_ORDER.length : i }
 const PAGE_SIZE = 60
+// Recherche insensible aux accents et aux majuscules (« geometrie » trouve « Géométrie »)
+const norm = (s?: string | null) => (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
 
 export default function ShopPage() {
   const [store, setStore] = useState<Store | null>(null)
@@ -65,9 +67,14 @@ export default function ShopPage() {
     () => ["Tout", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))],
     [products]
   )
-  const filtered = products.filter(
-    (p) => (activeCat === "Tout" || p.category === activeCat) && p.name.toLowerCase().includes(query.toLowerCase())
-  )
+  // Pendant une recherche : tous les mots tapés doivent apparaître dans le nom ou la rubrique, toutes rubriques confondues
+  const words = norm(query).split(/\s+/).filter(Boolean)
+  const searching = words.length > 0
+  const filtered = products.filter((p) => {
+    if (!searching) return activeCat === "Tout" || p.category === activeCat
+    const text = norm(`${p.name} ${p.category ?? ""}`)
+    return words.every((w) => text.includes(w))
+  })
   const [visible, setVisible] = useState(PAGE_SIZE)
   useEffect(() => { setVisible(PAGE_SIZE) }, [activeCat, query])
   const shown = filtered.slice(0, visible)
@@ -115,7 +122,7 @@ export default function ShopPage() {
             </div>
           </div>
           <div className="ml-auto hidden flex-1 sm:block">
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un article..."
+            <input type="search" enterKeyHint="search" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }} placeholder="Rechercher un article..."
               className="w-full max-w-md rounded-full border border-black/10 bg-white px-4 py-2 text-sm outline-none focus:border-brand-400" />
           </div>
           <MyOrders />
@@ -141,13 +148,13 @@ export default function ShopPage() {
           </button>
         </div>
         <div className="px-4 pb-3 sm:hidden">
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher..."
+          <input type="search" enterKeyHint="search" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }} placeholder="Rechercher..."
             className="w-full rounded-full border border-black/10 bg-white px-4 py-2 text-sm outline-none focus:border-brand-400" />
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-5">
+      {/* Hero (masqué pendant une recherche : les résultats viennent juste sous la barre) */}
+      {!searching && <section className="mx-auto max-w-6xl px-4 pt-5">
         <div className="relative overflow-hidden rounded-2xl bg-sun-400 p-6 text-slate-900 ring-1 ring-sun-500/40 sm:p-8">
           <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-sun-300" />
           <div aria-hidden className="pointer-events-none absolute -bottom-24 right-24 h-48 w-48 rounded-full border-[14px] border-brand-600/10" />
@@ -178,10 +185,10 @@ export default function ShopPage() {
             </button>
           </div>
         )}
-      </section>
+      </section>}
 
       {/* Categories */}
-      <div className="mx-auto max-w-6xl px-4 pt-5">
+      {!searching && <div className="mx-auto max-w-6xl px-4 pt-5">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {categories.map((c) => (
             <button key={c} onClick={() => setActiveCat(c)}
@@ -190,11 +197,18 @@ export default function ShopPage() {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Grid */}
       <main className="mx-auto max-w-6xl px-4 py-5">
-        <h2 className="mb-3 text-sm font-semibold text-slate-500">{filtered.length} article{filtered.length > 1 ? "s" : ""}</h2>
+        {searching ? (
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-slate-600">{filtered.length} résultat{filtered.length > 1 ? "s" : ""} pour « {query.trim()} »</h2>
+            <button onClick={() => setQuery("")} className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-slate-200">Effacer ✕</button>
+          </div>
+        ) : (
+          <h2 className="mb-3 text-sm font-semibold text-slate-500">{filtered.length} article{filtered.length > 1 ? "s" : ""}</h2>
+        )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((p) => (
             <div key={p.id} onClick={() => setDetail(p)} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-100 transition hover:shadow-lg">
@@ -215,7 +229,7 @@ export default function ShopPage() {
             </div>
           ))}
         </div>
-        {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouvé.</p>}
+        {filtered.length === 0 && <p className="py-10 text-center text-slate-400">Aucun article trouvé.{searching && " Essayez un autre mot (ex. : cahier, stylo, Bescherelle)."}</p>}
         {filtered.length > shown.length && (
           <div className="mt-6 text-center">
             <button onClick={() => setVisible((v) => v + PAGE_SIZE)} className="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
