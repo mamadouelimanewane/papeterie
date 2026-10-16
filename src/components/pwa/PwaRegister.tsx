@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { reportInstalled } from "@/app/shop/inviteTracking"
+import { isSamsungBrowser, openInChromeUrl } from "@/lib/pwaBrowser"
 
 type App = "client" | "livreur" | "admin"
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> }
@@ -24,6 +25,7 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
   const [ios, setIos] = useState(false)
   const [visible, setVisible] = useState(false)
   const [phone, setPhone] = useState(false)
+  const [samsung, setSamsung] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const onInstallPage = pathname?.startsWith("/shop/installer") ?? false // la page d'installation a son propre bouton
@@ -47,6 +49,8 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     const isIos = /iphone|ipad|ipod/i.test(ua) && !/crios|fxios|edgios/i.test(ua) // Safari uniquement
     // eslint-disable-next-line react-hooks/set-state-in-effect -- detection du navigateur apres l hydratation
     if (isIos) { setIos(true); setVisible(true) }
+    // Samsung Internet : son installation est bloquée par Play Protect, on propose Chrome
+    if (/android/i.test(ua) && isSamsungBrowser(ua)) { setSamsung(true); setVisible(true) }
     // Boutique sur un téléphone Android : invitation affichée même sans invite du navigateur
     if (app === "client" && /android/i.test(ua)) { setPhone(true); setVisible(true) }
 
@@ -69,7 +73,8 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
     if (choice.outcome === "accepted") setVisible(false); else dismiss()
   }
 
-  if (onInstallPage || !visible || (!event && !ios && !phone)) return null
+  if (onInstallPage || !visible || (!event && !ios && !phone && !samsung)) return null
+  const chromeLink = samsung ? openInChromeUrl(window.location.href) : ""
 
   // Boutique : fenêtre centrée, avant de continuer
   if (app === "client") return (
@@ -79,7 +84,12 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
         <img src="/brand/schoolmatik-logo-256.png" alt="Schoolmatik" width={96} height={96} className="mx-auto h-24 w-24 rounded-2xl shadow" />
         <h2 className="mt-4 text-lg font-extrabold text-slate-900">Installer Schoolmatik sur votre téléphone ?</h2>
         <p className="mt-1 text-sm text-slate-500">Un raccourci sur l&apos;écran d&apos;accueil pour commander vos fournitures en un geste, comme une application.</p>
-        {ios ? (
+        {samsung ? (
+          <>
+            <p className="mt-4 rounded-xl bg-slate-50 p-3 text-left text-sm text-slate-600">Sur ce téléphone, l&apos;installation se fait avec <b>Chrome</b> : la page s&apos;ouvre dans Chrome, puis touchez <b>Installer</b>.</p>
+            <a href={chromeLink} className="mt-4 block w-full rounded-2xl py-3.5 text-base font-bold text-white shadow" style={{ backgroundColor: COLORS[app] }}>Ouvrir dans Chrome pour installer</a>
+          </>
+        ) : ios ? (
           <p className="mt-4 rounded-xl bg-slate-50 p-3 text-left text-sm text-slate-600">Touchez <b>Partager</b> <span aria-hidden>⬆️</span> en bas de Safari, puis <b>« Sur l&apos;écran d&apos;accueil »</b> et <b>Ajouter</b>.</p>
         ) : (
           <button onClick={install} className="mt-5 w-full rounded-2xl py-3.5 text-base font-bold text-white shadow" style={{ backgroundColor: COLORS[app] }}>📲 Installer</button>
@@ -104,7 +114,11 @@ export default function PwaRegister({ app, label }: { app: App; label: string })
         </div>
         <button onClick={dismiss} aria-label="Fermer" className="text-slate-400">✕</button>
       </div>
-      {!ios && (
+      {samsung ? (
+        <a href={chromeLink} className="mt-3 block w-full rounded-xl py-2.5 text-center text-sm font-semibold text-white" style={{ backgroundColor: COLORS[app] }}>
+          Ouvrir dans Chrome pour installer
+        </a>
+      ) : !ios && (
         <button onClick={install} className="mt-3 w-full rounded-xl py-2.5 text-sm font-semibold text-white" style={{ backgroundColor: COLORS[app] }}>
           Installer
         </button>

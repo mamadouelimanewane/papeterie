@@ -4,16 +4,17 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useClient } from "../useClient"
 import { INVITE_KEY, reportInstalled } from "../inviteTracking"
+import { isSamsungBrowser, openInChromeUrl } from "@/lib/pwaBrowser"
 
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> }
-type Device = "android" | "ios" | "ios-other" | "in-app" | "desktop"
+type Device = "android" | "samsung" | "ios" | "ios-other" | "in-app" | "desktop"
 
 function detectDevice(): Device {
   const ua = navigator.userAgent
   // Navigateurs intégrés (Facebook, Instagram, TikTok…) : l'installation y est impossible
   if (/FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat/i.test(ua)) return "in-app"
   if (/iphone|ipad|ipod/i.test(ua)) return /crios|fxios|edgios/i.test(ua) ? "ios-other" : "ios"
-  if (/android/i.test(ua)) return "android"
+  if (/android/i.test(ua)) return isSamsungBrowser(ua) ? "samsung" : "android"
   return "desktop"
 }
 
@@ -108,6 +109,12 @@ export default function InstallLanding({ code }: { code: string | null }) {
             ) : (
               <Steps title="Installer sur Android" steps={[<>Ouvrez ce lien dans <b>Chrome</b>.</>, <>Touchez le menu <b>⋮</b> en haut à droite.</>, <>Choisissez <b>« Installer l&apos;application »</b> (ou « Ajouter à l&apos;écran d&apos;accueil »).</>]} />
             )
+          ) : device === "samsung" ? (
+            <div>
+              <Steps title="Installer avec Chrome" steps={[<>Touchez le bouton ci-dessous : la page s&apos;ouvre dans <b>Chrome</b>.</>, <>Touchez <b>Installer l&apos;application</b> (ou menu <b>⋮</b> puis <b>« Installer l&apos;application »</b>).</>, <>L&apos;icône Schoolmatik apparaît sur l&apos;écran d&apos;accueil.</>]} />
+              {url && <a href={openInChromeUrl(url)} className="mt-3 block w-full rounded-2xl bg-brand-600 py-3.5 text-center font-bold text-white">Ouvrir dans Chrome</a>}
+              <p className="mt-2 text-center text-xs text-slate-400">L&apos;installation depuis Samsung Internet est bloquée par Google Play Protect.</p>
+            </div>
           ) : device === "ios" ? (
             <Steps title="Installer sur iPhone" steps={[<>Touchez le bouton <b>Partager</b> <span aria-hidden>⬆️</span> en bas de l&apos;écran.</>, <>Faites défiler et choisissez <b>« Sur l&apos;écran d&apos;accueil »</b>.</>, <>Touchez <b>Ajouter</b> : l&apos;icône Schoolmatik apparaît.</>]} />
           ) : device === "ios-other" || device === "in-app" ? (
