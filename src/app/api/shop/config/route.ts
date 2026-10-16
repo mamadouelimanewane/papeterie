@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getDeliveryConfig, getPromotionsEnabled } from "@/lib/shopConfig"
+import { aiSearchEnabled } from "@/lib/aiSearch"
 
 /**
  * Configuration publique de la vitrine : codes promo actifs ? tarif de livraison ?
@@ -11,6 +12,7 @@ export async function GET() {
   return NextResponse.json(
     {
       promotionsEnabled,
+      aiSearch: aiSearchEnabled(), // bouton « Demander à l'assistant » dans la recherche
       delivery: {
         mode: distance ? "Distance" : "Fixed",
         baseFee: d.baseFee, baseKm: d.baseKm, perKm: d.perKm, maxKm: d.maxKm, maxFee: d.maxFee, freeAbove: d.freeAbove,

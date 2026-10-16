@@ -45,6 +45,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
     if (pathname === "/api/delivery/quote" || pathname === "/api/delivery/geocode") return true // devis de livraison / recherche d'adresse (vitrine)
     if (pathname === "/api/shop/pay") return true // relance du paiement en ligne d'une commande non reglee
     if (pathname === "/api/shop/my-orders") return true // « Mes commandes » verrouille par le numero de telephone
+    if (pathname === "/api/shop/ai-search") return true // recherche intelligente de la vitrine (limitee en debit)
     if (pathname === "/api/shop/invite") return true // lien d'invitation d'un client (code aleatoire, profil a pre-remplir)
     if (pathname === "/api/webhooks/versus") return true // signature verifiee dans la route
     if (pathname === "/api/admin/seed") return true // protege par SEED_SECRET
