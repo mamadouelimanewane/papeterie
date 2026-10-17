@@ -104,6 +104,8 @@ model Product {
   category    String?
   stock       Int      @default(0)
   barcode     String?  @unique
+  /// Taux de TVA propre au produit (%). Vide : taux de sa catégorie, sinon taux par défaut (Comptabilité › Réglages).
+  vatRate     Float?
   storeId     String
   store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -355,4 +357,76 @@ model ProductImage {
   size      Int
   storeId   String?
   createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Comptabilité (SYSCOHADA révisé) : plan comptable, exercices, écritures en partie double
+// ---------------------------------------------------------------------------
+
+/// Compte du plan comptable (ex. 4111 Clients, 7011 Ventes de marchandises).
+model AccAccount {
+  code      String   @id
+  label     String
+  isActive  Boolean  @default(true)
+  isSystem  Boolean  @default(false) /// compte utilisé par les écritures automatiques : non supprimable
+  createdAt DateTime @default(now())
+}
+
+/// Exercice comptable (année civile en OHADA). Un exercice clôturé n'accepte plus d'écriture.
+model AccFiscalYear {
+  year      Int       @id
+  startDate DateTime
+  endDate   DateTime
+  status    String    @default("Ouvert") /// Ouvert | Clôturé
+  closedAt  DateTime?
+  result    Int? /// résultat net constaté à la clôture (FCFA)
+}
+
+/// Écriture : en-tête (journal, date, pièce) + lignes équilibrées (total débit = total crédit).
+model AccEntry {
+  id         String    @id @default(cuid())
+  journal    String /// VE ventes, AC achats, BQ banque, MM monnaie électronique, CA caisse, OD opérations diverses, AN à-nouveaux
+  number     String    @unique /// ex. VE-2026-000123
+  date       DateTime
+  label      String
+  reference  String? /// pièce justificative (n° de commande, facture fournisseur…)
+  fiscalYear Int
+  sourceType String? /// origine automatique (vente, encaissement, livreur…) ; vide = saisie manuelle
+  sourceId   String?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  lines      AccLine[]
+
+  @@unique([sourceType, sourceId])
+  @@index([fiscalYear, journal, date])
+}
+
+/// Ligne d'écriture (montants entiers en FCFA).
+model AccLine {
+  id         String   @id @default(cuid())
+  entryId    String
+  entry      AccEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account    String
+  thirdParty String? /// tiers (client, fournisseur, livreur)
+  label      String?
+  debit      Int      @default(0)
+  credit     Int      @default(0)
+  vatRate    Float? /// taux de TVA de la base (déclaration de TVA)
+
+  @@index([account])
+  @@index([entryId])
+}
+
+/// Immobilisation amortie linéairement (dotation passée à la clôture de l'exercice).
+model AccFixedAsset {
+  id              String    @id @default(cuid())
+  label           String
+  account         String /// compte d'immobilisation (ex. 2441 Matériel de bureau)
+  amortAccount    String /// compte d'amortissement (ex. 28441)
+  acquisitionDate DateTime
+  cost            Int /// valeur d'origine HT (FCFA)
+  durationYears   Int
+  status          String    @default("En service") /// En service | Cédée
+  disposedAt      DateTime?
+  createdAt       DateTime  @default(now())
 }

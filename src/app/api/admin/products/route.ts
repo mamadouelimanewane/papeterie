@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
         orderBy: [{ category: "asc" }, { name: "asc" }],
         skip: (page - 1) * perPage,
         take: perPage,
-        select: { id: true, name: true, price: true, stock: true, category: true, description: true, image: true, status: true, barcode: true, store: { select: { name: true } } },
+        select: { id: true, name: true, price: true, stock: true, category: true, vatRate: true, description: true, image: true, status: true, barcode: true, store: { select: { name: true } } },
       }),
       prisma.product.count({ where }),
       prisma.product.findMany({ where: { category: { not: null } }, distinct: ["category"], select: { category: true }, orderBy: { category: "asc" } }),

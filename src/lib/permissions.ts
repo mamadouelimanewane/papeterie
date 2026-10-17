@@ -11,6 +11,7 @@ export const ALL_PERMISSIONS = [
   "content.view", "content.manage",
   "notifications.send",
   "wallet.view", "wallet.manage",
+  "accounting.view", "accounting.manage",
 ]
 
 // Roles consideres comme super-administrateurs (acces total)
@@ -29,6 +30,7 @@ const ROUTE_PERMS: [string, string | null][] = [
   ["/stores", "stores.view"],
   ["/products", "stores.view"],
   ["/kits", "stores.view"],
+  ["/accounting", "accounting.view"],
   ["/categories", "stores.view"],
   ["/slider", "stores.view"],
   ["/reports", "reports.view"],

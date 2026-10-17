@@ -5,7 +5,7 @@
  */
 export const KIT_CYCLES = ["Primaire", "College", "Lycee"] as const
 
-export type KitItemInput = { name: string; price: number; qty: number }
+export type KitItemInput = { name: string; price: number; qty: number; vatRate?: number }
 export type KitInput = {
   name?: string; level?: string; series?: string | null; cycle?: string; description?: string | null
   image?: string | null; discountPct?: number; items?: KitItemInput[]; price?: number; sequence?: number; status?: string
@@ -43,7 +43,10 @@ export function parseKit(b: Record<string, unknown>, partial: boolean): KitInput
       if (!Number.isFinite(price) || price < 0) return `Prix invalide pour « ${name} »`
       if (!Number.isInteger(qty) || qty < 1 || qty > 100) return `Quantité invalide pour « ${name} » (1 à 100)`
       if (items.some((i) => i.name === name)) return `Article en double : « ${name} »`
-      items.push({ name, price: Math.round(price), qty })
+      // Taux de TVA facultatif : vide = taux du produit de même nom au catalogue, sinon taux par défaut
+      const vr = raw?.vatRate === "" || raw?.vatRate === null || raw?.vatRate === undefined ? undefined : Number(raw.vatRate)
+      if (vr !== undefined && (!Number.isFinite(vr) || vr < 0 || vr > 100)) return `TVA invalide pour « ${name} » (0 à 100 %)`
+      items.push({ name, price: Math.round(price), qty, ...(vr !== undefined ? { vatRate: vr } : {}) })
     }
     out.items = items
     out.price = items.reduce((s, i) => s + i.price * i.qty, 0)

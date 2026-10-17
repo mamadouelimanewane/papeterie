@@ -6,7 +6,7 @@ import { useState } from "react"
 import {
   LayoutDashboard, Settings, Tag, Store, ShoppingCart,
   Image, Users, BarChart2, ChevronDown, ChevronRight, LogOut, UserCog,
-  Bookmark, Bell, DollarSign, Receipt, Package, Truck, Backpack,
+  Bookmark, Bell, DollarSign, Receipt, Package, Truck, Backpack, Calculator,
 } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -95,6 +95,22 @@ const navigation: { section: string; items: NavItem[] }[] = [
           { label: "Toutes les transactions", href: "/reports/transactions" },
           { label: "Portefeuille boutiques", href: "/reports/transactions/business" },
           { label: "Rapport de solde", href: "/reports/transactions/balance" },
+        ],
+      },
+      {
+        label: "Comptabilité", icon: <Calculator size={16} />,
+        children: [
+          { label: "Tableau de bord", href: "/accounting" },
+          { label: "Journaux et écritures", href: "/accounting/entries" },
+          { label: "Achats et charges", href: "/accounting/expenses" },
+          { label: "Grand livre", href: "/accounting/ledger" },
+          { label: "Balance", href: "/accounting/balance" },
+          { label: "Bilan et compte de résultat", href: "/accounting/statements" },
+          { label: "Déclaration de TVA", href: "/accounting/vat" },
+          { label: "Immobilisations", href: "/accounting/assets" },
+          { label: "Plan comptable", href: "/accounting/accounts" },
+          { label: "Clôture d'exercice", href: "/accounting/closing" },
+          { label: "Réglages comptables", href: "/accounting/settings" },
         ],
       },
     ],

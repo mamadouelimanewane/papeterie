@@ -5,16 +5,16 @@ import { Plus, Edit, Trash2, Eye, EyeOff, X } from "lucide-react"
 import { useFeedback, useAction } from "@/components/admin/Feedback"
 import { adminFetch, fmtMoney } from "@/lib/adminApi"
 
-type KitItem = { name: string; price: number; qty: number }
+type KitItem = { name: string; price: number; qty: number; vatRate?: number }
 type Kit = {
   id: string; name: string; level: string; series: string | null; cycle: string; description: string | null
   image: string | null; price: number; discountPct: number; items: KitItem[]; sequence: number; status: string
 }
-type Draft = Omit<Kit, "id" | "price" | "items" | "sequence"> & { id?: string; items: { name: string; price: string; qty: string }[] }
+type Draft = Omit<Kit, "id" | "price" | "items" | "sequence"> & { id?: string; items: { name: string; price: string; qty: string; vatRate: string }[] }
 
 const CYCLES = [{ v: "Primaire", l: "Primaire" }, { v: "College", l: "Collège" }, { v: "Lycee", l: "Lycée" }]
 const sold = (k: { price: number; discountPct: number }) => Math.round(k.price * (1 - (k.discountPct || 0) / 100))
-const emptyDraft = (): Draft => ({ name: "", level: "", series: "", cycle: "Primaire", description: "", image: "", discountPct: 0, status: "Active", items: [{ name: "", price: "", qty: "1" }] })
+const emptyDraft = (): Draft => ({ name: "", level: "", series: "", cycle: "Primaire", description: "", image: "", discountPct: 0, status: "Active", items: [{ name: "", price: "", qty: "1", vatRate: "" }] })
 
 /**
  * Kits par classe vendus dans la vitrine (/shop/kits) : liste des articles de chaque classe, avec remise.
@@ -34,7 +34,7 @@ export default function KitsPage() {
 
   const total = useMemo(() => (draft ? draft.items.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0) : 0), [draft])
 
-  const edit = (k: Kit) => setDraft({ ...k, series: k.series ?? "", description: k.description ?? "", image: k.image ?? "", items: k.items.map((i) => ({ name: i.name, price: String(i.price), qty: String(i.qty) })) })
+  const edit = (k: Kit) => setDraft({ ...k, series: k.series ?? "", description: k.description ?? "", image: k.image ?? "", items: k.items.map((i) => ({ name: i.name, price: String(i.price), qty: String(i.qty), vatRate: i.vatRate == null ? "" : String(i.vatRate) })) })
   const setItem = (idx: number, patch: Partial<Draft["items"][number]>) => setDraft((d) => d && { ...d, items: d.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) })
 
   async function save() {
@@ -44,7 +44,7 @@ export default function KitsPage() {
       const body = {
         name: draft.name, level: draft.level, series: draft.series, cycle: draft.cycle, description: draft.description, image: draft.image,
         discountPct: Number(draft.discountPct) || 0, status: draft.status,
-        items: draft.items.filter((i) => i.name.trim()).map((i) => ({ name: i.name.trim(), price: Number(i.price), qty: Number(i.qty) })),
+        items: draft.items.filter((i) => i.name.trim()).map((i) => ({ name: i.name.trim(), price: Number(i.price), qty: Number(i.qty), vatRate: i.vatRate })),
       }
       const ok = await run(() => adminFetch(draft.id ? `/api/admin/kits/${draft.id}` : "/api/admin/kits", { method: draft.id ? "PATCH" : "POST", body }), draft.id ? "Kit modifié" : "Kit créé")
       if (ok) { setDraft(null); load() }
@@ -132,11 +132,14 @@ export default function KitsPage() {
                       <input value={it.name} onChange={(e) => setItem(i, { name: e.target.value })} placeholder="Ex. Cahier 100 pages" className="min-w-0 flex-1 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
                       <input value={it.price} onChange={(e) => setItem(i, { price: e.target.value })} inputMode="numeric" placeholder="Prix" className="w-24 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
                       <input value={it.qty} onChange={(e) => setItem(i, { qty: e.target.value })} inputMode="numeric" placeholder="Qté" className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
+                      <select value={it.vatRate} onChange={(e) => setItem(i, { vatRate: e.target.value })} title="TVA (auto : taux du produit de même nom au catalogue)" className="w-20 rounded-lg border border-gray-200 bg-white px-1 py-1.5 text-xs">
+                        <option value="">TVA auto</option><option value="0">0 %</option><option value="10">10 %</option><option value="18">18 %</option>
+                      </select>
                       <button title="Retirer" onClick={() => setDraft({ ...draft, items: draft.items.filter((_, j) => j !== i) })} className="rounded-lg px-2 text-gray-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={14} /></button>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => setDraft({ ...draft, items: [...draft.items, { name: "", price: "", qty: "1" }] })} className="mt-2 text-xs font-semibold text-blue-600 hover:underline">+ Ajouter un article</button>
+                <button onClick={() => setDraft({ ...draft, items: [...draft.items, { name: "", price: "", qty: "1", vatRate: "" }] })} className="mt-2 text-xs font-semibold text-blue-600 hover:underline">+ Ajouter un article</button>
               </div>
 
               <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">

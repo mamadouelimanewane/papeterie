@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 import { getPromotionsEnabled } from "@/lib/shopConfig"
+import { getAccountingConfig, productVatRate } from "@/lib/accounting/config"
 
 export const DELIVERY_FEE = 500
 
@@ -11,7 +12,9 @@ export type PricedItem = {
   name: string
   price: number
   quantity: number
-  components?: { name: string; price: number; qty: number }[]
+  /** Taux de TVA figé à la commande (produit) ; pour un kit, porté par chaque composant */
+  vatRate?: number
+  components?: { name: string; price: number; qty: number; vatRate?: number }[]
 }
 
 type RawItem = {
@@ -32,6 +35,7 @@ function qtyOf(i: RawItem): number {
 export async function priceItems(tx: Prisma.TransactionClient, storeId: string, raw: unknown): Promise<PricedItem[]> {
   if (!Array.isArray(raw) || raw.length === 0 || raw.length > 100) throw new PricingError("Panier invalide")
   const out: PricedItem[] = []
+  const vat = await getAccountingConfig()
 
   for (const r of raw as RawItem[]) {
     const quantity = qtyOf(r)
@@ -41,16 +45,18 @@ export async function priceItems(tx: Prisma.TransactionClient, storeId: string, 
     if (kitId) {
       const kit = await tx.kit.findFirst({ where: { id: kitId, storeId, status: "Active" } })
       if (!kit) throw new PricingError("Kit introuvable")
-      const kitItems = (Array.isArray(kit.items) ? kit.items : []) as { name: string; price: number; qty: number }[]
+      const kitItems = (Array.isArray(kit.items) ? kit.items : []) as { name: string; price: number; qty: number; vatRate?: number | null }[]
       const comps = Array.isArray(r.components) ? (r.components as { name?: unknown; qty?: unknown }[]) : kitItems
       let sum = 0
       const components: PricedItem["components"] = []
+      // Composant sans taux propre : taux du produit du même nom au catalogue (un livre reste exonéré)
+      const named = await tx.product.findMany({ where: { storeId, name: { in: kitItems.map((k) => k.name) } }, select: { name: true, category: true, vatRate: true } })
       for (const c of comps) {
         const ref = kitItems.find((k) => k.name === c.name)
         const cq = Number(c.qty ?? ref?.qty)
         if (!ref || !Number.isInteger(cq) || cq < 1 || cq > 100) throw new PricingError("Composant de kit invalide")
         sum += ref.price * cq
-        components.push({ name: ref.name, price: ref.price, qty: cq })
+        components.push({ name: ref.name, price: ref.price, qty: cq, vatRate: ref.vatRate != null ? productVatRate({ vatRate: ref.vatRate }, vat) : productVatRate(named.find((n) => n.name === ref.name) ?? {}, vat) })
       }
       if (components.length === 0) throw new PricingError("Kit vide")
       const price = Math.round(sum * (1 - (kit.discountPct ?? 0) / 100))
@@ -61,7 +67,7 @@ export async function priceItems(tx: Prisma.TransactionClient, storeId: string, 
     if (productId) {
       const p = await tx.product.findFirst({ where: { id: productId, storeId, status: "Active" } })
       if (!p) throw new PricingError(`Produit introuvable : ${String(r.name ?? productId)}`)
-      out.push({ productId: p.id, name: p.name, price: p.price, quantity })
+      out.push({ productId: p.id, name: p.name, price: p.price, quantity, vatRate: productVatRate(p, vat) })
       continue
     }
 

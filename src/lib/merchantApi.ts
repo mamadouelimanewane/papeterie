@@ -11,6 +11,7 @@ export type ProductInput = {
   name?: string
   description?: string | null
   price?: number
+  vatRate?: number | null
   stock?: number
   category?: string | null
   image?: string | null
@@ -41,6 +42,15 @@ export function parseProduct(b: Record<string, unknown>, partial: boolean): Prod
   }
   for (const key of ["description", "category", "image"] as const) {
     if (key in b) out[key] = b[key] ? String(b[key]).trim().slice(0, key === "description" ? 2000 : 1000) : null
+  }
+  // TVA propre au produit (%) ; vide = taux de sa catégorie (Comptabilité › Réglages)
+  if ("vatRate" in b) {
+    if (b.vatRate === "" || b.vatRate === null) out.vatRate = null
+    else {
+      const v = Number(b.vatRate)
+      if (!Number.isFinite(v) || v < 0 || v > 100) return "Taux de TVA invalide (0 à 100 %)"
+      out.vatRate = v
+    }
   }
   return out
 }

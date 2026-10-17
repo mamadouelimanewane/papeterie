@@ -15,6 +15,7 @@ interface Product {
   image: string | null
   status: string
   barcode: string | null
+  vatRate?: number | null
   store: { name: string }
 }
 interface ListResponse { products: Product[]; total: number; page: number; totalPages: number; categories: string[] }
@@ -38,14 +39,14 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<Product | null>(null)
   // Fiche produit (création ou modification) : nom, prix, stock, catégorie, code-barres, description, vitrine
-  const [form, setForm] = useState<{ id?: string; name: string; price: string; stock: string; category: string; barcode: string; description: string; active: boolean } | null>(null)
+  const [form, setForm] = useState<{ id?: string; name: string; price: string; stock: string; category: string; barcode: string; vatRate: string; description: string; active: boolean } | null>(null)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState("")
   const openForm = (p?: Product) => {
     setFormError("")
     setForm(p
-      ? { id: p.id, name: p.name, price: String(p.price), stock: String(p.stock), category: p.category ?? "", barcode: p.barcode ?? "", description: p.description ?? "", active: p.status === "Active" }
-      : { name: "", price: "", stock: "0", category: category, barcode: "", description: "", active: true })
+      ? { id: p.id, name: p.name, price: String(p.price), stock: String(p.stock), category: p.category ?? "", barcode: p.barcode ?? "", vatRate: p.vatRate == null ? "" : String(p.vatRate), description: p.description ?? "", active: p.status === "Active" }
+      : { name: "", price: "", stock: "0", category: category, barcode: "", vatRate: "", description: "", active: true })
   }
 
   const load = useCallback(async () => {
@@ -70,7 +71,7 @@ export default function ProductsPage() {
     if (!form) return
     setSaving(true); setFormError("")
     try {
-      const body = { name: form.name, price: form.price, stock: form.stock, category: form.category || null, barcode: form.barcode || null, description: form.description || null, status: form.active ? "Active" : "Inactive" }
+      const body = { name: form.name, price: form.price, stock: form.stock, category: form.category || null, barcode: form.barcode || null, vatRate: form.vatRate === "" ? null : form.vatRate, description: form.description || null, status: form.active ? "Active" : "Inactive" }
       await adminFetch(form.id ? `/api/admin/products/${form.id}` : "/api/admin/products", { method: form.id ? "PATCH" : "POST", body })
       setForm(null)
       load()
@@ -190,6 +191,14 @@ export default function ProductsPage() {
               <label className="text-xs text-gray-500">Catégorie<input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} list="product-categories" placeholder="Choisir ou saisir" className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800" />
                 <datalist id="product-categories">{data?.categories.map((c) => <option key={c} value={c} />)}</datalist></label>
               <label className="text-xs text-gray-500">Code-barres<input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800" /></label>
+              <label className="text-xs text-gray-500">TVA
+                <select value={form.vatRate} onChange={(e) => setForm({ ...form, vatRate: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800">
+                  <option value="">Taux de la catégorie</option>
+                  <option value="0">0 % (exonéré)</option>
+                  <option value="10">10 %</option>
+                  <option value="18">18 %</option>
+                </select>
+              </label>
               <label className="text-xs text-gray-500 sm:col-span-2">Description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="mt-1 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800" /></label>
               <label className="flex items-center gap-2 text-sm text-gray-600 sm:col-span-2"><input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> Afficher dans la vitrine</label>
               {formError && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 sm:col-span-2">{formError}</p>}
