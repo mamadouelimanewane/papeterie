@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 import { parseProduct } from "@/lib/merchantApi"
+import { audit } from "@/lib/security/audit"
 
 /**
  * Mise à jour d'un produit.
@@ -30,7 +31,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const data: Record<string, unknown> = { ...parsed }
     if ("barcode" in b) data.barcode = b.barcode ? String(b.barcode).trim().slice(0, 64) : null
     if (!Object.keys(data).length) return NextResponse.json({ error: "Aucune modification" }, { status: 400 })
+    const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true, status: true, vatRate: true } })
     const p = await prisma.product.update({ where: { id }, data })
+    const diff = Object.fromEntries((["name", "price", "status", "vatRate"] as const).filter((k) => k in data && before?.[k] !== p[k]).map((k) => [k, `${before?.[k] ?? "—"} → ${p[k] ?? "—"}`]))
+    if (Object.keys(diff).length) await audit(req, auth, "product.update", p.name, diff)
     return NextResponse.json(p)
   } catch (e) { return errorResponse(e) }
 }

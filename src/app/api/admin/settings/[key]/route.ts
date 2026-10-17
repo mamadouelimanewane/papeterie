@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { resetCommissionCache } from "@/lib/commission"
 import { resetSettingsCache } from "@/lib/appSettings"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
+import { audit } from "@/lib/security/audit"
 
 type Params = { params: Promise<{ key: string }> }
 const KEY_RE = /^[a-z0-9-]{1,60}$/
@@ -47,6 +48,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const s = await prisma.appSetting.upsert({ where: { key }, create: { key, value: merged as object }, update: { value: merged as object } })
     resetSettingsCache(key)
     if (key === "general") resetCommissionCache()
+    // Détail des champs modifiés (les secrets ne sont jamais écrits dans le journal)
+    const changed = Object.keys(merged).filter((k) => JSON.stringify(merged[k]) !== JSON.stringify(current[k]))
+    await audit(req, auth, "settings.update", key, { champs: changed })
     return NextResponse.json({ value: mask(s.value as Obj), updatedAt: s.updatedAt })
   } catch (e) { return errorResponse(e) }
 }

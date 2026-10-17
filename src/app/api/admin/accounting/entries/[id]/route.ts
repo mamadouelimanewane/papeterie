@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { accAuth, accError } from "@/lib/accounting/api"
 import { AccountingError, createEntry } from "@/lib/accounting/ledger"
+import { audit } from "@/lib/security/audit"
 
 export const runtime = "nodejs"
 
@@ -28,6 +29,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const fy = await prisma.accFiscalYear.findUnique({ where: { year: e.fiscalYear } })
     if (fy?.status !== "Ouvert") throw new AccountingError("Exercice clôturé : suppression impossible, passez une écriture de correction")
     await prisma.accEntry.delete({ where: { id: e.id } })
+    await audit(req, { email: (await accAuth(req)).who }, "accounting.delete", e.number, { libellé: e.label })
     return NextResponse.json({ ok: true })
   } catch (err) { return accError(err) }
 }
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       sourceType: "contre-passation", sourceId: e.id, createdBy: who,
       lines: e.lines.map((l) => ({ account: l.account, debit: l.credit, credit: l.debit, label: l.label, thirdParty: l.thirdParty, vatRate: l.vatRate })),
     })
+    await audit(req, { email: who }, "accounting.reverse", e.number, { contrePassation: reversal.number })
     return NextResponse.json(reversal, { status: 201 })
   } catch (err) { return accError(err) }
 }

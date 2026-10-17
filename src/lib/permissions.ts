@@ -12,6 +12,7 @@ export const ALL_PERMISSIONS = [
   "notifications.send",
   "wallet.view", "wallet.manage",
   "accounting.view", "accounting.manage",
+  "security.manage",
 ]
 
 // Roles consideres comme super-administrateurs (acces total)
@@ -21,6 +22,8 @@ export const SUPER_ROLES = ["Super Admin", "Super Administrateur", "Admin", "adm
 const ROUTE_PERMS: [string, string | null][] = [
   // Mon profil (nom, e-mail, mot de passe) : ouvert à tout administrateur connecté, avant la règle « /settings »
   ["/settings/profile", null],
+  // Sécurité : journal d'audit, sauvegardes (avant la règle générale « /settings »)
+  ["/settings/security", "security.manage"],
   ["/dashboard", "dashboard.view"],
   ["/orders", "orders.view"],
   ["/invoices", "orders.view"],

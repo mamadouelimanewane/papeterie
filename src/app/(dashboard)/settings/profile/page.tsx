@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import TwoFactorCard from "@/components/admin/TwoFactorCard"
 import { signOut, useSession } from "next-auth/react"
 import { Eye, EyeOff, Save, KeyRound, ShieldCheck } from "lucide-react"
 import { useAction, useFeedback } from "@/components/admin/Feedback"
@@ -22,6 +23,8 @@ function PasswordInput({ value, onChange, autoComplete, disabled }: { value: str
 }
 
 export default function ProfilePage() {
+  const { data: session } = useSession()
+  const needs2fa = !!(session?.user as { needs2fa?: boolean } | undefined)?.needs2fa
   const { update: refreshSession } = useSession()
   const { confirm } = useFeedback()
   const run = useAction()
@@ -39,7 +42,7 @@ export default function ProfilePage() {
   }, [])
 
   const dirty = !!profile && (form.name !== profile.name || form.email !== profile.email || form.phone !== (profile.phone ?? ""))
-  const strength = pwd.newPassword.length >= 12 ? 3 : pwd.newPassword.length >= 8 ? 2 : pwd.newPassword ? 1 : 0
+  const strength = pwd.newPassword.length >= 14 ? 3 : pwd.newPassword.length >= 10 ? 2 : pwd.newPassword ? 1 : 0
 
   async function saveInfo(e: React.FormEvent) {
     e.preventDefault()
@@ -109,7 +112,7 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div><label className="mb-1 block text-xs text-gray-500">Mot de passe actuel</label>
               <PasswordInput value={pwd.currentPassword} onChange={(v) => setPwd({ ...pwd, currentPassword: v })} autoComplete="current-password" disabled={locked} /></div>
-            <div><label className="mb-1 block text-xs text-gray-500">Nouveau mot de passe (8 caractères minimum)</label>
+            <div><label className="mb-1 block text-xs text-gray-500">Nouveau mot de passe (10 caractères minimum, lettres et chiffres)</label>
               <PasswordInput value={pwd.newPassword} onChange={(v) => setPwd({ ...pwd, newPassword: v })} autoComplete="new-password" disabled={locked} />
               {strength > 0 && (
                 <div className="mt-1.5 flex items-center gap-2">
@@ -122,13 +125,14 @@ export default function ProfilePage() {
               <PasswordInput value={pwd.confirmPassword} onChange={(v) => setPwd({ ...pwd, confirmPassword: v })} autoComplete="new-password" disabled={locked} />
               {pwd.confirmPassword && pwd.confirmPassword !== pwd.newPassword && <p className="mt-1 text-[11px] text-red-500">Les mots de passe ne correspondent pas</p>}
             </div>
-            <button type="submit" disabled={locked || savingPwd || !pwd.currentPassword || pwd.newPassword.length < 8 || pwd.newPassword !== pwd.confirmPassword}
+            <button type="submit" disabled={locked || savingPwd || !pwd.currentPassword || pwd.newPassword.length < 10 || pwd.newPassword !== pwd.confirmPassword}
               className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
               <KeyRound size={14} /> {savingPwd ? "Mise à jour…" : "Mettre à jour"}
             </button>
           </div>
         </form>
       </div>
+      <div className="mt-5"><TwoFactorCard required={needs2fa} /></div>
     </div>
   )
 }

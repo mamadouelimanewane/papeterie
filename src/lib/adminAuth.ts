@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getToken, type JWT } from "next-auth/jwt"
 import { hasPerm, permForApi } from "@/lib/permissions"
+import { liveAdmin } from "@/lib/security/adminSession"
 
 /**
  * Vérifie la session admin (cookie NextAuth) et, si demandée, une permission RBAC.
@@ -10,7 +11,17 @@ export async function requireAdmin(req: NextRequest, perm?: string | null): Prom
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
   if (token.role === "merchant") return NextResponse.json({ error: "Accès non autorisé" }, { status: 403 })
-  if (perm && !hasPerm(token.permissions as string[] | undefined, perm)) {
+  // Compte désactivé, sessions fermées, droits modifiés : vérifié en base, pas seulement dans le jeton
+  const live = await liveAdmin(token)
+  if (!live) return NextResponse.json({ error: "Session expirée ou compte désactivé : reconnectez-vous" }, { status: 401 })
+  token.permissions = live.permissions
+  token.role = live.role
+  // Double authentification exigée : seuls « Mon profil » et sa configuration restent accessibles
+  const path = req.nextUrl?.pathname ?? new URL(req.url).pathname
+  if (live.needs2fa && !path.startsWith("/api/admin/2fa") && !path.startsWith("/api/admin/profile")) {
+    return NextResponse.json({ error: "Activez la double authentification dans « Mon profil » pour continuer", code: "2FA_SETUP_REQUIRED" }, { status: 403 })
+  }
+  if (perm && !hasPerm(live.permissions, perm)) {
     return NextResponse.json({ error: "Accès non autorisé" }, { status: 403 })
   }
   return token

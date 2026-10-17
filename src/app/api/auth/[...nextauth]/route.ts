@@ -2,20 +2,13 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { SUPER_ROLES } from "@/lib/permissions"
+import { liveAdmin, resolvePermissions } from "@/lib/security/adminSession"
+import { audit } from "@/lib/security/audit"
+import { decryptText, verifyTotp } from "@/lib/security/crypto"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import { safeEqual } from "@/lib/auth"
 import { findStoreByInvite, hashInviteToken, MIN_PASSWORD_LENGTH } from "@/lib/merchantAuth"
 
-async function resolvePermissions(role: string): Promise<string[]> {
-  if (SUPER_ROLES.includes(role)) return ["*"]
-  try {
-    const r = await prisma.role.findUnique({ where: { name: role } })
-    return Array.isArray(r?.permissions) ? (r!.permissions as string[]) : []
-  } catch {
-    return [] // echec ferme : en cas d'erreur DB, aucun droit
-  }
-}
 
 /** Session marchand : limitée à SA boutique (rôle "merchant" + storeId), aucune permission admin. */
 function merchantUser(store: { id: string; name: string; email: string }) {
@@ -77,11 +70,13 @@ const handler = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        otp: { label: "Code", type: "text" },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const ip = clientIp({ headers: new Headers(req?.headers as Record<string, string> | undefined) })
+        const reqHeaders = { headers: new Headers(req?.headers as Record<string, string> | undefined) }
+        const ip = clientIp(reqHeaders)
         if (!await rateLimit("admin-login:ip:" + ip, 10, 15 * 60_000) || !await rateLimit("admin-login:email:" + credentials.email.toLowerCase(), 10, 15 * 60_000)) return null
 
         // Check env-based super admin first (no DB required for initial setup)
@@ -93,6 +88,7 @@ const handler = NextAuth({
             safeEqual(credentials.email, adminEmail) &&
             safeEqual(credentials.password, adminPassword)
           ) {
+            await audit(reqHeaders, { id: "admin-env", email: adminEmail }, "login.success", adminEmail, { compte: "variables d'environnement" })
             return { id: "admin-env", name: "Admin", email: adminEmail, role: "admin", permissions: ["*"] }
           }
         }
@@ -102,12 +98,25 @@ const handler = NextAuth({
           const admin = await prisma.admin.findUnique({
             where: { email: credentials.email },
           })
-          if (!admin || admin.status !== "Active") return null
-          const valid = await bcrypt.compare(credentials.password, admin.password)
-          if (!valid) return null
+          const valid = !!admin && admin.status === "Active" && await bcrypt.compare(credentials.password, admin.password)
+          if (!admin || !valid) {
+            await audit(reqHeaders, admin ? { id: admin.id, email: admin.email } : null, "login.failure", credentials.email.slice(0, 120), admin && admin.status !== "Active" ? { motif: "compte désactivé" } : null, "refusé")
+            return null
+          }
+          // Double authentification : le code est demandé une fois le mot de passe vérifié
+          if (admin.twoFactorEnabled && admin.twoFactorSecret) {
+            if (!credentials.otp) throw new Error("2FA_REQUIRED")
+            if (!await rateLimit("admin-2fa:" + admin.id, 6, 15 * 60_000) || !verifyTotp(decryptText(admin.twoFactorSecret), credentials.otp)) {
+              await audit(reqHeaders, { id: admin.id, email: admin.email }, "login.2fa_failure", admin.email, null, "refusé")
+              throw new Error("2FA_INVALID")
+            }
+          }
+          await prisma.admin.update({ where: { id: admin.id }, data: { lastLoginAt: new Date() } })
+          await audit(reqHeaders, { id: admin.id, email: admin.email }, "login.success", admin.email, admin.twoFactorEnabled ? { "2fa": true } : null)
           const permissions = await resolvePermissions(admin.role)
           return { id: admin.id, name: admin.name, email: admin.email, role: admin.role, permissions }
-        } catch {
+        } catch (e) {
+          if (e instanceof Error && e.message.startsWith("2FA_")) throw e
           // DB not yet configured — fall through
           return null
         }
@@ -127,11 +136,20 @@ const handler = NextAuth({
         token.permissions = (user as { permissions?: string[] }).permissions ?? []
         token.storeId = user.storeId
         token.loginAt = Date.now()
+      } else if (token.role !== "merchant") {
+        // Session admin relue à chaque consultation : compte désactivé ou sessions fermées → session vide
+        const live = await liveAdmin(token).catch(() => null)
+        if (!live) return { ...token, revoked: true, permissions: [] }
+        token.permissions = live.permissions
+        token.role = live.role
+        token.needs2fa = live.needs2fa
       }
       return token
     },
     async session({ session, token }) {
+      if (token.revoked) return { ...session, user: undefined, revoked: true } as unknown as typeof session
       if (session.user) {
+        ;(session.user as { needs2fa?: boolean }).needs2fa = !!token.needs2fa
         session.user.role = token.role
         session.user.storeId = token.storeId
         ;(session.user as { permissions?: string[] }).permissions = (token.permissions as string[]) ?? []

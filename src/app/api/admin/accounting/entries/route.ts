@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { accAuth, accError, dateParam, yearParam } from "@/lib/accounting/api"
 import { createEntry, type LineInput } from "@/lib/accounting/ledger"
+import { audit } from "@/lib/security/audit"
 
 export const runtime = "nodejs"
 
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
       vatRate: l.vatRate === undefined || l.vatRate === null || l.vatRate === "" ? null : Number(l.vatRate),
     })) : []
     const entry = await createEntry({ journal: String(b.journal ?? ""), date, label: String(b.label ?? ""), reference: b.reference ? String(b.reference) : null, lines, createdBy: who })
+    await audit(req, { email: who }, "accounting.entry", entry.number, { journal: entry.journal, libellé: entry.label })
     return NextResponse.json(entry, { status: 201 })
   } catch (e) { return accError(e) }
 }

@@ -6,7 +6,7 @@ import { useState } from "react"
 import {
   LayoutDashboard, Settings, Tag, Store, ShoppingCart,
   Image, Users, BarChart2, ChevronDown, ChevronRight, LogOut, UserCog,
-  Bookmark, Bell, DollarSign, Receipt, Package, Truck, Backpack, Calculator,
+  Bookmark, Bell, DollarSign, Receipt, Package, Truck, Backpack, Calculator, ShieldCheck,
 } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -136,6 +136,14 @@ const navigation: { section: string; items: NavItem[] }[] = [
           { label: "Tous les admins", href: "/settings/sub-admin" },
           { label: "Ajouter un admin", href: "/settings/sub-admin/new" },
           { label: "Rôles & Permissions", href: "/sub-admin/roles" },
+        ],
+      },
+      {
+        label: "Sécurité", icon: <ShieldCheck size={16} />,
+        children: [
+          { label: "État et politique", href: "/settings/security" },
+          { label: "Journal d'audit", href: "/settings/security/audit" },
+          { label: "Sauvegardes", href: "/settings/security/backups" },
         ],
       },
       {

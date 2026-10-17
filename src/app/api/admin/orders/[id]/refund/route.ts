@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 import { REFUND_STATUS } from "@/lib/orderExpiry"
 import { notifyOrderRefunded } from "@/lib/orderEmails"
+import { audit } from "@/lib/security/audit"
 
 export const runtime = "nodejs"
 
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!done) return NextResponse.json({ error: "Cette commande n'est pas à rembourser" }, { status: 409 })
 
     await notifyOrderRefunded(order.id)
+    await audit(req, auth, "order.refund", order.orderId, { montant: order.total, moyen: method, référence: reference })
     return NextResponse.json({ ok: true, paymentStatus: "Rembourse", status: "Annule" })
   } catch (e) { return errorResponse(e, "Erreur serveur", "[order-refund]") }
 }

@@ -17,6 +17,7 @@ const ALL_PERMISSIONS = [
   "notifications.send",
   "wallet.view", "wallet.manage",
   "accounting.view", "accounting.manage",
+  "security.manage",
 ]
 const LABEL: Record<string, string> = {
   "dashboard.view": "Voir le tableau de bord",
@@ -30,6 +31,7 @@ const LABEL: Record<string, string> = {
   "notifications.send": "Envoyer des notifications",
   "wallet.view": "Voir le portefeuille", "wallet.manage": "Gérer le portefeuille",
   "accounting.view": "Consulter la comptabilité", "accounting.manage": "Tenir la comptabilité (saisie, clôture)",
+  "security.manage": "Sécurité : journal d'audit et sauvegardes",
 }
 
 export default function SubAdminRolesPage() {

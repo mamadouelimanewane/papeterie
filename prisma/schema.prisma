@@ -242,6 +242,12 @@ model Admin {
   status    String   @default("Active")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  lastLoginAt       DateTime?
+  /// Déconnexion forcée : les sessions ouvertes avant cette date sont refusées
+  sessionsRevokedAt DateTime?
+  /// Double authentification (TOTP) : secret chiffré, activée après vérification d'un premier code
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean   @default(false)
 }
 
 model FareRule {
@@ -429,4 +435,35 @@ model AccFixedAsset {
   status          String    @default("En service") /// En service | Cédée
   disposedAt      DateTime?
   createdAt       DateTime  @default(now())
+}
+
+/// Journal d'audit : qui a fait quoi, quand, depuis quelle adresse (actions sensibles du back-office).
+model AuditLog {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now())
+  actorId    String?
+  actorEmail String?
+  action     String /// ex. login.success, user.update, order.refund, backup.create
+  target     String? /// élément concerné (n° de commande, e-mail, rôle…)
+  details    Json?
+  ip         String?
+  outcome    String   @default("ok") /// ok | refusé | échec
+
+  @@index([at])
+  @@index([action])
+  @@index([actorEmail])
+}
+
+/// Sauvegarde de la base (chiffrée) : automatique chaque nuit ou à la demande.
+model Backup {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  kind      String /// auto | manuel
+  status    String /// ok | échec
+  size      Int      @default(0) /// octets (fichier chiffré)
+  rows      Int      @default(0)
+  location  String? /// adresse du fichier stocké (Vercel Blob) ; vide = téléchargé seulement
+  checksum  String? /// SHA-256 du fichier chiffré
+  error     String?
+  createdBy String?
 }

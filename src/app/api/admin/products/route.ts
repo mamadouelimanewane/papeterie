@@ -4,6 +4,7 @@ import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 import type { Prisma } from "@prisma/client"
 import { parseProduct } from "@/lib/merchantApi"
 import { getActiveStoreId } from "@/lib/store"
+import { audit } from "@/lib/security/audit"
 
 /** Catalogue (toutes boutiques) pour le back-office : recherche, filtre par catégorie / photo, pagination. */
 export async function GET(req: NextRequest) {
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
         status: parsed.status ?? "Active", barcode: b.barcode ? String(b.barcode).trim().slice(0, 64) : null,
       },
     })
+    await audit(req, auth, "product.create", product.name, { prix: product.price })
     return NextResponse.json(product, { status: 201 })
   } catch (e) { return errorResponse(e) }
 }

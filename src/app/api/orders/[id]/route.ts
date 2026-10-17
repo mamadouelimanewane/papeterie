@@ -4,18 +4,20 @@ import { verify } from "jsonwebtoken"
 import { randomInt } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
+import { liveAdmin } from "@/lib/security/adminSession"
 import { assertSessionActive } from "@/lib/mobileSession"
 import { creditDriverForDelivery, DELIVERED, driverTransitionError } from "@/lib/delivery"
 import { notifyOrderDelivered } from "@/lib/orderEmails"
 import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 import { errorResponse } from "@/lib/adminAuth"
+import { audit } from "@/lib/security/audit"
 
 /**
  * Qui appelle ? Session back-office (cookie NextAuth) ou application mobile (Bearer JWT vérifié).
  * Les jetons livreur contiennent `driverId`, les jetons client `userId`.
  */
 type Caller =
-  | { kind: "admin"; perms: string[] }
+  | { kind: "admin"; perms: string[]; id: string; email: string }
   | { kind: "merchant"; storeId: string | null }
   | { kind: "user" | "driver"; id: string }
 
@@ -23,7 +25,9 @@ async function resolveCaller(req: NextRequest): Promise<Caller | null> {
   const session = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (session) {
     if (session.role === "merchant") return { kind: "merchant", storeId: (session.storeId as string | undefined) ?? null }
-    return { kind: "admin", perms: (session.permissions as string[] | undefined) ?? [] }
+    // Droits relus en base (compte actif, sessions non révoquées, rôle actuel)
+    const live = await liveAdmin(session)
+    return live && !live.needs2fa ? { kind: "admin", perms: live.permissions, id: live.id, email: live.email } : null
   }
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) return null
@@ -150,6 +154,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     }
 
+    if (caller.kind === "admin") {
+      const diff = Object.fromEntries(Object.entries(update).filter(([k]) => k !== "pickupOtp" && k !== "signature").map(([k, v]) => [k, `${(order as Record<string, unknown>)[k] ?? "—"} → ${v ?? "—"}`]))
+      await audit(req, { email: caller.email, id: caller.id }, "order.update", order.orderId, diff)
+    }
     return NextResponse.json(caller.kind === "driver" ? { ...updated, pickupOtp: undefined, deliveryOtp: undefined } : updated)
   } catch (error) {
     return errorResponse(error, "Erreur serveur", "[api/orders/[id]]")
@@ -162,7 +170,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!caller) return unauthorized()
     if (caller.kind !== "admin" || !hasPerm(caller.perms, "orders.manage")) return forbidden()
     const { id } = await params
-    await prisma.order.delete({ where: { id } })
+    const gone = await prisma.order.delete({ where: { id } })
+    await audit(req, { email: caller.email, id: caller.id }, "order.delete", gone.orderId, { total: gone.total, statut: gone.status, paiement: gone.paymentStatus })
     return NextResponse.json({ success: true })
   } catch (error) {
     return errorResponse(error, "Erreur serveur", "[api/orders/[id]]")

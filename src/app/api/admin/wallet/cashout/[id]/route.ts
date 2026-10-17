@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
+import { audit } from "@/lib/security/audit"
 
 class CashoutError extends Error { constructor(message: string, public status: number) { super(message) } }
 
@@ -20,7 +21,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (action === "reject") {
       const r = await prisma.transaction.update({ where: { id }, data: { status: "Rejected" } })
-      return NextResponse.json(r)
+      await audit(req, auth, "cashout.decision", id, { décision: "refusé", montant: r.amount })
+      await audit(req, auth, "cashout.decision", id, { décision: "validé" })
+    return NextResponse.json(r)
     }
     if (action !== "approve") return NextResponse.json({ error: "Action invalide" }, { status: 400 })
 

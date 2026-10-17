@@ -4,6 +4,7 @@ import { resetSettingsCache } from "@/lib/appSettings"
 import { accAuth, accError } from "@/lib/accounting/api"
 import { getAccountingConfig } from "@/lib/accounting/config"
 import { AccountingError } from "@/lib/accounting/ledger"
+import { audit } from "@/lib/security/audit"
 
 export const runtime = "nodejs"
 
@@ -29,7 +30,7 @@ const rate = (v: unknown, what: string) => {
 }
 
 export async function PUT(req: NextRequest) {
-  const { res } = await accAuth(req, true)
+  const { res, who } = await accAuth(req, true)
   if (res) return res
   try {
     const b = await req.json().catch(() => ({}))
@@ -50,6 +51,7 @@ export async function PUT(req: NextRequest) {
     }
     await prisma.appSetting.upsert({ where: { key: "accounting" }, update: { value }, create: { key: "accounting", value } })
     resetSettingsCache("accounting")
+    await audit(req, { email: who }, "accounting.settings", null, { tvaDéfaut: value.vatDefault, livraison: value.deliveryVatRate, catégories: value.categoryRates, mode: value.mode })
     return NextResponse.json(value)
   } catch (e) { return accError(e) }
 }

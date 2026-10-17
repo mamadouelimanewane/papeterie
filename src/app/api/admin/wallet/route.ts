@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
+import { audit } from "@/lib/security/audit"
 
 /**
  * Ajustement manuel d'un portefeuille (client, livreur ou boutique) :
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (delegate as any).update({ where: { id: b.id }, data: { walletMoney: { increment: delta } } }),
     ])
+    await audit(req, auth, "wallet.adjust", tx.id, { montant: delta, moyen: tx.method, motif: tx.description })
     return NextResponse.json({ ok: true, transaction: tx, balance: account.walletMoney + delta }, { status: 201 })
   } catch (e) { return errorResponse(e) }
 }

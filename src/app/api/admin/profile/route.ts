@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
+import { passwordProblem } from "@/lib/security/password"
+import { audit } from "@/lib/security/audit"
 
 /**
  * Profil de l'administrateur connecté (table Admin, id = token.sub).
@@ -46,10 +48,10 @@ export async function PUT(req: NextRequest) {
       if (!currentPassword || !(await bcrypt.compare(currentPassword, admin.password))) {
         return NextResponse.json({ error: "Mot de passe actuel incorrect" }, { status: 400 })
       }
-      if (!newPassword || newPassword.length < 8) {
-        return NextResponse.json({ error: "Le nouveau mot de passe doit contenir au moins 8 caractères" }, { status: 400 })
-      }
-      await prisma.admin.update({ where: { id: admin.id }, data: { password: await bcrypt.hash(newPassword, 10) } })
+      const pb = passwordProblem(newPassword, admin.email)
+      if (pb) return NextResponse.json({ error: pb }, { status: 400 })
+      await prisma.admin.update({ where: { id: admin.id }, data: { password: await bcrypt.hash(newPassword!, 12) } })
+      await audit(req, token, "profile.password", admin.email)
       return NextResponse.json({ ok: true })
     }
 

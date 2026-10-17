@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [otp, setOtp] = useState<string | null>(null) // null : pas de double authentification demandée
   const [forgot, setForgot] = useState<string | null>(null) // null : formulaire « oublié » fermé
   const [forgotMsg, setForgotMsg] = useState("")
 
@@ -33,11 +34,18 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email,
       password,
+      ...(otp !== null ? { otp } : {}),
       redirect: false,
     })
 
     setLoading(false)
-    if (result?.error) {
+    if (result?.error === "2FA_REQUIRED") {
+      setOtp("")
+      setError("")
+    } else if (result?.error === "2FA_INVALID") {
+      setOtp("")
+      setError("Code de vérification incorrect ou expiré.")
+    } else if (result?.error) {
       setError("Ces identifiants ne correspondent à aucun compte.")
     } else {
       router.push("/dashboard")
@@ -119,6 +127,21 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
+            {otp !== null && (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">Code de vérification (application d&apos;authentification)</label>
+                <input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  placeholder="123456"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 text-center text-lg tracking-[0.4em] text-gray-900 bg-gray-50"
+                  required
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
