@@ -300,7 +300,7 @@ const back = await order([{ id: pA.id, qty: 1 }])
 ok("retour au tarif fixe : commande sans position acceptee, 500 F", back.status === 201 && back.json.deliveryFee === 500)
 
 section("10. Applications installables (PWA) et espace livreur")
-for (const [app, path, color] of [["client", "/shop", "#4F46E5"], ["livreur", "/livreur", "#059669"], ["admin", "/dashboard", "#111827"]]) {
+for (const [app, path, color] of [["client", "/shop", "#F6E021"], ["livreur", "/livreur", "#059669"], ["admin", "/dashboard", "#111827"]]) {
   const m = await req("GET", `/pwa/${app}.webmanifest`)
   const j = m.json ?? {}
   const sizes = (j.icons ?? []).map((i) => i.sizes + "/" + i.purpose)

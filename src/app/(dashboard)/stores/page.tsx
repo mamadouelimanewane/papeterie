@@ -210,7 +210,7 @@ export default function StoresPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       <button onClick={() => setEditing(store)} className="p-1 text-blue-500 hover:bg-blue-50 rounded" title="Modifier"><Edit size={14} /></button>
-                      <Link href={`/stores/${store.id}`} className="p-1 text-green-500 hover:bg-green-50 rounded" title="Voir"><Eye size={14} /></Link>
+                      <Link href="/products" className="p-1 text-green-500 hover:bg-green-50 rounded" title="Voir le catalogue"><Eye size={14} /></Link>
                       <Link href="/reports/earnings/stores" className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600" title="Statistiques"><BarChart2 size={14} /></Link>
                     </div>
                   </td>

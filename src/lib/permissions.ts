@@ -17,7 +17,9 @@ export const ALL_PERMISSIONS = [
 export const SUPER_ROLES = ["Super Admin", "Super Administrateur", "Admin", "admin"]
 
 // Prefixe de route -> permission requise (le premier match gagne)
-const ROUTE_PERMS: [string, string][] = [
+const ROUTE_PERMS: [string, string | null][] = [
+  // Mon profil (nom, e-mail, mot de passe) : ouvert à tout administrateur connecté, avant la règle « /settings »
+  ["/settings/profile", null],
   ["/dashboard", "dashboard.view"],
   ["/orders", "orders.view"],
   ["/invoices", "orders.view"],

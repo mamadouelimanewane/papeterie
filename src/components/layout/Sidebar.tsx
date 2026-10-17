@@ -281,9 +281,11 @@ export default function Sidebar() {
 
         {/* Bottom icons */}
         <div className="border-t border-gray-100 p-3 flex items-center justify-around bg-gray-50/50">
-          <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-brand-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
-            <Settings size={18} />
-          </Link>
+          {(!filtering || hasPerm(perms, "settings.view")) && (
+            <Link href="/settings/configuration" className="p-2 text-gray-500 hover:text-brand-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
+              <Settings size={18} />
+            </Link>
+          )}
           <Link href="/settings/profile" className="p-2 text-gray-500 hover:text-brand-600 rounded-lg hover:bg-white transition-all shadow-sm border border-transparent hover:border-gray-100">
             <Users size={18} />
           </Link>
