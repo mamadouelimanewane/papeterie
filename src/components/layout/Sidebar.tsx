@@ -64,6 +64,7 @@ const navigation: { section: string; items: NavItem[] }[] = [
           { label: "Refusés", href: "/drivers/rejected" },
           { label: "Documents", href: "/drivers/documents" },
           { label: "Carte en direct", href: "/map/driver" },
+          { label: "Créneaux de livraison", href: "/service-time-slots" },
         ],
       },
     ],

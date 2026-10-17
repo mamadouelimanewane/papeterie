@@ -23,6 +23,10 @@ interface User {
   createdAt: string
 }
 
+type History = {
+  summary: { count: number; paidCount: number; spent: number; refunded: number; toRefund: number; lastOrder: string | null } | null
+  orders: { id: string; orderId: string; total: number; status: string; paymentStatus: string; createdAt: string; articles: number }[]
+}
 type ModalType = "notification" | "addMoney" | "deviceDetails" | "walletHistory" | null
 
 function exportCSV(users: User[]) {
@@ -55,6 +59,12 @@ export default function UsersPage() {
   const [submitting, setSubmitting] = useState(false)
   const [editing, setEditing] = useState<User | "new" | null>(null)
   const [viewUser, setViewUser] = useState<User | null>(null)
+  const [history, setHistory] = useState<History | null>(null)
+  // Fiche client : historique des commandes chargé à l'ouverture
+  const openView = (u: User) => {
+    setViewUser(u); setHistory(null)
+    adminFetch<History>(`/api/admin/users/${u.id}/orders`).then(setHistory).catch(() => setHistory({ summary: null, orders: [] }))
+  }
   const [addrUser, setAddrUser] = useState<User | null>(null)
   const [addresses, setAddresses] = useState<{ address: string; count: number; lastUsed: string }[] | null>(null)
   const [inviteFor, setInviteFor] = useState<User | "all" | null>(null)
@@ -233,7 +243,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3"><StatusBadge status={user.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 flex-wrap min-w-[180px]">
-                      <button title="Voir profil" onClick={() => setViewUser(user)} className="p-1 bg-orange-500 text-white rounded hover:bg-orange-600"><Eye size={12} /></button>
+                      <button title="Voir profil" onClick={() => openView(user)} className="p-1 bg-orange-500 text-white rounded hover:bg-orange-600"><Eye size={12} /></button>
                       <button title="Modifier" onClick={() => setEditing(user)} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"><Edit size={12} /></button>
                       <button title="Supprimer" onClick={() => deleteUser(user.id)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600"><Trash2 size={12} /></button>
                       <button title="Envoyer notification" onClick={() => openModal("notification", user)} className="p-1 bg-orange-500 text-white rounded hover:bg-orange-600"><Bell size={12} /></button>
@@ -412,7 +422,7 @@ export default function UsersPage() {
 
       {viewUser && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setViewUser(null)}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="font-semibold text-gray-800">Fiche client</h2>
               <button onClick={() => setViewUser(null)} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Fermer">×</button>
@@ -427,6 +437,39 @@ export default function UsersPage() {
                 {([["Téléphone", viewUser.phone ?? "—"], ["E-mail", viewUser.email], ["Pays", viewUser.country ?? "—"], ["Portefeuille", fmtMoney(viewUser.walletMoney)], ["Inscription", `${viewUser.signupType} · ${viewUser.signupFrom}`], ["Inscrit le", fmtDate(viewUser.createdAt)]] as [string, string][]).map(([k, val]) => (
                   <div key={k} className="rounded-lg bg-gray-50 p-2.5"><div className="text-[11px] text-gray-400">{k}</div><div className="break-all font-medium text-gray-700" data-no-i18n>{val}</div></div>
                 ))}
+              </div>
+
+              {/* Historique des commandes */}
+              <div className="border-t pt-3">
+                <div className="mb-2 text-xs font-semibold uppercase text-gray-400">Commandes</div>
+                {history === null ? <div className="h-16 animate-pulse rounded-lg bg-gray-50" />
+                  : !history.summary ? <p className="text-xs text-gray-400">Historique indisponible.</p>
+                  : (
+                    <>
+                      <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-lg bg-blue-50 p-2"><div className="text-lg font-bold text-blue-700">{history.summary.count}</div><div className="text-[11px] text-blue-600">commande(s)</div></div>
+                        <div className="rounded-lg bg-emerald-50 p-2"><div className="text-sm font-bold text-emerald-700">{fmtMoney(history.summary.spent)}</div><div className="text-[11px] text-emerald-600">payé ({history.summary.paidCount})</div></div>
+                        <div className="rounded-lg bg-red-50 p-2"><div className="text-sm font-bold text-red-700">{fmtMoney(history.summary.refunded)}</div><div className="text-[11px] text-red-600">remboursé{history.summary.toRefund ? ` · ${history.summary.toRefund} à rembourser` : ""}</div></div>
+                      </div>
+                      {history.orders.length === 0 ? <p className="text-center text-xs text-gray-400">Aucune commande pour ce client.</p> : (
+                        <ul className="divide-y rounded-lg border text-xs">
+                          {history.orders.slice(0, 20).map((o) => (
+                            <li key={o.id} className="px-3 py-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <a href={`/orders?search=${encodeURIComponent(o.orderId)}`} className="truncate font-semibold text-brand-700 hover:underline" data-no-i18n>{o.orderId}</a>
+                                <span className="shrink-0 font-semibold text-gray-700">{fmtMoney(o.total)}</span>
+                              </div>
+                              <div className="mt-0.5 flex items-center justify-between gap-2">
+                                <span className="text-gray-400">{fmtDate(o.createdAt)} · {o.articles} art.</span>
+                                <StatusBadge status={o.paymentStatus} />
+                              </div>
+                            </li>
+                          ))}
+                          {history.orders.length > 20 && <li className="px-3 py-2 text-center text-gray-400">… et {history.orders.length - 20} autre(s)</li>}
+                        </ul>
+                      )}
+                    </>
+                  )}
               </div>
             </div>
           </div>

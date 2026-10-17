@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { FileText, Truck } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import { useFeedback, useAction } from "./Feedback"
 import { adminFetch } from "@/lib/adminApi"
+import { deliveryNoteHtml, invoiceHtml, openPrintable, orderNotesInfo, type DocOrder, type DocStore } from "@/lib/orderDocs"
 
 type Detail = {
   id: string; orderId: string; status: string; paymentStatus: string; paymentMethod: string
@@ -42,8 +44,12 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
 
   if (!d) return <div className="h-24 animate-pulse rounded-lg bg-gray-50" />
 
-  const client = d.notes?.match(/Client:\s*([^|]+)/)?.[1]?.trim()
-  const phone = d.notes?.match(/Tél:\s*([^|]+)/)?.[1]?.trim()
+  const { client, phone, slot } = orderNotesInfo(d.notes)
+  // Documents imprimables : la commande complète et la boutique sont relues au moment du clic
+  const printDoc = (kind: "invoice" | "delivery") => openPrintable(Promise.all([
+    adminFetch<DocOrder>(`/api/orders/${d.id}`),
+    fetch("/api/store").then((r) => r.json() as Promise<DocStore>).catch(() => null),
+  ]).then(([o, store]) => (kind === "invoice" ? invoiceHtml(o, store) : deliveryNoteHtml(o, store))))
   const paid = PAID.includes(d.paymentStatus)
   const closed = ["Delivered", "Completed", "Cancelled", "Annule"].includes(d.status)
   // Statuts posés par l'application livreur, ramenés aux étapes affichées
@@ -70,6 +76,11 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
             {d.items.map((i, k) => <li key={k}>{i.qty ?? 1} × {i.name}</li>)}
           </ul>
         )}
+        {slot && <div className="mt-2 text-xs font-semibold text-brand-700" data-no-i18n>Créneau : {slot}</div>}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => run(() => printDoc("delivery"))} className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100"><Truck size={13} /> Bon de livraison</button>
+          <button onClick={() => run(() => printDoc("invoice"))} className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100"><FileText size={13} /> Facture</button>
+        </div>
       </div>
 
       {/* Livreur */}

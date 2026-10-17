@@ -9,6 +9,7 @@ import { getDeliveryConfig } from "@/lib/shopConfig"
 import { deliveryTag, parsePoint, quoteDelivery } from "@/lib/deliveryPricing"
 import { errorResponse, isResponse, requireAdminApi } from "@/lib/adminAuth"
 import { ONLINE_PAYMENT_METHODS, releaseExpiredOrdersThrottled } from "@/lib/orderExpiry"
+import { resolveSlot } from "@/lib/deliverySlots"
 
 export async function GET(req: NextRequest) {
   const auth = await requireAdminApi(req)
@@ -101,6 +102,13 @@ export async function POST(req: Request) {
     const hasCoords = data.deliveryLat !== undefined && data.deliveryLat !== null && data.deliveryLat !== ""
     const point = parsePoint(data.deliveryLat, data.deliveryLng)
     if (hasCoords && !point) return NextResponse.json({ error: "Position de livraison invalide ou hors du Sénégal" }, { status: 400 })
+    // Créneau de livraison choisi au panier (facultatif) : disponibilité et capacité vérifiées ici
+    let slotTag: string | null = null
+    if (data.deliverySlot) {
+      const slot = await resolveSlot(data.deliverySlot)
+      if (!slot.ok) return NextResponse.json({ error: slot.error }, { status: 400 })
+      slotTag = `[Créneau: ${slot.label}]`
+    }
     const deliveryCfg = await getDeliveryConfig()
     const commissionPct = await getCommissionPct()
     const order = await prisma.$transaction(async (tx) => {
@@ -150,8 +158,10 @@ export async function POST(req: Request) {
           address: data.address ?? null,
           // Commande invité : on conserve nom et téléphone du client (sinon introuvables pour la facture / la livraison)
           notes: [
-            data.firstName || data.phone_number ? `Client: ${String(data.firstName ?? "").slice(0, 80)} | Tél: ${String(data.phone_number ?? "").slice(0, 20)} |` : null,
-            data.notes, promo.code ? `[Promo: ${promo.code}]` : null, deliveryTag(quote.distanceKm, point),
+            data.firstName || data.phone_number ? `Client: ${String(data.firstName ?? "").slice(0, 80)} | Tél: ${String(data.phone_number ?? "").replace(/[^\d+]/g, "").slice(0, 20)} |` : null,
+            // Les marqueurs [Créneau: …] ne viennent que du serveur (jamais du texte libre du client)
+            typeof data.notes === "string" ? data.notes.replace(/\[Créneau:[^\]]*\]/g, "") : null,
+            slotTag, promo.code ? `[Promo: ${promo.code}]` : null, deliveryTag(quote.distanceKm, point),
           ].filter(Boolean).join(" ") || null,
           deliveryOtp,
         },

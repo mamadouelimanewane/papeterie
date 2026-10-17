@@ -82,7 +82,9 @@ export default function OrdersPage() {
   // Lien « à rembourser » de la cloche : /orders?payment=refund
   const [refundOnly, setRefundOnly] = useState(false)
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("payment") === "refund") setRefundOnly(true)
+    const qs = new URLSearchParams(window.location.search)
+    if (qs.get("payment") === "refund") setRefundOnly(true)
+    if (qs.get("search")) setSearch(qs.get("search")!) // lien depuis la fiche client
   }, [])
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")

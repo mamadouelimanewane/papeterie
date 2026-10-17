@@ -5,37 +5,12 @@ import { Eye, Printer } from "lucide-react"
 import StatusBadge from "@/components/ui/StatusBadge"
 import ReportView from "@/components/admin/ReportView"
 import { fmtDate, fmtMoney } from "@/lib/adminApi"
+import { invoiceHtml, openPrintable, type DocOrder, type DocStore } from "@/lib/orderDocs"
 
 type Row = { id: string; [k: string]: unknown }
-type Store = { name: string; address?: string | null; phone?: string | null; email?: string | null }
-type Order = { orderId: string; createdAt: string; items: { name: string; price: number; qty?: number; quantity?: number }[]; subtotal: number; deliveryFee: number; total: number; paymentMethod: string; paymentStatus: string; address?: string | null; notes?: string | null; status: string }
-
-const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!))
-const money = (n: number) => `${Number(n || 0).toLocaleString("fr-FR")} FCFA`
-
-/** HTML autonome de la facture (imprimable / enregistrable en PDF). */
-function invoiceHtml(o: Order, store: Store | null, client: string) {
-  const lines = (o.items ?? []).map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${i.quantity ?? i.qty ?? 1}</td><td class="r">${money(i.price)}</td><td class="r">${money((i.price || 0) * (i.quantity ?? i.qty ?? 1))}</td></tr>`).join("")
-  // total = montant dû, livraison comprise (convention application mobile et boutique web)
-  const discount = Math.max(0, (o.subtotal || 0) + (o.deliveryFee || 0) - (o.total || 0))
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Facture ${esc(o.orderId)}</title>
-<style>body{font-family:Arial,sans-serif;color:#1f2937;margin:40px;font-size:13px}h1{color:#A3121B;margin:0}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7280}.r{text-align:right}.head{display:flex;justify-content:space-between;gap:20px}.tot td{border:none;padding:4px 8px}.grand td{font-size:16px;font-weight:bold;color:#A3121B}.muted{color:#6b7280}@media print{button{display:none}}</style></head><body>
-<div class="head"><div><h1>${esc(store?.name ?? "Schoolmatik Librairie")}</h1><div class="muted">${esc(store?.address ?? "Dakar, Sénégal")}<br>${esc(store?.phone ?? "")} ${esc(store?.email ?? "")}</div></div>
-<div class="r"><h2 style="margin:0">FACTURE</h2><div>N° ${esc(o.orderId)}</div><div class="muted">${new Date(o.createdAt).toLocaleDateString("fr-FR")}</div></div></div>
-<p style="margin-top:24px"><b>Client :</b> ${esc(client)}<br><b>Adresse de livraison :</b> ${esc(o.address ?? "—")}</p>
-<table><thead><tr><th>Article</th><th class="r">Qté</th><th class="r">Prix unitaire</th><th class="r">Total</th></tr></thead><tbody>${lines}</tbody></table>
-<table style="width:320px;margin-left:auto"><tbody class="tot">
-<tr><td>Sous-total</td><td class="r">${money(o.subtotal)}</td></tr>
-${discount ? `<tr><td>Remise</td><td class="r">-${money(discount)}</td></tr>` : ""}
-<tr><td>Livraison</td><td class="r">${money(o.deliveryFee)}</td></tr>
-<tr class="grand"><td>Total</td><td class="r">${money(o.total || 0)}</td></tr></tbody></table>
-<p class="muted">Paiement : ${esc(o.paymentMethod)} — ${esc(o.paymentStatus)}</p>
-<button onclick="window.print()" style="margin-top:20px;padding:10px 20px;background:#A3121B;color:#fff;border:0;border-radius:8px;cursor:pointer">Imprimer / Enregistrer en PDF</button>
-</body></html>`
-}
 
 export default function InvoicesPage() {
-  const [store, setStore] = useState<Store | null>(null)
+  const [store, setStore] = useState<DocStore | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
@@ -45,16 +20,14 @@ export default function InvoicesPage() {
     setBusy(r.id)
     try {
       const res = await fetch(`/api/orders/${r.id}`, { cache: "no-store" })
-      const o = (await res.json()) as Order & { error?: string }
+      const o = (await res.json()) as DocOrder & { error?: string }
       if (!res.ok) throw new Error(o.error ?? "Commande introuvable")
       return invoiceHtml(o, store, String(r.user))
     } finally { setBusy(null) }
   }
   const view = async (r: Row) => { try { setPreview(await build(r)) } catch { /* affiché via l'aperçu vide */ } }
   const print = async (r: Row) => {
-    const w = window.open("", "_blank")
-    if (!w) return
-    w.document.write(await build(r)); w.document.close(); w.focus(); setTimeout(() => w.print(), 300)
+    openPrintable(build(r)).catch(() => {}) // fenêtre bloquée ou commande introuvable : rien à imprimer
   }
 
   return (

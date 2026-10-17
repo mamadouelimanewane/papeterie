@@ -1,3 +1,4 @@
+import { orderNotesInfo } from "@/lib/orderDocs"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
@@ -48,6 +49,7 @@ export async function GET(req: Request) {
         paymentStatus: o.paymentStatus,
         // espèces à encaisser auprès du client à la livraison (0 si déjà payée en ligne)
         cashToCollect: o.paymentMethod === "Cash" ? o.total : 0,
+        slot: orderNotesInfo(o.notes).slot || null, // créneau de livraison choisi par le client
         earnings: o.deliveryFee,
       }
     }))

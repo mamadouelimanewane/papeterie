@@ -63,6 +63,10 @@ await q(`UPDATE "Store" SET password=$1, "walletMoney"=0 WHERE id=$2`, [bcrypt.h
 await q(`INSERT INTO "PromoCode"(id, code, discount, type, status, "updatedAt") VALUES ('promo-e2e','RENTREE2026',15,'Percentage','Active', now()) ON CONFLICT (code) DO NOTHING`)
 const driverReg = await req("POST", "/api/driver/register", { body: { name: "Livreur E2E", email: "livreur-e2e@test.local", phone: "779990000", password: "Livreur-12345", vehicleType: "Moto" } })
 await q(`UPDATE "Driver" SET "approvalStatus"='Approved', status='Online' WHERE email='livreur-e2e@test.local'`)
+// Relance sur la même base : le livreur de test repart d'un solde nul (les contrôles de crédit sont absolus)
+await q(`DELETE FROM "Transaction" WHERE "driverId" IN (SELECT id FROM "Driver" WHERE email='livreur-e2e@test.local')`)
+await q(`UPDATE "Order" SET "driverId"=NULL WHERE "driverId" IN (SELECT id FROM "Driver" WHERE email='livreur-e2e@test.local')`)
+await q(`UPDATE "Driver" SET "walletMoney"=0, earning=0, "totalOrders"=0 WHERE email='livreur-e2e@test.local'`)
 const dl = await req("POST", "/api/driver/login", { body: { email: "livreur-e2e@test.local", password: "Livreur-12345" } })
 const driverToken = dl.json?.token
 const driverId = dl.json?.driver?.id
@@ -291,7 +295,9 @@ ok("meme le bon code est refuse pendant le verrouillage (15 min)", goodAfterLock
 
 // f) livraison offerte au-dessus d'un montant
 await setGeneral({ deliveryFreeAbove: 20000 })
-const big = await order([{ id: pB.id, qty: 10 }], { deliveryLat: 14.7450, deliveryLng: -17.5220 })
+// Article et quantité choisis pour dépasser vraiment le seuil, quel que soit le catalogue local
+const bigP = products.find((p) => p.price >= 2500 && p.stock >= Math.ceil(20000 / p.price) + 2) ?? pB
+const big = await order([{ id: bigP.id, qty: Math.ceil(20000 / bigP.price) }], { deliveryLat: 14.7450, deliveryLng: -17.5220 })
 ok("livraison offerte au-dessus du seuil (20 000 F d'articles)", big.status === 201 && big.json.deliveryFee === 0 && big.json.total === big.json.subtotal, "articles " + big.json?.subtotal + ", livraison " + big.json?.deliveryFee)
 
 // g) retour au tarif fixe : tout fonctionne sans position

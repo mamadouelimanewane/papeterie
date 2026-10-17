@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 
-type Avail = { id: string; _id: string; storeName: string; storeAddress: string; deliveryAddress: string; items: number; distance: string; earnings: number; total: number }
+type Avail = { id: string; _id: string; storeName: string; storeAddress: string; deliveryAddress: string; items: number; distance: string; earnings: number; total: number; slot?: string | null }
 type Active = {
   id: string; _id: string; status: string; storeName: string; storeAddress: string; storePhone: string
   deliveryAddress: string; deliveryGps: { lat: number; lng: number } | null; distanceKm: number | null
-  customerName: string; customerPhone: string; items: { name: string; quantity: number }[]
+  customerName: string; customerPhone: string; slot?: string | null; items: { name: string; quantity: number }[]
   total: number; paymentMethod: string; cashToCollect: number; earnings: number
 }
 type Hist = { orderId: string; total: number; deliveryFee: number; status: string; updatedAt: string; store?: { name: string } }
@@ -191,6 +191,7 @@ export default function LivreurPage() {
                 <p className="mt-2 text-sm">📦 <b>{o.storeName}</b> · {o.storeAddress}</p>
                 <p className="text-sm">📍 {o.deliveryAddress}</p>
                 <p className="mt-1 text-xs text-slate-400">{o.items} article(s) · distance {o.distance} · total {F(o.total)}</p>
+                {o.slot && <p className="mt-1 text-xs font-semibold text-indigo-700">🕐 {o.slot}</p>}
                 <button onClick={() => accept(o)} disabled={busy} className="mt-3 w-full rounded-xl bg-emerald-600 py-3 text-base font-bold text-white disabled:opacity-50">Accepter la course</button>
               </article>
             ))}
@@ -217,6 +218,7 @@ export default function LivreurPage() {
                       <p className="font-semibold text-indigo-700">2 · Livraison{o.distanceKm != null ? ` (${String(o.distanceKm).replace(".", ",")} km)` : ""}</p>
                       <p>{o.deliveryAddress || "Adresse communiquée par le client"}</p>
                       <p className="text-slate-500">👤 {o.customerName}{o.customerPhone ? ` · ${o.customerPhone}` : ""}</p>
+                      {o.slot && <p className="font-semibold text-indigo-700">🕐 {o.slot}</p>}
                     </li>
                   </ol>
                   <p className="mt-2 text-xs text-slate-400">{o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}</p>

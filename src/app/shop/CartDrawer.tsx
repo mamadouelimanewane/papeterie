@@ -23,6 +23,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
   const [method, setMethod] = useState("Versus")
+  const [slots, setSlots] = useState<{ value: string; label: string; full: boolean }[]>([])
+  const [slot, setSlot] = useState("")
   const [result, setResult] = useState<any>(null)
   const [placing, setPlacing] = useState(false)
   const [retrying, setRetrying] = useState(false)
@@ -42,6 +44,8 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
   const [locBusy, setLocBusy] = useState(false)
   const [hits, setHits] = useState<{ label: string; lat: number; lng: number }[]>([])
   useEffect(() => { fetch("/api/shop/config").then((r) => r.json()).then(setCfg).catch(() => setCfg(null)) }, [])
+  // Créneaux de livraison (aucun créneau actif : pas de choix, livraison dès que possible)
+  useEffect(() => { fetch("/api/shop/slots").then((r) => r.json()).then((d) => setSlots(d.slots ?? [])).catch(() => setSlots([])) }, [])
 
   // Client inscrit : pré-remplit nom et téléphone (sans écraser une saisie en cours)
   useEffect(() => {
@@ -122,6 +126,7 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
           items: selectedCart.map((x) => ({ id: x.id, name: x.name, qty: x.qty, components: x.components })),
           address, firstName: name || "Client", phone_number: phone,
           promoCode: promo?.code ?? null,
+          ...(slot ? { deliverySlot: slot } : {}),
           notes: "Commande web (/shop)",
         }),
       })
@@ -215,6 +220,12 @@ export default function CartDrawer({ open, onClose, cart, count, total, dec, inc
                   {!point && !locBusy && <p className="mt-1.5 text-[11px] text-slate-500">Les frais dépendent de la distance : indiquez votre position.</p>}
                   {quoteMsg && <p className="mt-1.5 text-[11px] text-red-600">{quoteMsg}</p>}
                 </div>
+              )}
+              {slots.length > 0 && (
+                <select value={slot} onChange={(e) => setSlot(e.target.value)} aria-label="Créneau de livraison" className="col-span-2 rounded-lg border px-3 py-2 text-sm">
+                  <option value="">Livraison : dès que possible</option>
+                  {slots.map((s) => <option key={s.value} value={s.value} disabled={s.full}>{s.label}{s.full ? " — complet" : ""}</option>)}
+                </select>
               )}
               <select value={method} onChange={(e) => setMethod(e.target.value)} className="col-span-2 rounded-lg border px-3 py-2 text-sm">
                 <option value="Versus">Payer par Wave, Orange Money via Schoolmatik</option>

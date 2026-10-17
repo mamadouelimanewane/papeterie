@@ -1,3 +1,4 @@
+import { orderNotesInfo } from "@/lib/orderDocs"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireDriver, isDriverError } from "@/lib/driverAuth"
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
       items: Array.isArray(o.items) ? (o.items as unknown[]).length : 1,
       // distance boutique -> client enregistrée à la commande (calculée par le serveur) ; « — » si la commande n'a pas de position GPS
       distance: (() => { const d = readDeliveryTag(o.notes).distanceKm; return d === null ? "—" : `${String(d).replace(".", ",")} km` })(),
+      slot: orderNotesInfo(o.notes).slot || null, // créneau de livraison choisi par le client
       earnings: o.deliveryFee || 500, // gain du livreur = frais de livraison
       total: o.total,
     })))
