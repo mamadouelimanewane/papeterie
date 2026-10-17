@@ -11,6 +11,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [forgot, setForgot] = useState<string | null>(null) // null : formulaire « oublié » fermé
+  const [forgotMsg, setForgotMsg] = useState("")
+
+  async function requestReset() {
+    setLoading(true)
+    const r = await fetch("/api/admin-reset/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: forgot }) })
+    const d = await r.json().catch(() => ({}))
+    setLoading(false)
+    if (!r.ok) return setForgotMsg(d.error ?? "Erreur, réessayez.")
+    setForgotMsg(d.mailConfigured
+      ? "Si un compte existe pour cette adresse, un lien valable 1 heure vient d'être envoyé. Pensez à vérifier les courriers indésirables."
+      : "L'envoi d'e-mails n'est pas encore configuré sur le site : demandez au super-administrateur de réinitialiser votre mot de passe (Paramètres › Administrateurs).")
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -114,6 +127,30 @@ export default function LoginPage() {
               {loading ? "Connexion en cours..." : "Se connecter"}
             </button>
           </form>
+
+          {/* Mot de passe oublié : lien de réinitialisation par e-mail */}
+          {forgot === null ? (
+            <button type="button" onClick={() => { setForgot(""); setError("") }} className="mt-4 block w-full text-center text-xs text-gray-500 hover:text-brand-700">
+              Mot de passe oublié ?
+            </button>
+          ) : (
+            <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
+              {forgotMsg ? (
+                <p className="rounded-lg bg-gray-50 p-3 text-xs text-gray-700">{forgotMsg}</p>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-500">Saisissez l&apos;adresse de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+                  <input type="email" placeholder="Adresse e-mail" value={forgot} onChange={(e) => setForgot(e.target.value)} autoCapitalize="none" inputMode="email"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 text-base sm:text-sm text-gray-900 bg-gray-50" />
+                  <button type="button" disabled={loading || !forgot.includes("@")} onClick={requestReset}
+                    className="w-full rounded-lg border border-brand-600 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50">
+                    Recevoir le lien
+                  </button>
+                </>
+              )}
+              <button type="button" onClick={() => { setForgot(null); setForgotMsg("") }} className="block w-full text-center text-xs text-gray-500 hover:text-brand-700">Retour</button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

@@ -22,10 +22,12 @@ export async function GET(req: NextRequest) {
     const storeId = searchParams.get("storeId") ?? ""
     const dateFrom = searchParams.get("dateFrom") ?? ""
     const dateTo = searchParams.get("dateTo") ?? ""
+    const paymentStatus = searchParams.get("paymentStatus") ?? ""
 
     const where: Record<string, unknown> = {}
 
     if (status) where.status = status
+    if (paymentStatus) where.paymentStatus = paymentStatus
     if (storeId) where.storeId = storeId
     if (dateFrom || dateTo) {
       where.createdAt = {

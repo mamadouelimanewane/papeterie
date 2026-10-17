@@ -8,7 +8,7 @@ import { signOut, useSession } from "next-auth/react"
 import { useSidebar } from "@/context/SidebarContext"
 import { useI18n, type Lang } from "@/i18n/I18nProvider"
 
-type Alerts = { pendingOrders: number; pendingDrivers: number; pendingCashouts: number; expiringDocs: number; latest: { id: string; orderId: string; total: number; createdAt: string }[] }
+type Alerts = { pendingOrders: number; pendingDrivers: number; pendingCashouts: number; expiringDocs: number; refunds?: number; latest: { id: string; orderId: string; total: number; createdAt: string }[] }
 
 /** Menu déroulant fermé au clic extérieur / Échap. */
 function useDropdown() {
@@ -57,10 +57,11 @@ export default function Header() {
     else document.documentElement.requestFullscreen?.().catch(() => {})
   }
 
-  const total = alerts ? alerts.pendingOrders + alerts.pendingDrivers + alerts.pendingCashouts + alerts.expiringDocs : 0
+  const total = alerts ? alerts.pendingOrders + alerts.pendingDrivers + alerts.pendingCashouts + alerts.expiringDocs + (alerts.refunds ?? 0) : 0
   const items = alerts ? [
     { n: alerts.pendingOrders, label: "commande(s) en attente", href: "/orders" },
     { n: alerts.pendingDrivers, label: "livreur(s) à approuver", href: "/drivers/pending" },
+    { n: alerts.refunds ?? 0, label: "commande(s) à rembourser", href: "/orders?payment=refund" },
     { n: alerts.pendingCashouts, label: "demande(s) de retrait", href: "/cashout/drivers" },
     { n: alerts.expiringDocs, label: "document(s) expirant bientôt", href: "/drivers/documents" },
   ].filter((i) => i.n > 0) : []

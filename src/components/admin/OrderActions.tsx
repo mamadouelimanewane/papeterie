@@ -29,6 +29,7 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
   const [d, setD] = useState<Detail | null>(null)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [busy, setBusy] = useState(false)
+  const [refund, setRefund] = useState({ method: "Wave", reference: "" })
   const { confirm } = useFeedback()
   const run = useAction()
 
@@ -44,7 +45,7 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
   const client = d.notes?.match(/Client:\s*([^|]+)/)?.[1]?.trim()
   const phone = d.notes?.match(/Tél:\s*([^|]+)/)?.[1]?.trim()
   const paid = PAID.includes(d.paymentStatus)
-  const closed = d.status === "Delivered" || d.status === "Completed" || d.status === "Cancelled"
+  const closed = ["Delivered", "Completed", "Cancelled", "Annule"].includes(d.status)
   // Statuts posés par l'application livreur, ramenés aux étapes affichées
   const ALIAS: Record<string, string> = { Accepted: "Processing", PickedUp: "OnTheWay", Picked: "OnTheWay", Delivering: "OnTheWay", Completed: "Delivered" }
   const stepIdx = STEPS.findIndex((s) => s.status === (ALIAS[d.status] ?? d.status))
@@ -118,13 +119,34 @@ export default function OrderActions({ orderId, onChanged }: { orderId: string; 
         </div>
       </div>
 
+      {/* Paiement reçu alors que le stock n'était plus disponible : à rembourser au client */}
+      {d.paymentStatus === "A rembourser" && (
+        <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-3">
+          <div className="text-xs font-semibold uppercase text-red-700">À rembourser</div>
+          <p className="text-xs text-red-700">Le client a payé mais un article n&apos;était plus en stock. Remboursez-le, puis enregistrez le remboursement ici : il recevra un e-mail de confirmation (s&apos;il a une adresse).</p>
+          <div className="flex flex-wrap gap-2">
+            <select value={refund.method} onChange={(e) => setRefund({ ...refund, method: e.target.value })} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-xs">
+              {["Wave", "Orange Money", "Free Money", "Espèces", "Virement", "Versus"].map((m) => <option key={m}>{m}</option>)}
+            </select>
+            <input value={refund.reference} onChange={(e) => setRefund({ ...refund, reference: e.target.value })} placeholder="Référence (facultatif)" className="min-w-0 flex-1 rounded-lg border border-red-200 bg-white px-2 py-1.5 text-xs" />
+            <button disabled={busy} onClick={async () => {
+              if (!(await confirm({ title: "Confirmer le remboursement ?", message: `Remboursement par ${refund.method}. La commande sera clôturée.`, confirmLabel: "Remboursé" }))) return
+              setBusy(true)
+              const r = await run(() => adminFetch<{ paymentStatus: string; status: string }>(`/api/admin/orders/${d.id}/refund`, { method: "POST", body: refund }), "Remboursement enregistré")
+              setBusy(false)
+              if (r) { setD({ ...d, ...r }); onChanged() }
+            }} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50">Marquer remboursé</button>
+          </div>
+        </div>
+      )}
+
       {/* Paiement */}
       <div className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
         <div>
           <div className="text-xs font-semibold uppercase text-gray-400">Paiement</div>
-          <div className={paid ? "font-semibold text-emerald-600" : "text-amber-600"}>{paid ? "Payé ✓" : "Non payé"} <span className="text-xs text-gray-400">· {d.paymentMethod}</span></div>
+          <div className={paid ? "font-semibold text-emerald-600" : "text-amber-600"}>{paid ? "Payé ✓" : d.paymentStatus === "Rembourse" ? "Remboursé" : d.paymentStatus === "A rembourser" ? "À rembourser" : "Non payé"} <span className="text-xs text-gray-400">· {d.paymentMethod}</span></div>
         </div>
-        {!paid && d.status !== "Cancelled" && (
+        {!paid && !["Cancelled", "Annule"].includes(d.status) && !["A rembourser", "Rembourse"].includes(d.paymentStatus) && (
           <button disabled={busy} onClick={async () => {
             if (await confirm({ title: "Enregistrer le paiement ?", message: "À utiliser pour un paiement en espèces à la livraison (les paiements en ligne sont confirmés automatiquement).", confirmLabel: "Paiement reçu" }))
               patch({ paymentStatus: "Payé" }, "Paiement enregistré")

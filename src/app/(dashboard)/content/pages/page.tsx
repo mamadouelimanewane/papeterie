@@ -16,7 +16,8 @@ const slugify = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowe
 export default function ContentPagesPage() {
   return (
     <CrudPage
-      title="Pages de contenu" icon="📋" itemLabel="une page" source="records/pages" seed={SEED} exportName="pages-contenu"
+      title="Pages de contenu" icon="📋"
+      description="Pages publiques de la boutique : /shop/infos/<slug>. Les slugs cgv, mentions-legales et confidentialite sont liés en bas de la vitrine ; tant qu'ils n'ont pas de contenu, un modèle à compléter est affiché." itemLabel="une page" source="records/pages" seed={SEED} exportName="pages-contenu"
       columns={[
         { key: "title", label: "Titre", className: "px-4 py-3 font-medium text-gray-800" },
         { key: "slug", label: "Slug", render: (r) => <span className="font-mono text-xs text-gray-600">/{String(r.slug ?? "")}</span> },

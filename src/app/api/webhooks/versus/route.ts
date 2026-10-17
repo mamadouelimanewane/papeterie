@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { safeEqual } from "@/lib/auth"
+import { notifyOrderPaid } from "@/lib/orderEmails"
 import { PAID_STATUSES, orderIdFromPaymentReference } from "@/lib/orderPayment"
 import { CANCELLED_STATUSES, REFUND_STATUS, reserveStockAgain, restoreStock } from "@/lib/orderExpiry"
 
@@ -123,6 +124,8 @@ export async function POST(req: Request) {
             userId: existingOrder.userId,
           },
         })
+        // E-mails : confirmation au client, alerte à la boutique (jamais bloquant)
+        await notifyOrderPaid(existingOrder.id)
       }
 
       return NextResponse.json({ success: true, message: "Commande mise a jour" }, { status: 200 })

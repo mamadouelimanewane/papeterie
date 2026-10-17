@@ -310,6 +310,11 @@ export default function ShopPage() {
 
       <footer className="border-t bg-white py-6 text-center text-xs text-slate-400">
         {store.name} - {store.address} - {store.phone}
+        <nav className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
+          <Link href="/shop/infos/cgv" className="hover:text-brand-700 hover:underline">Conditions générales de vente</Link>
+          <Link href="/shop/infos/mentions-legales" className="hover:text-brand-700 hover:underline">Mentions légales</Link>
+          <Link href="/shop/infos/confidentialite" className="hover:text-brand-700 hover:underline">Confidentialité</Link>
+        </nav>
       </footer>
       {count > 0 && <div className="h-20" aria-hidden />}
 

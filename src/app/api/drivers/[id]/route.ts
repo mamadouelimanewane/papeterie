@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { sendEventMail } from "@/lib/mailer"
 import { prisma } from "@/lib/prisma"
 import { isResponse, requireAdminApi, errorResponse } from "@/lib/adminAuth"
 
@@ -30,7 +31,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     for (const key of allowed) {
       if (key in data) update[key] = data[key]
     }
+    const before = "approvalStatus" in update ? await prisma.driver.findUnique({ where: { id }, select: { approvalStatus: true } }) : null
     const driver = await prisma.driver.update({ where: { id }, data: update, omit: { password: true } })
+    // Décision sur le dossier du livreur : il est prévenu par e-mail (s'il en a un)
+    if (before && before.approvalStatus !== driver.approvalStatus) {
+      if (driver.approvalStatus === "Approved") await sendEventMail("driver_approved", driver.email, { name: driver.name })
+      if (driver.approvalStatus === "Rejected") await sendEventMail("driver_rejected", driver.email, { name: driver.name })
+    }
     return NextResponse.json(driver)
   } catch (error) {
     return errorResponse(error, "Erreur serveur", "[api/drivers/[id]]")

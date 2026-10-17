@@ -8,13 +8,14 @@ export async function GET(req: NextRequest) {
   if (isResponse(auth)) return auth
   try {
     const in30days = new Date(Date.now() + 30 * 86_400_000)
-    const [pendingOrders, pendingDrivers, pendingCashouts, expiringDocs, latest] = await Promise.all([
+    const [pendingOrders, pendingDrivers, pendingCashouts, expiringDocs, refunds, latest] = await Promise.all([
       prisma.order.count({ where: { status: "Pending" } }),
       prisma.driver.count({ where: { approvalStatus: "Pending" } }),
       prisma.transaction.count({ where: { type: "Retrait", status: "Pending" } }),
       prisma.driverDocument.count({ where: { expiresAt: { lte: in30days } } }),
+      prisma.order.count({ where: { paymentStatus: "A rembourser" } }),
       prisma.order.findMany({ where: { status: "Pending" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, orderId: true, total: true, createdAt: true } }),
     ])
-    return NextResponse.json({ pendingOrders, pendingDrivers, pendingCashouts, expiringDocs, latest })
+    return NextResponse.json({ pendingOrders, pendingDrivers, pendingCashouts, expiringDocs, refunds, latest })
   } catch (e) { return errorResponse(e) }
 }

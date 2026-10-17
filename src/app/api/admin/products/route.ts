@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isResponse, errorResponse } from "@/lib/adminAuth"
 import type { Prisma } from "@prisma/client"
+import { parseProduct } from "@/lib/merchantApi"
+import { getActiveStoreId } from "@/lib/store"
 
 /** Catalogue (toutes boutiques) pour le back-office : recherche, filtre par catégorie / photo, pagination. */
 export async function GET(req: NextRequest) {
@@ -34,7 +36,7 @@ export async function GET(req: NextRequest) {
         orderBy: [{ category: "asc" }, { name: "asc" }],
         skip: (page - 1) * perPage,
         take: perPage,
-        select: { id: true, name: true, price: true, stock: true, category: true, image: true, status: true, barcode: true, store: { select: { name: true } } },
+        select: { id: true, name: true, price: true, stock: true, category: true, description: true, image: true, status: true, barcode: true, store: { select: { name: true } } },
       }),
       prisma.product.count({ where }),
       prisma.product.findMany({ where: { category: { not: null } }, distinct: ["category"], select: { category: true }, orderBy: { category: "asc" } }),
@@ -43,5 +45,26 @@ export async function GET(req: NextRequest) {
       products, total, page, perPage, totalPages: Math.max(1, Math.ceil(total / perPage)),
       categories: categories.map((c) => c.category).filter(Boolean),
     })
+  } catch (e) { return errorResponse(e) }
+}
+
+/** Création d'un produit dans la boutique active : { name, price, stock, category, description, status, barcode }. */
+export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req, "stores.manage")
+  if (isResponse(auth)) return auth
+  try {
+    const b = await req.json().catch(() => ({}))
+    const parsed = parseProduct(b, false)
+    if (typeof parsed === "string") return NextResponse.json({ error: parsed }, { status: 400 })
+    const storeId = await getActiveStoreId()
+    if (!storeId) return NextResponse.json({ error: "Aucune boutique active" }, { status: 400 })
+    const product = await prisma.product.create({
+      data: {
+        storeId, name: parsed.name!, price: parsed.price!, stock: parsed.stock ?? 0,
+        category: parsed.category ?? null, description: parsed.description ?? null, image: parsed.image ?? null,
+        status: parsed.status ?? "Active", barcode: b.barcode ? String(b.barcode).trim().slice(0, 64) : null,
+      },
+    })
+    return NextResponse.json(product, { status: 201 })
   } catch (e) { return errorResponse(e) }
 }

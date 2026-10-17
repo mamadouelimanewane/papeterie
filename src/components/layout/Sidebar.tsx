@@ -4,11 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
-  LayoutDashboard, Settings, Tag, Store, FileText, ShoppingCart,
-  Image, Users, Megaphone, Wallet, BarChart2,
-  BarChart, ChevronDown, ChevronRight, LogOut, UserCog, Globe,
-  Bookmark, Bell, DollarSign, Receipt, Package, BookOpen,
-  GraduationCap, ShoppingBag, FolderOpen,
+  LayoutDashboard, Settings, Tag, Store, ShoppingCart,
+  Image, Users, BarChart2, ChevronDown, ChevronRight, LogOut, UserCog,
+  Bookmark, Bell, DollarSign, Receipt, Package, Truck, Backpack,
 } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -32,6 +30,9 @@ type NavItem = {
   children?: NavItem[]
 }
 
+// Menu du back-office : uniquement les écrans réellement utilisés par le site.
+// (Écrans hérités sans effet — pays, zones, créneaux, recharge de portefeuille, méthodes de paiement… —
+// retirés du menu mais toujours accessibles par leur adresse.)
 const navigation: { section: string; items: NavItem[] }[] = [
   {
     section: "",
@@ -40,109 +41,71 @@ const navigation: { section: string; items: NavItem[] }[] = [
     ],
   },
   {
-    section: "CONFIGURATION",
-    items: [
-      {
-        label: "Configuration", icon: <Settings size={16} />,
-        children: [
-          { label: "Pays", href: "/countries", icon: <Globe size={14} /> },
-          { label: "Zone de service", href: "/service-areas", icon: <Globe size={14} /> },
-          { label: "Catégories", href: "/categories", icon: <Tag size={14} /> },
-        ],
-      },
-      { label: "Codes promo", href: "/promo-code", icon: <Tag size={16} /> },
-      { label: "Créneaux de livraison", href: "/service-time-slots", icon: <ShoppingBag size={16} /> },
-    ],
-  },
-  {
     section: "MA BOUTIQUE",
     items: [
-      { label: "Ma boutique", href: "/stores", icon: <Store size={16} /> },
       { label: "Commandes", href: "/orders", icon: <ShoppingCart size={16} /> },
       { label: "Produits", href: "/products", icon: <Package size={16} /> },
+      { label: "Kits par classe", href: "/kits", icon: <Backpack size={16} /> },
+      { label: "Catégories", href: "/categories", icon: <Tag size={16} /> },
       { label: "Factures", href: "/invoices", icon: <Receipt size={16} /> },
       { label: "Bannières accueil", href: "/slider", icon: <Image size={16} /> },
+      { label: "Codes promo", href: "/promo-code", icon: <Tag size={16} /> },
+      { label: "Ma boutique", href: "/stores", icon: <Store size={16} /> },
     ],
   },
   {
-    section: "CATALOGUE SCOLAIRE",
+    section: "LIVREURS",
     items: [
       {
-        label: "Livres scolaires", icon: <BookOpen size={16} />,
+        label: "Livreurs", icon: <Truck size={16} />,
         children: [
-          { label: "Primaire (CI → CM2)", href: "/categories" },
-          { label: "Collège (6ème → 3ème)", href: "/categories" },
-          { label: "Lycée (2nde → Terminale)", href: "/categories" },
-        ],
-      },
-      {
-        label: "Fournitures", icon: <GraduationCap size={16} />,
-        children: [
-          { label: "Cahiers & Blocs", href: "/categories" },
-          { label: "Stylos & Crayons", href: "/categories" },
-          { label: "Matériel de géométrie", href: "/categories" },
-          { label: "Art & Créativité", href: "/categories" },
-          { label: "Sacs & Cartables", href: "/categories" },
-        ],
-      },
-      {
-        label: "Supports de révision", icon: <FolderOpen size={16} />,
-        children: [
-          { label: "Annales & Examens", href: "/categories" },
-          { label: "Dictionnaires", href: "/categories" },
+          { label: "Tous les livreurs", href: "/drivers" },
+          { label: "En attente d'approbation", href: "/drivers/pending" },
+          { label: "Refusés", href: "/drivers/rejected" },
+          { label: "Documents", href: "/drivers/documents" },
+          { label: "Carte en direct", href: "/map/driver" },
         ],
       },
     ],
   },
   {
-    section: "GESTION UTILISATEURS",
+    section: "CLIENTS",
     items: [
       { label: "Clients", href: "/users", icon: <Users size={16} /> },
-    ],
-  },
-  {
-    section: "CONTENU & MARKETING",
-    items: [
-      {
-        label: "Gestion du contenu", icon: <Bookmark size={16} />,
-        children: [
-          { label: "Pages", href: "/content/pages" },
-          { label: "FAQ", href: "/content/faqs" },
-          { label: "Textes application", href: "/content/app-strings" },
-          { label: "Options de paiement", href: "/content/payment-options" },
-        ],
-      },
       { label: "Notifications promo", href: "/notifications", icon: <Bell size={16} /> },
-      { label: "Recharge portefeuille", href: "/wallet", icon: <Wallet size={16} /> },
     ],
   },
   {
-    section: "TRANSACTIONS",
+    section: "FINANCES",
     items: [
       {
-        label: "Demandes de retrait", icon: <DollarSign size={16} />,
+        label: "Retraits", icon: <DollarSign size={16} />,
         children: [
-          { label: "Retrait boutiques", href: "/cashout/stores" },
+          { label: "Retraits boutiques", href: "/cashout/stores" },
+          { label: "Retraits livreurs", href: "/cashout/drivers" },
         ],
       },
-    ],
-  },
-  {
-    section: "RAPPORTS",
-    items: [
       {
-        label: "Revenus", icon: <BarChart2 size={16} />,
+        label: "Rapports", icon: <BarChart2 size={16} />,
         children: [
+          { label: "Revenus de la plateforme", href: "/reports/earnings" },
           { label: "Gains boutiques", href: "/reports/earnings/stores" },
-        ],
-      },
-      {
-        label: "Transactions", icon: <BarChart size={16} />,
-        children: [
+          { label: "Gains livreurs", href: "/reports/earnings/drivers" },
           { label: "Toutes les transactions", href: "/reports/transactions" },
-          { label: "Portefeuille clients", href: "/reports/transactions/user" },
           { label: "Portefeuille boutiques", href: "/reports/transactions/business" },
           { label: "Rapport de solde", href: "/reports/transactions/balance" },
+        ],
+      },
+    ],
+  },
+  {
+    section: "CONTENU",
+    items: [
+      {
+        label: "Pages du site", icon: <Bookmark size={16} />,
+        children: [
+          { label: "Pages (CGV, mentions…)", href: "/content/pages" },
+          { label: "FAQ", href: "/content/faqs" },
         ],
       },
     ],
@@ -151,7 +114,7 @@ const navigation: { section: string; items: NavItem[] }[] = [
     section: "PARAMÈTRES",
     items: [
       {
-        label: "Utilisateurs & rôles", icon: <UserCog size={16} />,
+        label: "Administrateurs", icon: <UserCog size={16} />,
         children: [
           { label: "Tous les admins", href: "/settings/sub-admin" },
           { label: "Ajouter un admin", href: "/settings/sub-admin/new" },
@@ -159,15 +122,12 @@ const navigation: { section: string; items: NavItem[] }[] = [
         ],
       },
       {
-        label: "Paramètres & Config.", icon: <Settings size={16} />,
+        label: "Paramètres", icon: <Settings size={16} />,
         children: [
           { label: "Configuration générale", href: "/settings/configuration" },
-          { label: "Config. email", href: "/settings/configuration/email" },
-          { label: "Modèles email", href: "/settings/configuration/email-templates" },
-          { label: "URLs application", href: "/settings/configuration/app-url" },
-          { label: "Push notifications", href: "/settings/configuration/push-notification" },
-          { label: "Méthodes de paiement", href: "/settings/configuration/payment-method" },
-          { label: "Profil", href: "/settings/profile" },
+          { label: "Envoi des e-mails", href: "/settings/configuration/email" },
+          { label: "Modèles d'e-mail", href: "/settings/configuration/email-templates" },
+          { label: "Mon profil", href: "/settings/profile" },
         ],
       },
     ],

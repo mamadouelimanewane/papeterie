@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plug } from "lucide-react"
+import { Plug, Send } from "lucide-react"
 import SettingsPage from "@/components/admin/SettingsPage"
 import { useFeedback } from "@/components/admin/Feedback"
 import { adminFetch } from "@/lib/adminApi"
@@ -17,7 +17,7 @@ export default function EmailConfigPage() {
   return (
     <SettingsPage
       settingKey="email" title="Configuration e-mail" defaults={DEFAULTS} columns={1}
-      description="Le mot de passe est stocké côté serveur et n'est jamais réaffiché."
+      description="Le mot de passe est stocké côté serveur et n'est jamais réaffiché. Ces réglages servent à envoyer les e-mails du site : confirmation de commande, livraison, mot de passe oublié…"
       sections={[{ title: "Paramètres SMTP", fields: [
         { key: "driver", label: "Service d'envoi", type: "select", required: true, options: [
           { value: "smtp", label: "SMTP" }, { value: "sendgrid", label: "SendGrid" }, { value: "mailgun", label: "Mailgun" }, { value: "ses", label: "Amazon SES" },
@@ -31,6 +31,7 @@ export default function EmailConfigPage() {
         { key: "fromEmail", label: "E-mail de l'expéditeur", type: "email" },
       ] }]}
       extraActions={(v) => (
+        <>
         <button type="button" disabled={testing}
           onClick={async () => {
             setTesting(true)
@@ -42,6 +43,20 @@ export default function EmailConfigPage() {
           className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60">
           <Plug size={14} /> {testing ? "Test en cours…" : "Tester la connexion"}
         </button>
+        <button type="button" disabled={testing}
+          onClick={async () => {
+            const to = window.prompt("Adresse qui recevra l'e-mail de test (enregistrez d'abord vos réglages) :")
+            if (!to) return
+            setTesting(true)
+            try {
+              await adminFetch("/api/admin/tools/email-test", { method: "POST", body: { to } })
+              toast(`E-mail de test envoyé à ${to} : vérifiez la boîte de réception (et les indésirables).`)
+            } catch (e) { toast(e instanceof Error ? e.message : "Erreur", "error") } finally { setTesting(false) }
+          }}
+          className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60">
+          <Send size={14} /> Envoyer un e-mail de test
+        </button>
+        </>
       )}
     />
   )

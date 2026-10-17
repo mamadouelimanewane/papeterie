@@ -79,6 +79,11 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+  // Lien « à rembourser » de la cloche : /orders?payment=refund
+  const [refundOnly, setRefundOnly] = useState(false)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("payment") === "refund") setRefundOnly(true)
+  }, [])
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
   const [page, setPage] = useState(1)
@@ -94,6 +99,7 @@ export default function OrdersPage() {
         perPage: String(perPage),
         ...(search && { search }),
         ...(statusFilter && { status: statusFilter }),
+        ...(refundOnly && { paymentStatus: "A rembourser" }),
         ...(dateFrom && { dateFrom }),
         ...(dateTo && { dateTo }),
       })
@@ -107,12 +113,12 @@ export default function OrdersPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, statusFilter, dateFrom, dateTo])
+  }, [page, search, statusFilter, dateFrom, dateTo, refundOnly])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
   function reset() {
-    setSearch(""); setStatusFilter(""); setDateFrom(""); setDateTo(""); setPage(1)
+    setSearch(""); setStatusFilter(""); setRefundOnly(false); setDateFrom(""); setDateTo(""); setPage(1)
   }
 
   const statusCounts: Record<string, number> = { All: total }
@@ -175,13 +181,17 @@ export default function OrdersPage() {
           return (
             <button
               key={key}
-              onClick={() => { setStatusFilter(key === "All" ? "" : key); setPage(1) }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-full text-white transition-opacity hover:opacity-90 ${statusColors[key]} ${statusFilter === (key === "All" ? "" : key) ? "ring-2 ring-offset-1 ring-current" : ""}`}
+              onClick={() => { setStatusFilter(key === "All" ? "" : key); setRefundOnly(false); setPage(1) }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full text-white transition-opacity hover:opacity-90 ${statusColors[key]} ${!refundOnly && statusFilter === (key === "All" ? "" : key) ? "ring-2 ring-offset-1 ring-current" : ""}`}
             >
-              {labels[key]} <span className="bg-white/25 rounded-full px-1.5">{key === "All" ? total : "—"}</span>
+              {labels[key]} <span className="bg-white/25 rounded-full px-1.5">{key === "All" && !refundOnly ? total : "—"}</span>
             </button>
           )
         })}
+        <button onClick={() => { setRefundOnly(true); setStatusFilter(""); setPage(1) }}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-full text-white bg-red-500 transition-opacity hover:opacity-90 ${refundOnly ? "ring-2 ring-offset-1 ring-current" : ""}`}>
+          À rembourser {refundOnly && <span className="bg-white/25 rounded-full px-1.5">{total}</span>}
+        </button>
       </div>
 
       {/* Table */}

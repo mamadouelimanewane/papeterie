@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { sendEventMail } from "@/lib/mailer"
 import { prisma } from "@/lib/prisma"
 import { clientIp, rateLimit } from "@/lib/ratelimit"
 import bcrypt from "bcryptjs"
@@ -55,6 +56,8 @@ export async function POST(req: Request) {
         signupFrom: "Application",
       },
     })
+
+    await sendEventMail("user_register", user.email, { name: user.name })
 
     const token = sign(
       { id: user.id, userId: user.userId, name: user.name, email: user.email },

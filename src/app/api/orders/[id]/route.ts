@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { hasPerm } from "@/lib/permissions"
 import { assertSessionActive } from "@/lib/mobileSession"
 import { creditDriverForDelivery, DELIVERED, driverTransitionError } from "@/lib/delivery"
+import { notifyOrderDelivered } from "@/lib/orderEmails"
 import { recordFailure, tooManyFailures } from "@/lib/ratelimit"
 import { errorResponse } from "@/lib/adminAuth"
 
@@ -134,6 +135,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Livraison effectuée : le livreur est crédité de ses frais de livraison (une seule fois)
     if (update.status === "Delivered" && !DELIVERED.includes(order.status)) {
       await creditDriverForDelivery(order.id).catch((e) => console.error("[credit-livreur]", e))
+      await notifyOrderDelivered(order.id)
     }
 
     if ((update.status === "Cancelled" || update.status === "Annule") && order.status !== "Cancelled" && order.status !== "Annule") {
